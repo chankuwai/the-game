@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ゲーム一覧</title>
+<style>
+  body {
+    margin: 0;
+    font-family: sans-serif;
+    background: #15171c;
+    color: #f2f2f2;
+  }
+  header {
+    text-align: center;
+    padding: 32px 16px 16px;
+  }
+  h1 { margin: 0; font-size: 26px; letter-spacing: 2px; }
+  header p { color: #9aa0aa; margin-top: 8px; font-size: 14px; }
+  .list {
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 16px;
+    display: grid;
+    gap: 14px;
+  }
+  .card {
+    display: block;
+    padding: 18px 20px;
+    border-radius: 14px;
+    background: #22262e;
+    color: inherit;
+    text-decoration: none;
+    border-left: 6px solid #555;
+  }
+  .card h2 { margin: 0 0 6px; font-size: 20px; }
+  .card p { margin: 0; color: #b8bdc7; font-size: 14px; line-height: 1.5; }
+  .card.play { border-left: 6px solid transparent;
+    border-image: linear-gradient(#e53935, #1e88e5, #fdd835) 1; }
+  .card.play:active { transform: scale(0.98); }
+  .badge {
+    display: inline-block;
+    margin-top: 10px;
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: #e53935;
+    color: #fff;
+  }
+  .card.soon { opacity: 0.5; }
+  .card.soon .badge { background: #555; }
+  footer { text-align: center; color: #666; font-size: 12px; padding: 24px; }
+</style>
+</head>
+<body>
+  <header>
+    <h1>GAME LIST</h1>
+    <p>遊びたいゲームを選んでね</p>
+  </header>
+
+  <main class="list">
+    <a class="card play" href="hyperman.html">
+      <h2>三色！ハイパーマン</h2>
+      <p>赤・青・黄にカラーチェンジして怪獣や宇宙人と戦え。</p>
+      <span class="badge">PLAY</span>
+    </a>
+
+    <div class="card soon">
+      <h2>てやんでえ！ザエモン</h2>
+      <p>小判を投げて千両箱をいただく、歌舞伎者の泥棒アクション。</p>
+      <span class="badge">準備中</span>
+    </div>
+
+    <div class="card soon">
+      <h2>ロボットバトル</h2>
+      <p>ルーレットでパーツを決めて組み立て、全3ステージで戦う。</p>
+      <span class="badge">準備中</span>
+    </div>
+
+    <div class="card soon">
+      <h2>ラーメンゲーム</h2>
+      <p>スープ・麺・具を選んで、ラーメン通の採点に挑め。</p>
+      <span class="badge">準備中</span>
+    </div>
+  </main>
+
+  <footer>© chankuwai</footer>
+</body>
+</html>
