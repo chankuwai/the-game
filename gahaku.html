@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>うろおぼえ画伯</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Yomogi&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+/* Layout: 机の上に置いたスケッチブック1枚。上に進行、中央に紙、下に鉛筆で押すボタン */
+:root{
+  --desk:#e9dfcc; --paper:#fffdf7; --ink:#2b2622; --red:#e0503a; --muted:#85796b; --line:#d6c8b0; --pen:#3a64c8;
+  --hand:"Yomogi","Zen Maru Gothic",cursive;
+  --body:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Hiragino Sans",sans-serif;
+  color-scheme:light;
+}
+html,body{margin:0;height:100%}
+body{background:var(--desk);color:var(--ink);font-family:var(--body);touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+#app{max-width:600px;margin:0 auto;padding:10px 16px 20px;display:flex;flex-direction:column;gap:10px}
+header{display:flex;justify-content:space-between;align-items:center}
+header h1{margin:0;font-family:var(--hand);font-weight:400;font-size:22px}
+header a{color:var(--muted);text-decoration:none;font-size:14px}
+.status{display:flex;justify-content:space-between;font-weight:700;font-size:15px;color:var(--muted)}
+.status b{color:var(--ink)}
+.stage{position:relative;width:min(100%, calc(100dvh - 250px), 560px);min-width:260px;aspect-ratio:1;margin-inline:auto}
+canvas{display:block;width:100%;height:100%;background:var(--paper);border-radius:6px;box-shadow:0 2px 0 var(--line),0 10px 24px rgba(80,60,30,.18);touch-action:none;cursor:crosshair}
+.card{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;text-align:center;background:rgba(255,253,247,.94);border-radius:6px}
+.card[hidden]{display:none}
+.card h2{margin:0;font-family:var(--hand);font-weight:400;font-size:clamp(36px,10vw,54px);line-height:1.1}
+.card h2 span{color:var(--red)}
+.card p{margin:0;line-height:1.8;font-size:15px}
+.card .best{color:var(--muted);font-weight:700;font-size:14px}
+.bar{height:8px;border-radius:4px;background:var(--line);overflow:hidden;width:min(100%, calc(100dvh - 250px), 560px);min-width:260px;margin-inline:auto}
+.bar[hidden],#msg[hidden],.stage[hidden]{display:none}
+.bar i{display:block;height:100%;width:0;background:var(--ink);border-radius:4px}
+#msg{margin:0;text-align:center;font-family:var(--hand);font-size:22px;min-height:1.4em;white-space:pre-line;line-height:1.35}
+.btns{display:flex;justify-content:center;gap:12px;min-height:52px}
+button{font:inherit;font-weight:700;font-size:17px;border:2px solid var(--ink);border-radius:999px;padding:10px 26px;background:var(--paper);color:var(--ink);cursor:pointer;box-shadow:0 3px 0 var(--ink)}
+button:active{transform:translateY(3px);box-shadow:none}
+button.main{background:var(--ink);color:var(--paper)}
+button:focus-visible{outline:3px solid var(--pen);outline-offset:3px}
+#end{display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center}
+#end[hidden]{display:none}
+#end .total{font-family:var(--hand);font-size:56px;line-height:1;margin:6px 0 0}
+#end .total small{font-size:22px;color:var(--muted)}
+#end .rank{font-weight:900;font-size:22px;margin:0}
+#end .rank-msg{margin:0;color:var(--muted)}
+.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:10px;width:100%}
+.gallery figure{margin:0;background:var(--paper);border-radius:4px;padding:6px;box-shadow:0 2px 0 var(--line)}
+.gallery canvas{width:100%;height:auto;aspect-ratio:1;box-shadow:none;border-radius:2px;cursor:default}
+.gallery figcaption{font-size:13px;font-weight:700;display:flex;justify-content:space-between;padding:4px 2px 0}
+.gallery figcaption span{color:var(--muted)}
+.legend{font-size:13px;color:var(--muted);margin:0}
+.legend i{display:inline-block;width:18px;height:4px;border-radius:2px;vertical-align:middle;margin:0 4px 0 10px}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>うろおぼえ画伯</h1>
+    <a href="index.html">← ゲーム一覧</a>
+  </header>
+  <div class="status"><span id="round">全5問</span><span>合計 <b id="total">0</b> 点</span></div>
+  <div class="stage" id="stage">
+    <canvas id="cv" width="600" height="600" aria-label="お絵描きキャンバス"></canvas>
+    <div class="card" id="card">
+      <h2>うろ<span>おぼえ</span><br>画伯</h2>
+      <p>お手本が見えるのは、ほんの一瞬。<br>消えたら、記憶だけを頼りに描き写して。<br>位置と大きさは合わせてから採点するわ。</p>
+      <p class="best" id="best"></p>
+    </div>
+  </div>
+  <section id="end" hidden>
+    <p class="total"><span id="endTotal">0</span><small> / 500点</small></p>
+    <p class="rank" id="rank"></p>
+    <p class="rank-msg" id="rankMsg"></p>
+    <p class="legend"><i style="background:#e0503a;opacity:.6"></i>お手本<i style="background:#2b2622"></i>あなたの絵</p>
+    <div class="gallery" id="gallery"></div>
+  </section>
+  <div class="bar" id="barBox"><i id="bar"></i></div>
+  <p id="msg"></p>
+  <div class="btns" id="btns"></div>
+</div>
+<script>
+'use strict';
+const TAU = Math.PI * 2, S = 600;
+const ROUNDS = 5;
+const SHOW_TIME = [3.0, 2.6, 2.2, 2.0, 1.8];
+const LEVEL = [1, 2, 2, 3, 3];
+const DRAW_TIME = 15;
+const BEST_KEY = 'urooboe_best';
+const INK = '#2b2622', RED = '#e0503a';
+
+const $ = id => document.getElementById(id);
+const cv = $('cv'), ctx = cv.getContext('2d');
+
+/* ---------- お手本の形（0〜1の座標で折れ線） ---------- */
+function arc(cx, cy, rx, ry, a0, a1, n = 48) {
+  const p = [];
+  for (let i = 0; i <= n; i++) { const a = a0 + (a1 - a0) * i / n; p.push([cx + Math.cos(a) * rx, cy + Math.sin(a) * ry]); }
+  return p;
+}
+const circ = (cx, cy, r) => arc(cx, cy, r, r, 0, TAU, 64);
+const loop = a => [...a, a[0]];
+
+const SHAPES = [
+  { name: 'まる', lv: 1, make: () => [circ(.5, .5, .34)] },
+  { name: 'さんかく', lv: 1, make: () => [loop([[.5, .16], [.86, .8], [.14, .8]])] },
+  { name: 'なみ', lv: 1, make: () => {
+    const p = [];
+    for (let i = 0; i <= 120; i++) { const x = .1 + .8 * i / 120; p.push([x, .5 + .14 * Math.sin(i / 120 * 2.5 * TAU)]); }
+    return [p];
+  } },
+  { name: 'ゆきだるま', lv: 1, make: () => [circ(.5, .66, .2), circ(.5, .33, .13)] },
+  { name: 'ハート', lv: 2, make: () => {
+    const p = [];
+    for (let i = 0; i <= 90; i++) {
+      const t = i / 90 * TAU;
+      p.push([.5 + 16 * Math.pow(Math.sin(t), 3) * .022, .47 - (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) * .022]);
+    }
+    return [p];
+  } },
+  { name: 'ほし', lv: 2, make: () => {
+    const p = [];
+    for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * TAU / 10, r = i % 2 ? .16 : .38; p.push([.5 + Math.cos(a) * r, .54 + Math.sin(a) * r]); }
+    return [loop(p)];
+  } },
+  { name: 'いなずま', lv: 2, make: () => [loop([[.6, .1], [.3, .54], [.5, .54], [.38, .9], [.72, .42], [.52, .42], [.66, .1]])] },
+  { name: 'つき', lv: 2, make: () => {
+    const R = .36, outer = arc(.5, .5, R, R, .9, TAU - .9);
+    const P1 = outer[0], P2 = outer[outer.length - 1], ic = [.72, .5];
+    const r = Math.hypot(P1[0] - ic[0], P1[1] - ic[1]);
+    let b1 = Math.atan2(P2[1] - ic[1], P2[0] - ic[0]); const b2 = Math.atan2(P1[1] - ic[1], P1[0] - ic[0]);
+    if (b1 < b2) b1 += TAU;
+    return [[...outer, ...arc(ic[0], ic[1], r, r, b1, b2)]];
+  } },
+  { name: 'いえ', lv: 3, make: () => [
+    loop([[.25, .45], [.75, .45], [.75, .85], [.25, .85]]),
+    [[.18, .47], [.5, .16], [.82, .47]],
+    [[.44, .85], [.44, .64], [.56, .64], [.56, .85]],
+  ] },
+  { name: 'さかな', lv: 3, make: () => [
+    arc(.45, .5, .27, .17, 0, TAU, 64),
+    loop([[.71, .5], [.88, .33], [.88, .67]]),
+    circ(.3, .46, .025),
+  ] },
+  { name: 'うずまき', lv: 3, make: () => {
+    const p = [];
+    for (let i = 0; i <= 200; i++) { const t = i / 200 * 3; p.push([.5 + Math.cos(t * TAU) * (.03 + .11 * t), .5 + Math.sin(t * TAU) * (.03 + .11 * t)]); }
+    return [p];
+  } },
+  { name: 'かさ', lv: 3, make: () => {
+    const w = .7 / 3, top = arc(.5, .45, .35, .35, Math.PI, TAU);
+    const sc = [];
+    for (let i = 2; i >= 0; i--) sc.push(...arc(.15 + w * (i + .5), .45, w / 2, w * .3, 0, -Math.PI, 16));
+    return [[...top, ...sc], [[.5, .45], [.5, .82], ...arc(.44, .82, .06, .06, 0, Math.PI, 16)]];
+  } },
+  { name: 'ねこ', lv: 3, make: () => [
+    circ(.5, .57, .28),
+    [[.27, .43], [.3, .18], [.44, .31]],
+    [[.56, .31], [.7, .18], [.73, .43]],
+    circ(.4, .52, .03), circ(.6, .52, .03),
+    [[.18, .6], [.36, .63]], [[.18, .7], [.36, .67]],
+    [[.82, .6], [.64, .63]], [[.82, .7], [.64, .67]],
+  ] },
+];
+
+/* ---------- 採点 ---------- */
+function resample(poly, step = 4) {
+  if (poly.length === 1) return [poly[0]];
+  const out = [];
+  for (let i = 0; i < poly.length - 1; i++) {
+    const [x1, y1] = poly[i], [x2, y2] = poly[i + 1];
+    const n = Math.max(1, Math.ceil(Math.hypot(x2 - x1, y2 - y1) / step));
+    for (let k = 0; k < n; k++) out.push([x1 + (x2 - x1) * k / n, y1 + (y2 - y1) * k / n]);
+  }
+  out.push(poly[poly.length - 1]);
+  return out;
+}
+function bbox(pts) {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const [x, y] of pts) { if (x < x0) x0 = x; if (y < y0) y0 = y; if (x > x1) x1 = x; if (y > y1) y1 = y; }
+  return { cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, diag: Math.hypot(x1 - x0, y1 - y0) || 1 };
+}
+function avgMin(A, B) {
+  let sum = 0;
+  for (const a of A) {
+    let m = Infinity;
+    for (const b of B) { const dx = a[0] - b[0], dy = a[1] - b[1], d = dx * dx + dy * dy; if (d < m) m = d; }
+    sum += Math.sqrt(m);
+  }
+  return sum / A.length;
+}
+function toPx(polys) { return polys.map(p => p.map(([x, y]) => [x * S, y * S])); }
+
+function judge(target, strokes) {
+  const T = target.flatMap(p => resample(p));
+  const raw = strokes.flatMap(s => resample(s));
+  if (raw.length < 3) return { score: 0, aligned: [] };
+  const bt = bbox(T), bd = bbox(raw);
+  const k = Math.min(2.5, Math.max(.4, bt.diag / bd.diag));
+  const fit = ([x, y]) => [bt.cx + (x - bd.cx) * k, bt.cy + (y - bd.cy) * k];
+  const aligned = strokes.map(s => s.map(fit));
+  const D = raw.map(fit);
+  const d = (avgMin(D, T) + avgMin(T, D)) / 2;
+  return { score: Math.min(100, Math.round(100 * Math.exp(-Math.pow(d / 13, 1.5)))), aligned };
+}
+
+function commentOf(s) {
+  if (s >= 92) return '写真みたい。完璧ね';
+  if (s >= 80) return 'かなり上手';
+  if (s >= 65) return 'いい線いってる';
+  if (s >= 45) return 'なんとなく分かる';
+  if (s >= 25) return '…たぶん、アレよね';
+  return 'これは前衛芸術';
+}
+function rankOf(t) {
+  if (t >= 430) return ['写真記憶の画伯', 'お手本より上手いかもしれないわ。'];
+  if (t >= 340) return ['実力派画伯', '記憶力も筆さばきも安定してる。'];
+  if (t >= 250) return ['期待の新人画伯', '形はしっかり覚えられているわ。'];
+  if (t >= 150) return ['うろおぼえ画伯', 'まさに名前どおりの腕前。'];
+  return ['前衛画伯', '時代があなたに追いついていないだけよ。'];
+}
+
+/* ---------- 音 ---------- */
+let AC = null;
+function audioOn() {
+  if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { AC = null; } }
+  if (AC && AC.state === 'suspended') AC.resume();
+}
+function tone(f, dur, type = 'triangle', vol = .1, delay = 0) {
+  if (!AC) return;
+  const t = AC.currentTime + delay, o = AC.createOscillator(), g = AC.createGain();
+  o.type = type; o.frequency.setValueAtTime(f, t);
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
+  o.connect(g).connect(AC.destination); o.start(t); o.stop(t + dur + .02);
+}
+
+/* ---------- 状態 ---------- */
+let state = 'title', round = 0, total = 0, results = [], order = [];
+let target = null, strokes = [], cur = null, tState = 0, lastCount = 0, result = null;
+let best = 0;
+try { best = parseInt(localStorage.getItem(BEST_KEY) || '0', 10) || 0; } catch (e) { best = 0; }
+
+function setup() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  cv.width = S * dpr; cv.height = S * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+setup();
+
+function setButtons(list) {
+  const box = $('btns'); box.textContent = '';
+  for (const b of list) {
+    const el = document.createElement('button');
+    el.textContent = b.label; if (b.main) el.className = 'main';
+    el.addEventListener('click', () => { audioOn(); b.fn(); });
+    box.appendChild(el);
+  }
+}
+const msg = s => { $('msg').textContent = s; };
+const bar = r => { $('bar').style.width = (Math.max(0, Math.min(1, r)) * 100) + '%'; };
+
+function pickOrder() {
+  const used = new Set();
+  return LEVEL.map(lv => {
+    const pool = SHAPES.filter(s => s.lv === lv && !used.has(s));
+    const s = pool[Math.floor(Math.random() * pool.length)];
+    used.add(s); return s;
+  });
+}
+
+function showTitle() {
+  state = 'title';
+  $('card').hidden = false; $('stage').hidden = false; $('end').hidden = true; $('barBox').hidden = false; $('msg').hidden = false;
+  $('best').textContent = best ? 'ハイスコア ' + best + ' 点' : '';
+  $('round').textContent = '全' + ROUNDS + '問'; $('total').textContent = '0';
+  msg(''); bar(0);
+  setButtons([{ label: 'はじめる', main: true, fn: startGame }]);
+}
+
+function startGame() {
+  round = 0; total = 0; results = []; order = pickOrder();
+  $('card').hidden = true; $('stage').hidden = false; $('end').hidden = true; $('barBox').hidden = false; $('msg').hidden = false;
+  $('total').textContent = '0';
+  nextRound();
+}
+
+function nextRound() {
+  const shape = order[round];
+  target = toPx(shape.make());
+  strokes = []; cur = null; result = null;
+  $('round').textContent = '第' + (round + 1) + '問 / ' + ROUNDS;
+  state = 'ready'; tState = 0; lastCount = 0;
+  msg('よーく見てね'); bar(0);
+  setButtons([]);
+}
+
+function beginDraw() {
+  state = 'draw'; tState = 0;
+  msg('描いて');
+  tone(880, .15);
+  setButtons([
+    { label: 'けす', fn: () => { strokes = []; cur = null; } },
+    { label: 'できた', main: true, fn: finishDraw },
+  ]);
+}
+
+function finishDraw() {
+  if (state !== 'draw') return;
+  if (cur) { strokes.push(cur); cur = null; }
+  result = judge(target, strokes);
+  results.push({ name: order[round].name, target, aligned: result.aligned, score: result.score });
+  total += result.score;
+  state = 'judge'; tState = 0;
+  msg('');
+  bar(0);
+  const last = round === ROUNDS - 1;
+  setButtons([{ label: last ? '結果を見る' : 'つぎへ', main: true, fn: () => { round++; last ? showEnd() : nextRound(); } }]);
+}
+
+function showEnd() {
+  state = 'end';
+  $('stage').hidden = true; $('end').hidden = false; $('barBox').hidden = true; $('msg').hidden = true;
+  $('round').textContent = '結果';
+  $('endTotal').textContent = total;
+  const [r, m] = rankOf(total);
+  const isBest = total > best;
+  if (isBest) { best = total; try { localStorage.setItem(BEST_KEY, String(best)); } catch (e) {} }
+  $('rank').textContent = '称号：' + r;
+  $('rankMsg').textContent = m + (isBest ? '（ハイスコア更新）' : '');
+  msg(''); bar(0);
+  const g = $('gallery'); g.textContent = '';
+  for (const res of results) {
+    const fig = document.createElement('figure');
+    const c = document.createElement('canvas'); c.width = 240; c.height = 240;
+    const x = c.getContext('2d'); x.scale(240 / S, 240 / S);
+    x.fillStyle = '#fffdf7'; x.fillRect(0, 0, S, S);
+    paint(x, res.target, RED, 12, .55);
+    paint(x, res.aligned, INK, 9, 1);
+    const cap = document.createElement('figcaption');
+    const n = document.createElement('span'); n.textContent = res.name;
+    const s = document.createElement('b'); s.textContent = res.score + '点';
+    cap.append(n, s); fig.append(c, cap); g.appendChild(fig);
+  }
+  setButtons([{ label: 'もう一回', main: true, fn: startGame }, { label: 'タイトル', fn: showTitle }]);
+  tone(523, .2); tone(659, .2, 'triangle', .1, .12); tone(784, .4, 'triangle', .1, .24);
+}
+
+/* ---------- 描画 ---------- */
+function paint(c, polys, color, w, alpha) {
+  c.save(); c.globalAlpha = alpha; c.strokeStyle = color; c.fillStyle = color;
+  c.lineWidth = w; c.lineCap = 'round'; c.lineJoin = 'round';
+  for (const p of polys) {
+    if (p.length === 1) { c.beginPath(); c.arc(p[0][0], p[0][1], w / 2, 0, TAU); c.fill(); continue; }
+    c.beginPath(); c.moveTo(p[0][0], p[0][1]);
+    for (let i = 1; i < p.length; i++) c.lineTo(p[i][0], p[i][1]);
+    c.stroke();
+  }
+  c.restore();
+}
+
+function paper() {
+  ctx.fillStyle = '#fffdf7'; ctx.fillRect(0, 0, S, S);
+  ctx.strokeStyle = 'rgba(58,100,200,.08)'; ctx.lineWidth = 1;
+  for (let y = 40; y < S; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(S, y); ctx.stroke(); }
+}
+
+function bigText(s, y, size, color = INK) {
+  ctx.fillStyle = color; ctx.font = `${size}px "Yomogi","Zen Maru Gothic",cursive`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(s, S / 2, y);
+}
+
+function titleDoodle(t) {
+  const polys = toPx(SHAPES[12].make());
+  const all = polys.flatMap(p => p.length);
+  const len = all.reduce((a, b) => a + b, 0);
+  let left = Math.floor(len * ((t * .35) % 1.3));
+  const partial = [];
+  for (const p of polys) { if (left <= 0) break; partial.push(p.slice(0, Math.max(1, Math.min(p.length, left)))); left -= p.length; }
+  paint(ctx, partial, INK, 7, .25);
+}
+
+function draw(t) {
+  paper();
+  if (state === 'title') { titleDoodle(t); return; }
+  if (state === 'ready') {
+    const n = 3 - Math.floor(tState / .5);
+    bigText(String(n), S / 2, 180, 'rgba(43,38,34,.8)');
+    bigText('お題は ひみつ', S / 2 + 140, 26, '#85796b');
+    return;
+  }
+  if (state === 'show') {
+    paint(ctx, target, INK, 8, 1);
+    return;
+  }
+  if (state === 'draw') {
+    paint(ctx, cur ? [...strokes, cur] : strokes, INK, 7, 1);
+    if (!strokes.length && !cur) bigText('ここに描いてね', S / 2, 26, 'rgba(133,121,107,.6)');
+    return;
+  }
+  if (state === 'judge') {
+    const k = Math.min(1, tState / .8);
+    paint(ctx, result.aligned, INK, 7, 1);
+    paint(ctx, target, RED, 12, .55 * k);
+    const shown = Math.round(result.score * Math.min(1, tState / 1.1));
+    const head = 'お題「' + order[round].name + '」 ' + shown + '点';
+    if (tState < 1.1) msg(head);
+    else if (!result.done) {
+      result.done = true;
+      msg(head + '\n' + commentOf(result.score));
+      $('total').textContent = total;
+      tone(result.score >= 65 ? 988 : 523, .25);
+    }
+  }
+}
+
+/* ---------- ループ ---------- */
+let prev = performance.now();
+function frame(now) {
+  const dt = Math.min(.05, (now - prev) / 1000); prev = now;
+  tState += dt;
+  if (state === 'ready') {
+    const n = Math.floor(tState / .5);
+    if (n !== lastCount && n < 3) { lastCount = n; tone(660, .08, 'square', .05); }
+    if (tState >= 1.5) { state = 'show'; tState = 0; msg('おぼえて'); tone(990, .1, 'square', .05); }
+  } else if (state === 'show') {
+    const T = SHOW_TIME[round];
+    bar(1 - tState / T);
+    if (tState >= T) beginDraw();
+  } else if (state === 'draw') {
+    bar(1 - tState / DRAW_TIME);
+    if (tState >= DRAW_TIME) finishDraw();
+  }
+  draw(now / 1000);
+  requestAnimationFrame(frame);
+}
+
+/* ---------- 入力 ---------- */
+function pos(e) {
+  const r = cv.getBoundingClientRect();
+  return [(e.clientX - r.left) / r.width * S, (e.clientY - r.top) / r.height * S];
+}
+cv.addEventListener('pointerdown', e => {
+  if (state !== 'draw') return;
+  e.preventDefault();
+  try { cv.setPointerCapture(e.pointerId); } catch (err) {}
+  cur = [pos(e)];
+});
+cv.addEventListener('pointermove', e => {
+  if (!cur) return;
+  const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+  for (const ev of (evs.length ? evs : [e])) {
+    const p = pos(ev), q = cur[cur.length - 1];
+    if (Math.hypot(p[0] - q[0], p[1] - q[1]) > 2) cur.push(p);
+  }
+});
+const endStroke = () => { if (cur) { strokes.push(cur); cur = null; } };
+cv.addEventListener('pointerup', endStroke);
+cv.addEventListener('pointercancel', endStroke);
+
+showTitle();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
