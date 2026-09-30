@@ -49,7 +49,11 @@ canvas{display:block;width:100%;max-width:100%;aspect-ratio:16/9;border-radius:6
 <body>
 <main class="wrap">
   <header class="top">
-    <h1><i>三色！</i>ハイパーマン</h1>
+    <div style="display:flex;align-items:center;gap:10px;min-width:0">
+      <a class="tg-back tg-inline" href="index.html" aria-label="ゲーム一覧にもどる">← 一覧</a>
+      <button class="tg-auto tg-inline" type="button" aria-pressed="false" aria-label="オートプレイ">AUTO</button>
+      <h1><i>三色！</i>ハイパーマン</h1>
+    </div>
     <button id="snd" class="mini" type="button">音：OFF</button>
   </header>
   <canvas id="game" aria-label="ゲーム画面"></canvas>
@@ -339,9 +343,29 @@ function world(){
   if(game.comboT>0){game.comboT--;}
   if(enemy.stun<=0&&enemy.y>=GY&&game.comboT<50)game.combo=0;
 }
+/* ---------- オートプレイ ---------- */
+let autoHeld=false;
+function autoPilot(){
+  if(!window.tgAuto){if(autoHeld){keys.left=keys.right=keys.guard=false;autoHeld=false;}return;}
+  autoHeld=true;keys.left=keys.right=keys.guard=false;
+  if(game.phase!=='fight'){if(game.t%30===25)pressed.start=true;return;}
+  const h=hero,e=enemy;if(!h||!e||h.stun>0||h.sp)return;
+  const dx=e.x-h.x,d=Math.abs(dx);
+  if(h.meter>=100&&d<260&&!h.atk&&h.y>=GY){pressed.sp=true;return;}
+  for(const s of shots){
+    if(s.owner===e&&Math.abs(s.x-h.x)<150&&Math.sign(h.x-s.x)===Math.sign(s.vx||1)){
+      if(Math.random()<.5)pressed.up=true;else keys.guard=true;return;
+    }
+  }
+  if(e.atk&&d<170&&!h.atk&&Math.random()<.6){keys.guard=true;return;}
+  if(game.t%600===300){const o=['red','blue','yellow'].filter(c=>c!==h.mode);pressed[o[(Math.random()*2)|0]]=true;}
+  if(d>100){if(dx>0)keys.right=true;else keys.left=true;}
+  else if(game.t%7===0){if(Math.random()<.5)pressed.punch=true;else pressed.kick=true;}
+}
 function anyPress(){return pressed.start||pressed.punch||pressed.kick||pressed.sp;}
 function update(){
   game.t++;
+  autoPilot();
   switch(game.phase){
     case 'presents':if(game.t>210||(game.t>20&&anyPress())){game.phase='title';game.t=0;}break;
     case 'title':stepFX();if(game.t%120===0){const o=['red','blue','yellow'];titleHero.mode=o[(o.indexOf(titleHero.mode)+1)%3];rings.push({x:titleHero.x,y:GY-140,r:30,col:MODES[titleHero.mode].col,life:24});}
@@ -602,6 +626,47 @@ function syncUI(){
 let last=performance.now(),acc=0;const STEP=1000/60;
 function frame(now){acc+=Math.min(100,now-last);last=now;while(acc>=STEP){update();acc-=STEP;}draw();syncUI();requestAnimationFrame(frame);}
 requestAnimationFrame(frame);
+})();
+</script>
+<style>
+.tg-back{position:fixed;z-index:2147483647;top:calc(8px + env(safe-area-inset-top,0px));left:calc(8px + env(safe-area-inset-left,0px));
+  display:inline-block;margin:0;padding:6px 12px;border-radius:999px;background:rgba(12,14,24,.72);color:#fff;
+  font:700 13px/1.2 "Hiragino Sans","Yu Gothic",sans-serif;letter-spacing:0;text-decoration:none;border:1px solid rgba(255,255,255,.35);
+  -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);-webkit-tap-highlight-color:transparent}
+.tg-back.tg-inline{position:static;flex:none}
+.top h1{white-space:nowrap}
+#snd{white-space:nowrap;flex:none}
+.top h1{overflow:hidden;text-overflow:ellipsis;min-width:0}
+@media (max-width:480px){.top h1{font-size:.82rem}.top{gap:6px}#snd{padding:6px 9px}}
+.tg-back:hover{background:rgba(12,14,24,.9)}
+.tg-back:focus-visible{outline:2px solid #fff;outline-offset:2px}
+</style>
+<style>
+.tg-auto{position:fixed;z-index:2147483647;top:calc(8px + env(safe-area-inset-top,0px));left:calc(88px + env(safe-area-inset-left,0px));
+  display:inline-block;margin:0;padding:6px 12px;border-radius:999px;background:rgba(12,14,24,.72);color:#fff;cursor:pointer;
+  font:700 13px/1.2 "Hiragino Sans","Yu Gothic",sans-serif;letter-spacing:.06em;border:1px solid rgba(255,255,255,.35);box-shadow:none;
+  -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);-webkit-tap-highlight-color:transparent;transform:none}
+.tg-auto.tg-inline{position:static;flex:none}
+.tg-auto[aria-pressed="true"]{background:#f5c518;color:#1a1400;border-color:#f5c518;animation:tg-auto-pulse 1.2s ease-in-out infinite alternate}
+.tg-auto:focus-visible{outline:2px solid #fff;outline-offset:2px}
+@keyframes tg-auto-pulse{to{box-shadow:0 0 12px rgba(245,197,24,.8)}}
+@media (prefers-reduced-motion:reduce){.tg-auto[aria-pressed="true"]{animation:none}}
+</style>
+<script>
+(function(){
+  window.tgAuto = false;
+  var b = document.querySelector('.tg-auto');
+  if (!b) return;
+  var stop = function(e){ e.stopPropagation(); };
+  ['pointerdown','pointerup','mousedown','touchstart','keydown'].forEach(function(t){ b.addEventListener(t, stop); });
+  b.addEventListener('click', function(e){
+    e.stopPropagation();
+    window.tgAuto = !window.tgAuto;
+    b.setAttribute('aria-pressed', String(window.tgAuto));
+    b.textContent = window.tgAuto ? 'AUTO ON' : 'AUTO';
+    b.blur();
+    window.dispatchEvent(new Event('tgauto'));
+  });
 })();
 </script>
 </body>

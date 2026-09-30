@@ -604,7 +604,7 @@ function glitch(str){
 
 /* ---------- 記録 ---------- */
 function loadRec(){ try{ return JSON.parse(localStorage.getItem('okaerisama-ends')||'[]'); }catch(e){ return []; } }
-function saveRec(id){ try{ const r=loadRec(); if(!r.includes(id)){ r.push(id); localStorage.setItem('okaerisama-ends',JSON.stringify(r)); } }catch(e){} }
+function saveRec(id){ if(window.tgAuto) return; try{ const r=loadRec(); if(!r.includes(id)){ r.push(id); localStorage.setItem('okaerisama-ends',JSON.stringify(r)); } }catch(e){} }
 function renderRec(){
   const r=loadRec(), ul=$('#rec'); ul.innerHTML='';
   ENDS.forEach(([id,k,t])=>{ const li=document.createElement('li'); const got=r.includes(id); li.className=got?('got t-'+k):''; li.textContent=got?(k+'｜'+t):'？？？'; ul.append(li); });
@@ -803,4 +803,74 @@ window.claude?.hot?.ready ? window.claude.hot.ready(boot) : boot(window.claude?.
 })();
 </script>
 
+<script>
+/* ---------- 全体オート：本文を読み終えたら選択肢やサイコロを自動で選ぶ ---------- */
+(function(){
+  const q=sel=>document.querySelector(sel);
+  let pause=0;
+  setInterval(function(){
+    if(!window.tgAuto) return;
+    if(pause>0){ pause--; return; }
+    const title=q('#title-screen');
+    if(title&&!title.hidden){ q('#start').click(); pause=1; return; }
+    const skip=q('#skip');
+    if(skip&&!skip.hidden) return;                      // 本文を表示し終えるまで待つ
+    const box=q('#choices'); if(!box) return;
+    if(box.querySelector('.end')){ const b=box.querySelector('.end .btn:not(.ghost)'); if(b){ pause=3; b.click(); } return; }
+    const cs=[...box.querySelectorAll('.choice')].filter(b=>!b.disabled&&!b.classList.contains('locked'));
+    let b=cs.length?cs[Math.floor(Math.random()*cs.length)]:[...box.querySelectorAll('.btn')].find(x=>!x.disabled);
+    if(!b) return;
+    b.scrollIntoView({block:'center',behavior:'smooth'});
+    b.click(); pause=1;
+  },1400);
+})();
+</script>
+<a class="tg-back" href="index.html" aria-label="ゲーム一覧にもどる">← 一覧</a>
+<style>
+.tg-back{position:fixed;z-index:2147483647;top:calc(8px + env(safe-area-inset-top,0px));left:calc(8px + env(safe-area-inset-left,0px));
+  display:inline-block;margin:0;padding:6px 12px;border-radius:999px;background:rgba(12,14,24,.72);color:#fff;
+  font:700 13px/1.2 "Hiragino Sans","Yu Gothic",sans-serif;letter-spacing:0;text-decoration:none;border:1px solid rgba(255,255,255,.35);
+  -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);-webkit-tap-highlight-color:transparent}
+.tg-back:hover{background:rgba(12,14,24,.9)}
+.tg-back:focus-visible{outline:2px solid #fff;outline-offset:2px}
+</style>
+<button class="tg-auto" type="button" aria-pressed="false" aria-label="オートプレイ">AUTO</button>
+<style>
+.tg-auto{position:fixed;z-index:2147483647;top:calc(8px + env(safe-area-inset-top,0px));left:calc(88px + env(safe-area-inset-left,0px));
+  display:inline-block;margin:0;padding:6px 12px;border-radius:999px;background:rgba(12,14,24,.72);color:#fff;cursor:pointer;
+  font:700 13px/1.2 "Hiragino Sans","Yu Gothic",sans-serif;letter-spacing:.06em;border:1px solid rgba(255,255,255,.35);box-shadow:none;
+  -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);-webkit-tap-highlight-color:transparent;transform:none}
+.tg-auto.tg-inline{position:static;flex:none}
+.tg-auto[aria-pressed="true"]{background:#f5c518;color:#1a1400;border-color:#f5c518;animation:tg-auto-pulse 1.2s ease-in-out infinite alternate}
+.tg-auto:focus-visible{outline:2px solid #fff;outline-offset:2px}
+@keyframes tg-auto-pulse{to{box-shadow:0 0 12px rgba(245,197,24,.8)}}
+@media (prefers-reduced-motion:reduce){.tg-auto[aria-pressed="true"]{animation:none}}
+</style>
+<script>
+(function(){
+  window.tgAuto = false;
+  var b = document.querySelector('.tg-auto');
+  if (!b) return;
+  var stop = function(e){ e.stopPropagation(); };
+  ['pointerdown','pointerup','mousedown','touchstart','keydown'].forEach(function(t){ b.addEventListener(t, stop); });
+  b.addEventListener('click', function(e){
+    e.stopPropagation();
+    window.tgAuto = !window.tgAuto;
+    b.setAttribute('aria-pressed', String(window.tgAuto));
+    b.textContent = window.tgAuto ? 'AUTO ON' : 'AUTO';
+    b.blur();
+    window.dispatchEvent(new Event('tgauto'));
+  });
+})();
+</script>
+<style>
+.tg-bar{position:fixed;z-index:2147483647;top:calc(8px + env(safe-area-inset-top,0px));left:calc(8px + env(safe-area-inset-left,0px));display:flex;gap:8px;align-items:center;pointer-events:none}
+.tg-bar>*{position:static!important;pointer-events:auto}
+</style>
+<script>
+(function(){
+  var bar=document.createElement('div'); bar.className='tg-bar'; document.body.appendChild(bar);
+  document.querySelectorAll('.tg-back:not(.tg-inline),.tg-auto:not(.tg-inline),.tg-snd').forEach(function(el){ bar.appendChild(el); });
+})();
+</script>
 </body></html>
