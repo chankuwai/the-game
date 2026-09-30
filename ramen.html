@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>俺のラーメン道</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#e8eef0;--card:#f7fafb;--ink:#141a33;--muted:#5d6885;--accent:#d63a2f;--accent-ink:#fff;
+  --noren:#1f2d5c;--gold:#e0a526;--line:#c9d4dc;--soft:#dbe5ea;--good:#2f8f5b;--bad:#c0392b;
+  --shadow:0 3px 0 rgba(20,26,51,.12);
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1322;--card:#1a2038;--ink:#f0eee6;--muted:#9aa3c2;--accent:#ff6a55;--accent-ink:#1a0b08;
+    --noren:#2b3d80;--gold:#f2bd3d;--line:#2c3556;--soft:#232a47;--good:#5cc98d;--bad:#ff7a68;
+    --shadow:0 3px 0 rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1322;--card:#1a2038;--ink:#f0eee6;--muted:#9aa3c2;--accent:#ff6a55;--accent-ink:#1a0b08;
+  --noren:#2b3d80;--gold:#f2bd3d;--line:#2c3556;--soft:#232a47;--good:#5cc98d;--bad:#ff7a68;
+  --shadow:0 3px 0 rgba(0,0,0,.35);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Zen Maru Gothic','Hiragino Maru Gothic ProN','Hiragino Sans','Yu Gothic',sans-serif;font-weight:500;line-height:1.55;overflow-x:hidden}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.wrap{max-width:560px;margin:0 auto;padding:0 14px 110px}
+.disp{font-family:'Dela Gothic One','Zen Maru Gothic','Hiragino Sans',sans-serif;font-weight:400}
+.btn{display:block;width:100%;border:0;border-radius:14px;padding:14px 16px;background:var(--accent);color:var(--accent-ink);font-weight:900;font-size:17px;box-shadow:var(--shadow);transition:transform .08s}
+.btn:active{transform:translateY(2px);box-shadow:none}
+.btn.ghost{background:var(--soft);color:var(--ink)}
+.btn[disabled]{opacity:.45}
+.row{display:flex;gap:10px}
+.row .btn{flex:1}
+
+
+/* splash */
+.splash{position:fixed;inset:0;z-index:50;background:#0e1330;display:grid;place-items:center;overflow:hidden;animation:sfade .5s ease-in 2s forwards}
+@keyframes sfade{to{opacity:0}}
+.splash .lg{text-align:center;animation:spop .7s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes spop{from{transform:scale(.3) rotate(-14deg);opacity:0}to{transform:scale(1) rotate(-4deg);opacity:1}}
+.stamp{display:inline-block;transform:rotate(-4deg);background:#d63a2f;color:#fff;border-radius:18px;padding:16px 26px 14px;box-shadow:0 0 0 5px #0e1330,0 0 0 8px #f7e9c4,8px 12px 0 8px rgba(0,0,0,.35)}
+.stamp .za{font-family:'Dela Gothic One',sans-serif;font-size:26px;letter-spacing:.3em;display:block;text-align:left;opacity:.95}
+.stamp .gm{font-family:'Dela Gothic One',sans-serif;font-size:62px;line-height:1.05;letter-spacing:.04em;display:block;text-shadow:4px 4px 0 #8f231b}
+.stamp .pl{display:inline-block;margin-left:10px;color:#f2bd3d;font-size:30px;vertical-align:middle;animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+.splash .tap{position:absolute;bottom:calc(28px + env(safe-area-inset-bottom,0px));left:0;right:0;text-align:center;color:#9aa3c2;font-size:13px}
+
+/* title: noren */
+.title{max-width:560px;margin:0 auto;padding:0 14px 40px;text-align:center}
+.rod{height:10px;background:#5b3a20;border-radius:5px;margin:0 -14px}
+.noren{display:flex;justify-content:center;gap:4px;padding:0 6px}
+.flap{flex:1;max-width:96px;background:var(--noren);color:#fff;border-radius:0 0 8px 8px;padding:18px 0 34px;font-family:'Dela Gothic One',sans-serif;font-size:44px;line-height:1;box-shadow:inset 0 -6px 0 rgba(255,255,255,.12);transform-origin:top center;animation:sway 3.2s ease-in-out infinite}
+.flap:nth-child(2){animation-delay:.25s}.flap:nth-child(3){animation-delay:.5s}.flap:nth-child(4){animation-delay:.75s}
+@keyframes sway{0%,100%{transform:rotate(-1.2deg)}50%{transform:rotate(1.2deg)}}
+.title h1{font-family:'Dela Gothic One',sans-serif;font-weight:400;font-size:40px;margin:22px 0 4px;letter-spacing:.04em}
+.title .lead{color:var(--muted);margin:0 0 6px}
+.title .big{width:250px;max-width:70%;margin:6px auto 0;display:block}
+.counts{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:8px 0 18px}
+.counts span{background:var(--soft);border-radius:999px;padding:3px 11px;font-size:13px;font-weight:700}
+.best{color:var(--muted);font-size:14px;margin-top:12px}
+
+/* generic */
+.pad{padding-top:18px}
+h2.h{font-size:22px;margin:0 0 4px;font-weight:900}
+.sub{color:var(--muted);margin:0 0 14px;font-size:14px}
+.jcard{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px;display:flex;gap:12px;box-shadow:var(--shadow)}
+.av{flex:none;width:58px;height:58px;border-radius:50%;background:var(--soft);display:grid;place-items:center;font-size:32px}
+.jcard b{font-size:17px}
+.jcard .jt{color:var(--muted);font-size:13px}
+.tg{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.tg i{font-style:normal;font-size:12px;padding:1px 8px;border-radius:999px;font-weight:700}
+.tg .l{background:color-mix(in srgb,var(--good) 20%,transparent);color:var(--good)}
+.tg .d{background:color-mix(in srgb,var(--bad) 18%,transparent);color:var(--bad)}
+
+/* build */
+.stepbar{display:flex;gap:4px;padding:12px 0 8px}
+.pip{flex:1;text-align:center;font-size:12px;font-weight:900;padding:4px 0;border-radius:8px;background:var(--soft);color:var(--muted)}
+.pip.done{background:color-mix(in srgb,var(--noren) 22%,var(--soft));color:var(--ink)}
+.pip.on{background:var(--noren);color:#fff}
+.stage{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;gap:6px;align-items:center;padding:4px 0 8px;border-bottom:2px solid var(--line)}
+.bowlbox{flex:1.15;min-width:0}
+.radarbox{flex:1;min-width:0;text-align:center}
+.stage svg{width:100%;height:auto;display:block}
+.hintbtn{border:0;background:var(--soft);border-radius:999px;font-size:11px;font-weight:700;padding:3px 10px;margin-top:2px}
+.sect{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:14px 0 8px}
+.sect h2{margin:0;font-size:22px;font-weight:900}
+.sect p{margin:0;color:var(--muted);font-size:13px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.gh{grid-column:1/-1;font-weight:900;font-size:14px;color:var(--noren);margin:10px 0 0;border-bottom:2px solid var(--line);padding-bottom:2px}
+:root[data-theme="dark"] .gh{color:var(--gold)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .gh{color:var(--gold)}}
+.card{position:relative;text-align:left;background:var(--card);border:2px solid var(--line);border-radius:12px;padding:9px 10px 8px;display:flex;flex-direction:column;gap:1px;min-height:100px;box-shadow:var(--shadow)}
+.card .ce{font-size:26px;line-height:1.1}
+.card .cn{font-weight:900;font-size:15px}
+.card .cd{color:var(--muted);font-size:12px;line-height:1.35}
+.card .cm{margin-top:auto;padding-top:3px;font-size:11px;font-weight:700;color:var(--noren)}
+:root[data-theme="dark"] .card .cm{color:var(--gold)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .card .cm{color:var(--gold)}}
+.card.sel{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--card))}
+.card.sel::after{content:'✓';position:absolute;top:6px;right:8px;width:22px;height:22px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-weight:900;font-size:13px;display:grid;place-items:center}
+.bnav{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--card);border-top:2px solid var(--line);padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px))}
+.bnav .in{max-width:560px;margin:0 auto;display:flex;gap:10px}
+.bnav .btn{padding:12px}
+.bnav .btn.ghost{flex:0 0 32%}
+.toast{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:999px;font-weight:700;font-size:14px;z-index:30;max-width:90%;text-align:center}
+
+/* boil */
+.boil{text-align:center}
+.pot{width:260px;max-width:80%;margin:6px auto}
+.bub{animation:bub 1.1s linear infinite}
+.bub:nth-child(2){animation-delay:.3s}.bub:nth-child(3){animation-delay:.6s}.bub:nth-child(4){animation-delay:.85s}
+@keyframes bub{0%{transform:translateY(0);opacity:.9}100%{transform:translateY(-22px);opacity:0}}
+.stm{animation:stm 2.4s ease-in-out infinite}
+.stm:nth-child(2){animation-delay:.6s}.stm:nth-child(3){animation-delay:1.2s}
+@keyframes stm{0%{transform:translateY(6px);opacity:0}40%{opacity:.7}100%{transform:translateY(-14px);opacity:0}}
+.timer{font-family:'Dela Gothic One',sans-serif;font-size:64px;line-height:1.1;margin:6px 0}
+.timer.fuzzy{filter:blur(6px);opacity:.6}
+.hint{color:var(--muted);font-size:14px;margin:0 0 14px}
+
+/* taste */
+.tprog{display:flex;gap:6px;margin:14px 0}
+.tprog i{flex:1;height:8px;border-radius:4px;background:var(--soft)}
+.tprog i.d{background:var(--noren)}.tprog i.c{background:var(--accent)}
+.eat{text-align:center;padding:36px 0}
+.slurp{font-family:'Dela Gothic One',sans-serif;font-size:48px;animation:slurp .5s ease-in-out infinite alternate}
+@keyframes slurp{from{transform:scale(.94) rotate(-2deg)}to{transform:scale(1.06) rotate(2deg)}}
+.score{font-family:'Dela Gothic One',sans-serif;font-size:72px;line-height:1;color:var(--accent)}
+.score small{font-size:20px;color:var(--muted);margin-left:2px}
+.stars{display:inline-block;font-size:26px;letter-spacing:2px;background:linear-gradient(90deg,var(--gold) var(--p),var(--line) var(--p));-webkit-background-clip:text;background-clip:text;color:transparent}
+.quote{background:var(--card);border-left:6px solid var(--accent);border-radius:8px;padding:12px 14px;margin:12px 0;font-size:16px;font-weight:700}
+.notes{display:flex;flex-wrap:wrap;gap:6px}
+.notes span{font-size:13px;font-weight:700;padding:3px 10px;border-radius:999px}
+.notes .g{background:color-mix(in srgb,var(--good) 18%,transparent);color:var(--good)}
+.notes .b{background:color-mix(in srgb,var(--bad) 16%,transparent);color:var(--bad)}
+
+/* final */
+.rank{text-align:center;padding:10px 0 6px}
+.rank .em{font-size:54px}
+.rank .rn{font-family:'Dela Gothic One',sans-serif;font-size:28px;margin:0}
+.bname{font-weight:900;font-size:17px;text-align:center;margin:0 0 4px}
+.mini{display:flex;align-items:center;gap:10px;background:var(--card);border:2px solid var(--line);border-radius:12px;padding:8px 12px;margin-bottom:8px}
+.mini .av{width:40px;height:40px;font-size:22px}
+.mini b{flex:1}
+.mini .n{font-family:'Dela Gothic One',sans-serif;font-size:26px;color:var(--accent)}
+.recipe{background:var(--soft);border-radius:12px;padding:10px 12px;font-size:14px;margin:10px 0 14px}
+.recipe div{margin:2px 0}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+'use strict';
+/* ===== data ===== */
+const AX=['b','u','s','f','a','r','p','m'];
+const AXN={b:'コク',u:'旨味',s:'塩味',f:'脂',a:'香り',r:'爽やか',p:'辛味',m:'甘み'};
+const TAGJ={pork:'豚',heavy:'こってり',garlic:'にんにく',clear:'澄んだスープ',western:'洋風',yuzu:'柚子',shellfish:'貝',seafood:'魚介',spicy:'辛味',butter:'バター',niboshi:'煮干し',creamy:'クリーミー',cheese:'チーズ',shoyu:'醤油',sesame:'ごま',curry:'カレー',tomato:'トマト',truffle:'トリュフ',classic:'昔ながらの定番',chicken:'鶏'};
+function mk(id,n,e,d,st,tg,o){return Object.assign({id:id,n:n,e:e,d:d,st:st,tg:tg||[]},o||{});}
+
+const SOUPS=[
+mk('shoyu','醤油清湯','🍜','澄んだ王道の一杯',{b:3,u:4,s:2,f:2,a:3,r:5,m:1},['clear','shoyu','classic'],{c:'#b06a2e'}),
+mk('shio','塩清湯','🧂','透明感のある塩味',{b:2,u:4,s:2,f:1,a:2,r:7,m:1},['clear'],{c:'#e9d9a6'}),
+mk('miso','味噌','🥣','発酵の深いコク',{b:6,u:5,s:3,f:3,a:4,r:2,p:1,m:3},['miso'],{c:'#b8692f'}),
+mk('tonkotsu','豚骨','🐖','白濁した濃厚スープ',{b:8,u:6,s:2,f:7,a:3,m:2},['pork','heavy','creamy'],{c:'#efe3c9'}),
+mk('torip','鶏白湯','🐔','ポタージュ状の鶏',{b:7,u:6,s:2,f:5,a:3,r:1,m:2},['chicken','creamy'],{c:'#f1e4c1'}),
+mk('gyokaiton','魚介豚骨','🐟','豚骨と魚介のWスープ',{b:8,u:8,s:3,f:6,a:6,m:2},['pork','seafood','heavy'],{c:'#c69455'}),
+mk('tantan','担々ごま','🌶️','ごまと辛味の重層',{b:7,u:5,s:3,f:5,a:6,p:7,m:3},['spicy','sesame','heavy'],{c:'#c4602a'}),
+mk('ebi','海老','🦐','海老を煮詰めた濃厚出汁',{b:6,u:7,s:2,f:3,a:6,r:2,m:3},['seafood','shrimp','creamy'],{c:'#d9713f'}),
+mk('hamaguri','蛤','🐚','貝の上品な旨味',{b:2,u:8,s:2,f:1,a:3,r:6,m:2},['clear','seafood','shellfish'],{c:'#e6dcc2'}),
+mk('curry','カレー','🍛','スパイスが香る',{b:6,u:4,s:2,f:4,a:8,p:5,m:3},['spicy','curry','western'],{c:'#c48a1f'}),
+mk('tomato','トマト','🍅','酸味と旨味のイタリアン',{b:4,u:6,s:2,f:3,a:5,r:5,m:5},['western','tomato'],{c:'#c9482f'}),
+mk('gyukotsu','牛骨','🐄','深い牛の旨味',{b:6,u:7,s:2,f:4,a:4,r:1,m:2},['beef'],{c:'#b58656'}),
+mk('torichintan','鶏清湯','🪶','雑味のない鶏の出汁',{b:3,u:6,s:2,f:2,a:3,r:5,m:2},['chicken','clear'],{c:'#e0b658'}),
+mk('tonyu','豆乳','🥛','まろやかなクリーム系',{b:5,u:4,s:2,f:3,a:2,r:4,m:4},['creamy','western'],{c:'#efe6d1'})
+];
+const DASHI=[
+mk('niboshi','煮干し','🐟','えぐみと香りの王様',{u:3,a:3,b:1},['niboshi','seafood']),
+mk('yakihoshi','焼き干し','🔥','香ばしく澄んだ魚介',{u:3,a:4},['niboshi','seafood']),
+mk('kombu','昆布','🌊','上品でまろやかな旨味',{u:3,r:1,m:1},['seafood']),
+mk('katsuo','鰹節','🎏','華やかな香り',{u:2,a:3,r:1},['seafood']),
+mk('sabaBushi','鯖節','🐠','力強くコクのある魚介',{u:2,a:2,b:2,f:1},['seafood']),
+mk('shiitake','干し椎茸','🍄','深い森の旨味',{u:3,a:2,b:1},['veg']),
+mk('toriGara','鶏ガラ','🍗','優しく丸い旨味',{u:2,b:2,f:1},['chicken']),
+mk('genkotsu','豚げんこつ','🦴','骨髄の濃いコク',{b:3,u:1,f:2},['pork','heavy']),
+mk('ago','焼きあご','🐦','透明感のある甘い出汁',{u:2,a:3,r:1},['seafood']),
+mk('hotate','帆立貝柱','🦪','甘みと旨味が濃い',{u:3,m:1,r:1},['seafood','shellfish']),
+mk('hoshiebi','干し海老','🍤','香ばしい甘み',{u:2,a:3,m:1},['seafood','shrimp']),
+mk('gyusuji','牛すじ','🥩','じっくり煮出した牛の旨味',{b:2,u:2,f:1},['beef']),
+mk('yasai','香味野菜','🧅','玉ねぎ・人参・生姜',{m:1,a:1,r:1,u:1},['veg'])
+];
+const TARE=[
+mk('shoyuTare','醤油ダレ','🍶','キレのある定番',{s:5,u:1,a:1,m:1},['shoyu']),
+mk('shioTare','塩ダレ','🧂','素材を引き立てる',{s:5,r:1,u:1},[]),
+mk('misoTare','味噌ダレ','🥫','コクと甘みの輪郭',{s:4,b:2,m:1,a:1},['miso']),
+mk('gyosho','魚醤ダレ','🐡','発酵魚介の旨味',{s:5,u:2,a:2},['seafood']),
+mk('shoyuKoi','熟成濃口醤油','🏺','深みと香りが強い',{s:5,u:2,a:2,b:1,m:1},['shoyu']),
+mk('tamari','たまり醤油','🫙','とろみのある濃厚味',{s:4,b:2,u:2,m:1},['shoyu']),
+mk('ponzu','柚子塩ダレ','🍋','爽やかな酸と香り',{s:4,r:3,a:2},['yuzu']),
+mk('karadare','辛味ダレ','🔥','ピリッと刺激',{s:4,p:3,b:1},['spicy']),
+mk('amakuchi','甘口かえし','🍯','まろやかな甘塩っぱさ',{s:4,m:3,u:1},['shoyu'])
+];
+const OILS=[
+mk('toriYu','鶏油','🐣','黄金色のやさしい香り',{f:2,a:2,b:1},['chicken']),
+mk('raayu','ラー油','🌶️','香り高い辛味',{p:3,f:1,a:2},['spicy']),
+mk('goma','ごま油','🌰','香ばしさが立つ',{a:3,f:1},['sesame']),
+mk('seabura','背脂','🥓','甘くて重たい脂',{f:4,b:2,m:1},['pork','heavy']),
+mk('mayu','マー油','🖤','焦がしにんにくの香り',{a:4,f:2,b:1},['garlic']),
+mk('koumi','香味野菜油','🌿','ネギ生姜の爽やかな香り',{a:3,f:1,r:1},[]),
+mk('truffle','トリュフ油','🍄','贅沢で妖艶な香り',{a:5,f:1,b:1},['western','truffle']),
+mk('olive','オリーブ油','🫒','洋風の軽い香り',{a:2,f:1,r:1},['western']),
+mk('niboshiyu','煮干し油','🐟','魚介の香りを追加',{u:2,a:3,f:1},['niboshi'])
+];
+const NOODLES=[
+mk('hosoStr','細ストレート','📏','博多流。パツッとした歯切れ',{},[],{thick:2,t:3.5,c:'#f0d78c'}),
+mk('chijire','細ちぢれ','🌀','スープをよく持ち上げる',{},[],{thick:3,t:4.5,c:'#f0d78c'}),
+mk('chuFuto','中太ちぢれ','〰️','万能。ラーメンの標準',{},[],{thick:5,t:5.5,c:'#f0d78c'}),
+mk('futoStr','太ストレート','🍝','もっちり食べごたえ',{},[],{thick:7,t:7,c:'#f0d78c'}),
+mk('gokubuto','極太','🪢','存在感の塊',{},[],{thick:9,t:8.5,c:'#f0d78c'}),
+mk('hiraawase','平打ち','🎀','幅広でつるつる',{},[],{thick:6,t:6,c:'#f0d78c'}),
+mk('zenryu','全粒粉','🌾','小麦の香りが立つ',{},[],{thick:4,t:5,c:'#c4a069'}),
+mk('tewuchi','手打ち風','🖐️','不揃いで力強い',{},[],{thick:6,t:6,c:'#f0d78c'}),
+mk('komeko','米粉麺','🍚','もちもちで軽やか',{},[],{thick:3,t:4.5,c:'#f3efe4'}),
+mk('tamago','卵麺','🥚','黄色くコシが強い',{},[],{thick:4,t:5,c:'#f4c542'}),
+mk('lowwater','低加水麺','⚡','ポキポキ小麦感',{},[],{thick:3,t:4,c:'#f0d78c'}),
+mk('tagasui','多加水麺','💦','しなやかでのどごし良し',{},[],{thick:5,t:6,c:'#f0d78c'}),
+mk('kombuMen','昆布練り込み麺','🌿','ほのかに磯の香り',{},['seafood'],{thick:4,t:5,c:'#a8bf94'})
+];
+const TOPS=[
+mk('chashuBara','豚バラチャーシュー','🥩','とろける脂身',{b:1,f:1,u:1},['pork'],{cat:'meat'}),
+mk('chashuMomo','低温調理豚モモ','🍖','しっとり赤身',{u:1},['pork'],{cat:'meat'}),
+mk('chashuTori','鶏チャーシュー','🍗','ヘルシーで柔らか',{u:1},['chicken'],{cat:'meat'}),
+mk('aburi','炙りチャーシュー','🔥','香ばしい焼き目',{a:2,f:1},['pork'],{cat:'meat'}),
+mk('karaage','唐揚げ','🍤','ジューシーな鶏',{f:1,u:1},['chicken'],{cat:'meat'}),
+mk('roastBeef','ローストビーフ','🥩','薔薇色の牛',{u:1,f:1},['beef','western'],{cat:'meat'}),
+mk('wonton','ワンタン','🥟','つるんと舌ざわり',{u:1},[],{cat:'meat'}),
+mk('ajitama','味玉','🥚','半熟の黄身',{u:1,m:1},[],{cat:'egg'}),
+mk('ranou','生卵黄','🟡','絡めて濃厚に',{b:2,f:1,m:1},[],{cat:'egg'}),
+mk('menma','メンマ','🎋','コリコリ食感',{a:1},['classic'],{cat:'veg'}),
+mk('negi','刻みネギ','🌱','シャキッと薬味',{r:1,a:1},['classic'],{cat:'veg'}),
+mk('shiranegi','白髪ネギ','🧵','細く爽やか',{r:1,a:1},[],{cat:'veg'}),
+mk('moyashi','もやし','🌿','シャキシャキ',{r:1},[],{cat:'veg'}),
+mk('cabbage','キャベツ','🥬','甘みのある野菜',{m:1,r:1},[],{cat:'veg'}),
+mk('horenso','ほうれん草','🥗','ほろ苦い青菜',{r:1},['classic'],{cat:'veg'}),
+mk('corn','コーン','🌽','ぷちっと甘い',{m:2},[],{cat:'veg'}),
+mk('kikurage','きくらげ','🍄','コリッと食感',{},[],{cat:'veg'}),
+mk('takana','高菜','🥬','ピリ辛の漬物',{p:1,s:1,a:1},[],{cat:'veg'}),
+mk('beniShoga','紅生姜','🫚','さっぱり辛い',{r:1,p:1,a:1},[],{cat:'veg'}),
+mk('pakuchi','パクチー','🌿','エスニックな香り',{a:2,r:1},[],{cat:'veg'}),
+mk('mizuna','水菜','🥬','シャキッと爽快',{r:1},[],{cat:'veg'}),
+mk('miniTomato','ミニトマト','🍅','酸味と甘み',{m:1,r:1},['tomato','western'],{cat:'veg'}),
+mk('nori','海苔','🟩','磯の香り',{a:1,u:1},['classic'],{cat:'sea'}),
+mk('gyofun','魚粉','🐟','追い魚介の香り',{u:2,a:2},['seafood'],{cat:'sea'}),
+mk('kaibashira','貝柱','🦪','ぷりっと甘い',{u:2,m:1},['shellfish','seafood'],{cat:'sea'}),
+mk('wakame','わかめ','🌊','磯の彩り',{u:1,r:1},[],{cat:'sea'}),
+mk('yuzuKawa','柚子皮','🍋','爽やかな香り',{r:2,a:2},['yuzu'],{cat:'flavor'}),
+mk('sansho','山椒','🌿','痺れる香り',{p:1,a:2},[],{cat:'flavor'}),
+mk('karamiso','辛味噌','🌶️','ピリ辛のアクセント',{p:2,s:1,b:1},['spicy'],{cat:'flavor'}),
+mk('garlic','おろしにんにく','🧄','パンチのある香り',{a:2},['garlic'],{cat:'flavor'}),
+mk('agegarlic','揚げニンニク','🧄','香ばしいカリカリ',{a:2,f:1},['garlic'],{cat:'flavor'}),
+mk('sesame','白ごま','⚪','香ばしさを添える',{a:1},['sesame'],{cat:'flavor'}),
+mk('pepper','黒胡椒','⚫','ピリッと引き締め',{p:1,a:1},[],{cat:'flavor'}),
+mk('lemon','レモン','🍋','酸味でさっぱり',{r:2,a:1},[],{cat:'flavor'}),
+mk('naruto','なると','🍥','渦巻きの定番',{},['classic'],{cat:'other'}),
+mk('butter','バター','🧈','コクを足す',{b:2,f:2,a:1},['butter','western'],{cat:'other'}),
+mk('cheese','チーズ','🧀','とろけて濃厚',{b:2,f:1,u:1},['cheese','western'],{cat:'other'}),
+mk('agedama','揚げ玉','🟠','油のコクと食感',{f:1,b:1},[],{cat:'other'})
+];
+const CATN={meat:'肉',egg:'卵',veg:'野菜',sea:'海の幸',flavor:'薬味・香辛料',other:'その他'};
+const STEPS=[
+{key:'soup',title:'スープ',sub:'土台を1つ選ぶ',list:SOUPS,max:1,req:true},
+{key:'dashi',title:'出汁',sub:'最大2つ重ねられる',list:DASHI,max:2,req:false},
+{key:'tare',title:'かえし',sub:'味の輪郭。1つ必須',list:TARE,max:1,req:true},
+{key:'oil',title:'香味油',sub:'仕上げの一滴。なしもあり',list:OILS,max:1,req:false},
+{key:'noodle',title:'麺',sub:'スープに合う麺を選ぶ',list:NOODLES,max:1,req:true},
+{key:'tops',title:'具',sub:'最大6つまで',list:TOPS,max:6,req:false}
+];
+const byId={};[SOUPS,DASHI,TARE,OILS,NOODLES,TOPS].forEach(function(l){l.forEach(function(x){byId[x.id]=x;});});
+
+const JUDGES=[
+{id:'goda',n:'剛田 大蔵',e:'👴',t:'家系ラーメン歴48年',firm:-0.6,
+ ideal:{b:9,u:6,s:6.5,f:8,a:4,r:1,p:2,m:2},w:{b:1,u:.5,s:.7,f:1,a:.3,r:.6,p:.2,m:.4},
+ like:['pork','heavy','garlic'],dis:['clear','western','yuzu'],
+ lt:{pork:'豚の旨味が腹にずしんと来る',heavy:'この重さこそ魂だ',garlic:'にんにくの暴力がたまらん'},
+ dt:{clear:'こんな上品なスープでは物足りん',western:'洋風など求めとらん',yuzu:'ラーメンに柑橘とは何事だ'},
+ hi:'文句なし。うちの厨房を任せたい',mid:'悪くない。だが魂がまだ足りん',lo:'出直してこい'},
+{id:'shira',n:'白鳥 麗華',e:'💁‍♀️',t:'淡麗塩の女王',firm:0,
+ ideal:{b:3,u:8,s:5.5,f:2,a:5,r:7,p:0,m:2},w:{b:.8,u:1,s:.8,f:1,a:.6,r:1,p:1,m:.3},
+ like:['clear','shellfish','yuzu','seafood'],dis:['heavy','spicy','butter'],
+ lt:{clear:'澄んだスープが美しいですわ',shellfish:'貝の旨味が上品に広がりますわ',yuzu:'柚子の香りが心地よいですわ',seafood:'魚介の出汁が繊細ですわ'},
+ dt:{heavy:'こってりは私には重すぎますわ',spicy:'辛味が繊細な味を壊していますわ',butter:'バターの主張が強すぎますわ'},
+ hi:'完璧な一杯ですわ。拍手を送ります',mid:'悪くありませんわ。もう少し繊細に',lo:'残念ですわ。出直しを'},
+{id:'nibo',n:'煮干田 継男',e:'🐟',t:'煮干し至上主義者',firm:-0.5,
+ ideal:{b:5,u:9,s:6,f:3,a:8,r:2,p:1,m:1},w:{b:.5,u:1,s:.6,f:.7,a:1,r:.4,p:.4,m:.5},
+ like:['niboshi','seafood','shoyu'],dis:['western','creamy','cheese'],
+ lt:{niboshi:'煮干しのえぐみと香り、最高だ',seafood:'魚介の重なりが心地いい',shoyu:'醤油ダレが煮干しを立てている'},
+ dt:{western:'洋風が煮干しをかき消している',creamy:'クリーミーさは煮干しの敵だ',cheese:'チーズだと。正気か'},
+ hi:'煮干しは裏切らない。見事だ',mid:'方向性は悪くない。もっと煮干しを信じろ',lo:'煮干しへの愛が足りない'},
+{id:'kara',n:'辛田 唐子',e:'🌶️',t:'激辛女子',firm:0,
+ ideal:{b:7,u:5,s:6,f:5,a:7,r:1,p:9,m:2},w:{b:.7,u:.4,s:.5,f:.5,a:.7,r:.5,p:1,m:.3},
+ like:['spicy','sesame','garlic','curry'],dis:['clear','yuzu'],
+ lt:{spicy:'辛さの奥に旨味があるの最高',sesame:'ごまのコクが辛味を包んでるね',garlic:'ガーリックが背中を押してくる',curry:'スパイスの香りで汗が出るわ'},
+ dt:{clear:'刺激がなさすぎて眠くなる',yuzu:'爽やかさはいらないかな'},
+ hi:'完食。おかわり頼みたいくらい',mid:'まだ辛さの伸びしろがあるよ',lo:'これは辛党には物足りないね'},
+{id:'arata',n:'新田 革',e:'🎧',t:'創作系インフルエンサー',firm:-0.3,
+ ideal:{b:6,u:6,s:5,f:4,a:6,r:4,p:3,m:4},w:{b:.5,u:.5,s:.5,f:.5,a:.8,r:.5,p:.5,m:.7},
+ like:['western','creamy','cheese','tomato','curry','truffle'],dis:['classic'],
+ lt:{western:'洋のエッセンス、アリっすね',creamy:'クリーミーで映えるっす',cheese:'チーズ入り、バズる予感っす',tomato:'トマトの酸味が新鮮っす',curry:'カレーの香りがクセになるっす',truffle:'トリュフ、映えまくりっす'},
+ dt:{classic:'王道すぎて映えないっすね'},
+ hi:'これは投稿確定っす。100万回再生いけるっす',mid:'悪くないけど、もう一捻りほしいっす',lo:'これは映えないっすね'},
+{id:'matsu',n:'松風 清一',e:'🧓',t:'昔ながらの中華そば店主',firm:0,
+ ideal:{b:4,u:6,s:6,f:4,a:5,r:4,p:0,m:2},w:{b:.8,u:.8,s:.9,f:.8,a:.7,r:.7,p:1,m:.5},
+ like:['classic','shoyu','chicken','clear'],dis:['western','heavy','spicy'],
+ lt:{classic:'なるとにメンマ、わかっておるのう',shoyu:'醤油の味が生きておる',chicken:'鶏の優しい旨味じゃな',clear:'澄んだスープは店の顔じゃ'},
+ dt:{western:'洋風はよう分からんのう',heavy:'こってりは胃にもたれるわい',spicy:'辛いのは勘弁じゃ'},
+ hi:'これぞ本物の一杯。うちの暖簾を分けてやろう',mid:'まずまずじゃな。まだ修行が要る',lo:'これはラーメンとは呼べんのう'}
+];
+
+const SYN=[
+[['miso','butter','corn'],9,'味噌・バター・コーン、札幌の黄金トリオ'],
+[['miso','moyashi','cabbage'],6,'味噌に野菜、間違いのない組み合わせ'],
+[['tonkotsu','takana','beniShoga'],8,'高菜と紅生姜が豚骨の脂を切る'],
+[['tonkotsu','hosoStr'],6,'博多流、豚骨に細ストレート麺'],
+[['tonkotsu','mayu','garlic'],8,'熊本風のマー油とにんにくが豚骨を引き立てる'],
+[['shoyu','toriYu','negi','menma'],8,'鶏油が醤油の香りをまとめる王道の中華そば'],
+[['shoyu','niboshi','chuFuto'],8,'煮干し醤油に縮れ麺、香りがよく絡む'],
+[['hamaguri','yuzu'],9,'蛤の旨味に柚子が香る上品な一杯'],
+[['hotate','kombu'],6,'帆立と昆布、旨味の相乗効果'],
+[['shio','yuzu'],5,'塩と柚子、爽やかな相性'],
+[['torichintan','yuzu','mizuna'],7,'鶏清湯に柚子と水菜、透明感がある'],
+[['gyokaiton','gyofun','ajitama'],8,'魚粉と味玉が濃厚Wスープの味方'],
+[['gyokaiton','futoStr'],5,'濃厚魚介に太麺、王道の組み合わせ'],
+[['tantan','hiraawase'],6,'平打ち麺にごまダレがよく絡む'],
+[['tantan','raayu','pakuchi'],5,'辛味とパクチー、エスニックの香り'],
+[['tomato','cheese'],7,'トマトとチーズはイタリアンの黄金コンビ'],
+[['tomato','olive'],4,'トマトにオリーブ油で地中海の風'],
+[['curry','cheese'],5,'カレーにチーズはコクの重ね塗り'],
+[['ebi','hoshiebi'],6,'海老の甘みと香りを凝縮'],
+[['gyukotsu','roastBeef'],6,'牛骨に牛の具、統一感がある'],
+[['ajitama','chashuBara'],3,'味玉とチャーシューの定番コンビ'],
+[['tonyu','shiitake'],5,'豆乳に椎茸の旨味が寄り添う'],
+[['kombu','shioTare'],4,'昆布の旨味で塩がまろやかになる'],
+[['niboshi','niboshiyu'],5,'煮干しを油でも重ねて香りを増幅']
+];
+const CON=[
+[['curry','yuzuKawa'],-6,'カレーと柚子の香りがぶつかっている'],
+[['curry','niboshi'],-5,'煮干しがカレーの香りに埋もれる'],
+[['tomato','niboshi'],-7,'トマトと煮干しが喧嘩している'],
+[['tomato','gyofun'],-5,'魚粉の香りがトマトの酸味と合わない'],
+[['tantan','lemon'],-5,'酸味がごまの風味を壊す'],
+[['shio','seabura'],-4,'繊細な塩に背脂は重すぎる'],
+[['hamaguri','butter'],-4,'バターが蛤の繊細さを消す'],
+[['hamaguri','seabura'],-5,'背脂が貝の旨味を覆い隠す'],
+[['tonyu','niboshi'],-4,'豆乳と煮干しのクセが噛み合わない'],
+[['cheese','niboshi'],-5,'チーズが煮干しの香りを消す'],
+[['cheese','shio'],-3,'チーズが塩スープの澄んだ味を濁す'],
+[['miso','pakuchi'],-3,'パクチーが味噌の風味とぶつかる']
+];
+const RANKS=[
+[92,'伝説の一杯','🏆','全国のラーメン通が行列を作る。文句なしの殿堂入り'],
+[84,'行列必至の名店','🥇','開店前から人が並ぶレベル'],
+[74,'地元で愛される人気店','🥈','常連がつく確かな味'],
+[62,'町中華の安定感','🥉','毎日食べても飽きない普通のおいしさ'],
+[48,'まだ修行が必要','🔰','素材の組み合わせを見直そう'],
+[0,'厨房出禁','💀','審査員が黙って席を立った']
+];
+
+/* ===== state ===== */
+const app=document.getElementById('app');
+const S={screen:'splash',step:0,sel:{soup:[],dashi:[],tare:[],oil:[],noodle:[],tops:[]},judges:[],hint:false,boil:null,results:null,tasteIdx:0,phase:'eat',timer:null,raf:null,best:0};
+try{S.best=parseInt(localStorage.getItem('ramen_dojo_best')||'0',10)||0;}catch(e){}
+
+function pickJudges(){
+  const a=JUDGES.slice();
+  for(let i=a.length-1;i>0;i--){const k=Math.floor(Math.random()*(i+1));const t=a[i];a[i]=a[k];a[k]=t;}
+  S.judges=a.slice(0,3);
+}
+function resetSel(){S.sel={soup:[],dashi:[],tare:[],oil:[],noodle:[],tops:[]};S.step=0;S.boil=null;S.results=null;S.tasteIdx=0;}
+function get1(k){return byId[S.sel[k][0]];}
+function toast(msg){
+  const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);
+  setTimeout(function(){t.remove();},1800);
+}
+
+/* ===== calc ===== */
+function totals(){
+  const t={};AX.forEach(function(a){t[a]=0;});
+  function add(o,k){AX.forEach(function(a){t[a]+=(o.st[a]||0)*k;});}
+  S.sel.soup.forEach(function(i){add(byId[i],1);});
+  S.sel.dashi.forEach(function(i){add(byId[i],.8);});
+  S.sel.tare.forEach(function(i){add(byId[i],1);});
+  S.sel.oil.forEach(function(i){add(byId[i],1);});
+  S.sel.tops.forEach(function(i){add(byId[i],.5);});
+  AX.forEach(function(a){t[a]=Math.max(0,Math.min(10,t[a]));});
+  return t;
+}
+function allIds(){return new Set([].concat(S.sel.soup,S.sel.dashi,S.sel.tare,S.sel.oil,S.sel.noodle,S.sel.tops));}
+function allTags(){
+  const s=new Set();
+  allIds().forEach(function(i){byId[i].tg.forEach(function(g){s.add(g);});});
+  return s;
+}
+function good(t){return {ok:true,t:t};}
+function bad(t){return {ok:false,t:t};}
+
+function analyze(){
+  const t=totals(),ids=allIds(),tags=allTags();
+  const noodle=get1('noodle');
+  /* harmony */
+  let h=72;const hn=[];
+  if(t.s>8.3){h-=14;hn.push(bad('塩味が強すぎる'));}
+  else if(t.s>=5&&t.s<=7.6){h+=8;hn.push(good('塩梅が絶妙'));}
+  else if(t.s<3.5){h-=14;hn.push(bad('味がぼやけている'));}
+  else if(t.s<5){h-=4;hn.push(bad('塩味がやや物足りない'));}
+  if(t.u>=7){h+=6;hn.push(good('旨味が濃密'));}
+  else if(t.u<3.5){h-=10;hn.push(bad('旨味が弱い'));}
+  if(t.f>8.8){h-=8;hn.push(bad('脂が多すぎて重い'));}
+  if(S.sel.dashi.length===0){h-=3;hn.push(bad('出汁の奥行きが足りない'));}
+  if(S.sel.dashi.length===2){h+=3;hn.push(good('二重の出汁で深みが出ている'));}
+  let syn=0,con=0;
+  SYN.forEach(function(r){if(r[0].every(function(i){return ids.has(i);})){syn+=r[1];hn.push(good(r[2]));}});
+  CON.forEach(function(r){if(r[0].every(function(i){return ids.has(i);})){con+=r[1];hn.push(bad(r[2]));}});
+  h+=Math.min(16,syn)+Math.max(-20,con);
+  h=Math.max(0,Math.min(100,h));
+  /* noodle vs soup */
+  const heavy=(t.b+t.f)/2,idealThick=2+heavy*.8,diff=noodle.thick-idealThick;
+  const match=Math.max(0,100-Math.abs(diff)*14);
+  const nn=[];
+  if(diff<-2.5)nn.push(bad('麺が細く、濃厚なスープに負けている'));
+  else if(diff>2.5)nn.push(bad('麺の主張が強すぎてスープが霞む'));
+  else if(Math.abs(diff)<1)nn.push(good('麺とスープの一体感が見事'));
+  /* toppings */
+  const tops=S.sel.tops.map(function(i){return byId[i];}),n=tops.length;
+  const cats={};tops.forEach(function(o){cats[o.cat]=(cats[o.cat]||0)+1;});
+  const nc=Object.keys(cats).length;
+  let ts=60;const tn=[];
+  if(n===0){ts=20;tn.push(bad('具がなくて寂しい丼'));}
+  else if(n===1)ts=45;
+  else if(n===2)ts=58;
+  else if(n<=5){ts=75;tn.push(good('具のバランスが良い'));}
+  else{ts=68;tn.push(bad('盛りすぎ気味'));}
+  if(n>=3&&nc>=3){ts+=12;tn.push(good('具材の種類が豊富'));}
+  else if(n>=3&&nc===2)ts+=5;
+  Object.keys(cats).forEach(function(k){if(cats[k]>=4){ts-=6;tn.push(bad(CATN[k]+'の具が偏っている'));}});
+  ts=Math.max(0,Math.min(100,ts));
+  return {t:t,tags:tags,h:h,hn:hn,match:match,nn:nn,ts:ts,tn:tn,noodle:noodle};
+}
+
+function judgeEval(j,A,boilT){
+  const t=A.t;
+  const dist=AX.reduce(function(s,a){return s+j.w[a]*Math.abs(t[a]-j.ideal[a]);},0);
+  const fit=Math.max(0,100-dist*3.3);
+  const ideal=A.noodle.t+j.firm,diff=boilT-ideal;
+  const acc=Math.max(0,100-Math.abs(diff)*28);
+  const noodleScore=A.match*.55+acc*.45;
+  const notes=[];
+  if(Math.abs(diff)<=.5)notes.push(good('茹で加減が完璧'));
+  else if(diff<-1)notes.push(bad('麺が硬い'));
+  else if(diff>1)notes.push(bad('麺が伸びている'));
+  const lines=[];let lb=0,db=0;
+  j.like.forEach(function(g){if(A.tags.has(g)&&lb<12){lb+=4;lines.push(j.lt[g]);}});
+  j.dis.forEach(function(g){if(A.tags.has(g)&&db>-15){db-=5;lines.push(j.dt[g]);}});
+  const raw=fit*.34+A.h*.22+noodleScore*.24+A.ts*.20+lb+db;
+  const score=Math.max(3,Math.min(99,Math.round(raw)));
+  const verdict=score>=82?j.hi:score>=62?j.mid:j.lo;
+  const quote=lines.slice(0,3).concat([verdict]).join('。')+'。';
+  const all=A.hn.concat(A.nn,A.tn,notes);
+  const sorted=score>=70?all.filter(function(x){return x.ok;}).concat(all.filter(function(x){return !x.ok;})):all.filter(function(x){return !x.ok;}).concat(all.filter(function(x){return x.ok;}));
+  return {j:j,score:score,quote:quote,notes:sorted.slice(0,6),like:lb,dis:db};
+}
+
+function bowlName(t){
+  const soup=get1('soup'),d=S.sel.dashi.map(function(i){return byId[i];});
+  let pre='自慢の';
+  if(t.p>=7)pre='激辛';
+  else if((t.b+t.f)/2>=7.5)pre='濃厚';
+  else if(t.r>=6)pre='淡麗';
+  else if(t.a>=7)pre='香り立つ';
+  else if(t.u>=8)pre='旨味凝縮';
+  return pre+(d.length?d[0].n+'香る':'')+soup.n+'らーめん';
+}
+
+/* ===== svg ===== */
+function bowlSVG(uid){
+  const soup=get1('soup'),noodle=get1('noodle');
+  const sc=soup?soup.c:'#cdbfa8',nc=noodle?noodle.c:'#f0d78c';
+  const tops=S.sel.tops.map(function(i){return byId[i];});
+  const slots=[[58,66],[86,82],[116,84],[144,68],[122,56],[88,54]];
+  let noodles='';
+  if(noodle){
+    [58,66,74,82].forEach(function(y,i){
+      noodles+='<path d="M'+(34+i*3)+' '+y+' q10 -9 20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0" stroke="'+nc+'" stroke-width="3.4" fill="none" stroke-linecap="round"/>';
+    });
+  }
+  let oil='';
+  if(S.sel.oil.length){[[70,72],[100,64],[128,76],[92,86],[142,62]].forEach(function(p){oil+='<ellipse cx="'+p[0]+'" cy="'+p[1]+'" rx="7" ry="2.6" fill="#f2c24a" opacity=".55"/>';});}
+  let tp='';
+  tops.forEach(function(o,i){const p=slots[i];tp+='<text x="'+p[0]+'" y="'+(p[1]+7)+'" font-size="21" text-anchor="middle">'+o.e+'</text>';});
+  let steam='';
+  if(soup){steam='<g class="stmg" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" opacity=".45"><path class="stm" d="M78 34 q-6 -8 0 -16 q6 -8 0 -16"/><path class="stm" d="M100 30 q-6 -8 0 -16 q6 -8 0 -16"/><path class="stm" d="M122 34 q-6 -8 0 -16 q6 -8 0 -16"/></g>';}
+  return '<svg viewBox="0 0 200 150" role="img" aria-label="ラーメンのどんぶり"><defs><clipPath id="cl'+uid+'"><ellipse cx="100" cy="70" rx="76" ry="25"/></clipPath></defs>'
+   +steam
+   +'<path d="M16 70 Q18 132 100 140 Q182 132 184 70 Z" fill="#d63a2f"/>'
+   +'<path d="M24 100 Q100 116 176 100" stroke="#f7e9c4" stroke-width="4" fill="none" opacity=".9"/>'
+   +'<path d="M28 112 Q100 128 172 112" stroke="#f7e9c4" stroke-width="2" fill="none" opacity=".6"/>'
+   +'<rect x="70" y="138" width="60" height="7" rx="3" fill="#a52b22"/>'
+   +'<ellipse cx="100" cy="70" rx="84" ry="30" fill="#f7e9c4"/>'
+   +'<ellipse cx="100" cy="70" rx="76" ry="25" fill="'+sc+'"/>'
+   +'<g clip-path="url(#cl'+uid+')">'+noodles+oil+'</g>'
+   +tp+(soup?'':'<text x="100" y="78" font-size="22" text-anchor="middle" fill="#8b7563">？</text>')
+   +'</svg>';
+}
+function radarSVG(){
+  const t=totals();
+  const pt=function(i,v){const a=(-90+i*45)*Math.PI/180;return [Math.cos(a)*v/10*46,Math.sin(a)*v/10*46];};
+  let grid='';
+  [2.5,5,7.5,10].forEach(function(v){grid+='<polygon points="'+AX.map(function(_,i){return pt(i,v).join(',');}).join(' ')+'" fill="none" stroke="currentColor" stroke-opacity=".18"/>';});
+  let axes='',labels='';
+  AX.forEach(function(a,i){
+    const p=pt(i,10),l=pt(i,13.2);
+    axes+='<line x1="0" y1="0" x2="'+p[0]+'" y2="'+p[1]+'" stroke="currentColor" stroke-opacity=".15"/>';
+    labels+='<text x="'+l[0]+'" y="'+(l[1]+3)+'" font-size="8.5" font-weight="700" text-anchor="middle" fill="currentColor">'+AXN[a]+'</text>';
+  });
+  const poly=AX.map(function(a,i){return pt(i,t[a]).join(',');}).join(' ');
+  let hint='';
+  if(S.hint&&S.judges.length){
+    const avg=AX.map(function(a){return S.judges.reduce(function(s,j){return s+j.ideal[a];},0)/S.judges.length;});
+    hint='<polygon points="'+avg.map(function(v,i){return pt(i,v).join(',');}).join(' ')+'" fill="none" stroke="#e0a526" stroke-width="2" stroke-dasharray="4 3"/>';
+  }
+  return '<svg viewBox="-64 -62 128 124" role="img" aria-label="味のバランス">'+grid+axes+hint
+    +'<polygon points="'+poly+'" fill="#d63a2f" fill-opacity=".38" stroke="#d63a2f" stroke-width="2"/>'+labels+'</svg>';
+}
+
+/* ===== views ===== */
+function vSplash(){
+  return '<div class="splash" data-act="skip"><div class="lg"><div class="stamp"><span class="za">ザ・</span><span class="gm">ゲーム<span class="pl">▶</span></span></div></div><div class="tap">タップでスキップ</div></div>';
+}
+function vTitle(){
+  return '<div class="title"><div class="rod"></div><div class="noren"><div class="flap">俺</div><div class="flap">の</div><div class="flap">麺</div><div class="flap">道</div></div>'
+   +'<h1>俺のラーメン道</h1><p class="lead">一杯を組み立てて、ラーメン通に食べさせろ</p>'
+   +'<div class="counts"><span>スープ '+SOUPS.length+'</span><span>出汁 '+DASHI.length+'</span><span>かえし '+TARE.length+'</span><span>香味油 '+OILS.length+'</span><span>麺 '+NOODLES.length+'</span><span>具 '+TOPS.length+'</span></div>'
+   +'<button class="btn" data-act="start">開店する</button>'
+   +(S.best?'<p class="best">ベストスコア '+S.best+'点</p>':'')+'</div>';
+}
+function vJudges(){
+  return '<div class="wrap pad"><h2 class="h">今日の審査員</h2><p class="sub">3人の平均点が最終スコア。好みを読んで一杯を組もう</p>'
+   +S.judges.map(function(j){
+     return '<div class="jcard"><div class="av">'+j.e+'</div><div><b>'+j.n+'</b><div class="jt">'+j.t+'</div><div class="tg">'
+       +j.like.map(function(g){return '<i class="l">'+TAGJ[g]+'</i>';}).join('')
+       +j.dis.map(function(g){return '<i class="d">'+TAGJ[g]+'</i>';}).join('')+'</div></div></div>';
+   }).join('')
+   +'<p class="sub">緑は好み、赤は苦手。人によって麺の硬さの好みも違う</p>'
+   +'<div class="row"><button class="btn ghost" data-act="rejudge">入れ替える</button><button class="btn" data-act="cook">調理開始</button></div></div>';
+}
+function stat2(o){return AX.filter(function(a){return o.st[a];}).sort(function(x,y){return o.st[y]-o.st[x];}).slice(0,2).map(function(a){return AXN[a]+'+'+o.st[a];}).join('  ');}
+function cardHTML(key,o){
+  const sel=S.sel[key].includes(o.id);
+  let meta;
+  if(key==='noodle'){const d=Math.max(1,Math.round(o.thick/2));meta='太さ '+'●'.repeat(d)+'○'.repeat(5-d);}
+  else meta=stat2(o)||'味は変えない';
+  return '<button class="card'+(sel?' sel':'')+'" data-act="pick" data-key="'+key+'" data-id="'+o.id+'"><span class="ce">'+o.e+'</span><span class="cn">'+o.n+'</span><span class="cd">'+o.d+'</span><span class="cm">'+meta+'</span></button>';
+}
+function listHTML(st){
+  if(st.key!=='tops')return '<div class="grid">'+st.list.map(function(o){return cardHTML(st.key,o);}).join('')+'</div>';
+  let h='<div class="grid">';
+  Object.keys(CATN).forEach(function(c){
+    h+='<div class="gh">'+CATN[c]+'</div>'+TOPS.filter(function(o){return o.cat===c;}).map(function(o){return cardHTML('tops',o);}).join('');
+  });
+  return h+'</div>';
+}
+function stageHTML(){
+  return '<div class="bowlbox">'+bowlSVG('s')+'</div><div class="radarbox">'+radarSVG()+'<button class="hintbtn" data-act="hint">'+(S.hint?'好みを隠す':'審査員の好みを重ねる')+'</button></div>';
+}
+function navHTML(){
+  const last=S.step===STEPS.length-1;
+  return '<div class="in">'+(S.step>0?'<button class="btn ghost" data-act="back">戻る</button>':'')
+   +'<button class="btn" data-act="next">'+(last?'麺を茹でる':'次へ：'+STEPS[S.step+1].title)+'</button></div>';
+}
+function cntText(st){return st.max>1?'選択中 '+S.sel[st.key].length+' / '+st.max:st.sub;}
+function vBuild(){
+  const st=STEPS[S.step];
+  return '<div class="wrap"><div class="stepbar">'+STEPS.map(function(s,i){return '<span class="pip '+(i===S.step?'on':i<S.step?'done':'')+'">'+s.title+'</span>';}).join('')+'</div>'
+   +'<div class="stage" id="stage">'+stageHTML()+'</div>'
+   +'<div class="sect"><h2>'+st.title+'</h2><p id="cnt">'+cntText(st)+'</p></div>'
+   +'<div id="list">'+listHTML(st)+'</div></div><nav class="bnav" id="bnav">'+navHTML()+'</nav>';
+}
+function vBoil(){
+  const n=get1('noodle');
+  return '<div class="wrap pad boil"><h2 class="h">麺を茹でる</h2><p class="hint">'+n.n+'。目安は約'+n.t+'秒。数字は途中で見えなくなる。感覚で上げろ</p>'
+   +'<svg class="pot" viewBox="0 0 260 170" role="img" aria-label="茹で釜"><g class="stmg" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity=".4"><path class="stm" d="M95 50 q-7 -10 0 -20 q7 -10 0 -20"/><path class="stm" d="M130 46 q-7 -10 0 -20 q7 -10 0 -20"/><path class="stm" d="M165 50 q-7 -10 0 -20 q7 -10 0 -20"/></g>'
+   +'<path d="M30 70 L40 150 Q130 168 220 150 L230 70 Z" fill="#8d97a6"/><ellipse cx="130" cy="70" rx="100" ry="24" fill="#b7c0cc"/><ellipse cx="130" cy="72" rx="90" ry="19" fill="#7fb8d6"/>'
+   +'<g fill="#e8f5fb" opacity=".9"><circle class="bub" cx="90" cy="76" r="4"/><circle class="bub" cx="130" cy="70" r="5"/><circle class="bub" cx="165" cy="78" r="4"/><circle class="bub" cx="112" cy="80" r="3"/></g>'
+   +'<rect x="222" y="90" width="30" height="8" rx="4" fill="#5c6472"/></svg>'
+   +'<div class="timer" id="timer">0.0</div>'
+   +'<button class="btn" id="boilBtn" data-act="drop">麺を投入</button></div>';
+}
+function vServe(){
+  const t=totals(),n=get1('noodle');
+  return '<div class="wrap pad"><h2 class="h" style="text-align:center">完成</h2><p class="bname">'+bowlName(t)+'</p>'
+   +'<div style="max-width:300px;margin:0 auto">'+bowlSVG('v')+'</div>'
+   +'<p class="sub" style="text-align:center">茹で時間 '+S.boil.toFixed(1)+'秒（'+n.n+'の目安 '+n.t+'秒）</p>'
+   +'<button class="btn" data-act="serve">審査員に出す</button></div>';
+}
+function stars(score){return '<span class="stars" style="--p:'+score+'%">★★★★★</span>';}
+function vTaste(){
+  const i=S.tasteIdx,j=S.judges[i],r=S.results[i];
+  let h='<div class="wrap pad"><div class="tprog">'+S.judges.map(function(_,k){return '<i class="'+(k<i?'d':k===i?'c':'')+'"></i>';}).join('')+'</div>'
+   +'<div class="jcard"><div class="av">'+j.e+'</div><div><b>'+j.n+'</b><div class="jt">'+j.t+'</div></div></div>';
+  if(S.phase==='eat'){
+    h+='<div class="eat"><div class="slurp">ズズッ…</div><p class="sub">'+j.n+'が試食中</p></div>';
+  }else{
+    h+='<div style="text-align:center"><div class="score"><span data-count="'+r.score+'">0</span><small>点</small></div>'+stars(r.score)+'</div>'
+     +'<div class="quote">'+r.quote+'</div><div class="notes">'+r.notes.map(function(x){return '<span class="'+(x.ok?'g':'b')+'">'+(x.ok?'◎ ':'△ ')+x.t+'</span>';}).join('')+'</div>'
+     +'<div style="height:16px"></div><button class="btn" data-act="nextjudge">'+(i<S.judges.length-1?'次の審査員へ':'総合結果を見る')+'</button>';
+  }
+  return h+'</div>';
+}
+function recipeText(){
+  const nm=function(k){return S.sel[k].map(function(i){return byId[i].e+byId[i].n;}).join('、');};
+  return '<div class="recipe"><div><b>スープ</b> '+nm('soup')+'</div><div><b>出汁</b> '+(nm('dashi')||'なし')+'</div><div><b>かえし</b> '+nm('tare')+'</div><div><b>香味油</b> '+(nm('oil')||'なし')+'</div><div><b>麺</b> '+nm('noodle')+'</div><div><b>具</b> '+(nm('tops')||'なし')+'</div></div>';
+}
+function vFinal(){
+  const avg=Math.round(S.results.reduce(function(s,r){return s+r.score;},0)/S.results.length);
+  const rk=RANKS.find(function(r){return avg>=r[0];});
+  const t=totals();
+  return '<div class="wrap pad"><div class="rank"><div class="em">'+rk[2]+'</div><p class="rn">'+rk[1]+'</p><p class="sub">'+rk[3]+'</p></div>'
+   +'<div style="text-align:center"><div class="score"><span data-count="'+avg+'">0</span><small>点</small></div>'+stars(avg)+'</div>'
+   +(avg>=S.best&&avg===S.newBest?'<p class="best" style="text-align:center;color:var(--accent);font-weight:900">ベストスコア更新</p>':'<p class="best" style="text-align:center">ベストスコア '+S.best+'点</p>')
+   +'<p class="bname" style="margin-top:12px">'+bowlName(t)+'</p><div style="max-width:240px;margin:0 auto">'+bowlSVG('f')+'</div>'
+   +S.results.map(function(r){return '<div class="mini"><div class="av">'+r.j.e+'</div><b>'+r.j.n+'</b><span class="n">'+r.score+'</span></div>';}).join('')
+   +recipeText()
+   +'<div class="row"><button class="btn ghost" data-act="again">同じ審査員で再挑戦</button><button class="btn" data-act="newjudges">新しい審査員で</button></div></div>';
+}
+
+/* ===== render ===== */
+function render(){
+  clearTimeout(S.timer);cancelAnimationFrame(S.raf);
+  const v={splash:vSplash,title:vTitle,judges:vJudges,build:vBuild,boil:vBoil,serve:vServe,taste:vTaste,final:vFinal}[S.screen];
+  app.innerHTML=v();
+  window.scrollTo(0,0);
+  if(S.screen==='splash'){S.timer=setTimeout(function(){S.screen='title';render();},2500);}
+  if(S.screen==='taste'&&S.phase==='eat'){S.timer=setTimeout(function(){S.phase='done';render();},1600);}
+  document.querySelectorAll('[data-count]').forEach(function(el){
+    const to=parseInt(el.dataset.count,10),t0=performance.now();
+    (function step(now){const p=Math.min(1,(now-t0)/800);el.textContent=Math.round(to*p);if(p<1)requestAnimationFrame(step);})(t0);
+  });
+}
+function refreshBuild(){
+  const st=STEPS[S.step];
+  document.getElementById('stage').innerHTML=stageHTML();
+  document.getElementById('bnav').innerHTML=navHTML();
+  document.getElementById('cnt').textContent=cntText(st);
+  document.querySelectorAll('#list .card').forEach(function(c){c.classList.toggle('sel',S.sel[c.dataset.key].includes(c.dataset.id));});
+}
+function pick(key,id){
+  const st=STEPS.find(function(s){return s.key===key;}),arr=S.sel[key],i=arr.indexOf(id);
+  if(i>=0){if(!(st.req&&st.max===1))arr.splice(i,1);}
+  else if(st.max===1)S.sel[key]=[id];
+  else if(arr.length>=st.max){toast(st.title+'は最大'+st.max+'つまで');return;}
+  else arr.push(id);
+  refreshBuild();
+}
+function tick(){
+  const b=S.boil,now=performance.now(),t=(now-b.start)/1000,el=document.getElementById('timer');
+  if(!el)return;
+  if(t<2.5){el.textContent=t.toFixed(1);el.classList.remove('fuzzy');}
+  else{el.textContent='?.?';el.classList.add('fuzzy');}
+  if(t>=15){lift();return;}
+  S.raf=requestAnimationFrame(tick);
+}
+function lift(){
+  cancelAnimationFrame(S.raf);
+  const t=(performance.now()-S.boil.start)/1000;
+  S.boil=t;S.screen='serve';render();
+}
+function startTaste(){
+  const A=analyze();
+  S.results=S.judges.map(function(j){return judgeEval(j,A,S.boil);});
+  const avg=Math.round(S.results.reduce(function(s,r){return s+r.score;},0)/S.results.length);
+  S.newBest=0;
+  if(avg>S.best){S.best=avg;S.newBest=avg;try{localStorage.setItem('ramen_dojo_best',String(avg));}catch(e){}}
+  S.tasteIdx=0;S.phase='eat';S.screen='taste';render();
+}
+
+app.addEventListener('click',function(e){
+  const b=e.target.closest('[data-act]');if(!b)return;
+  const a=b.dataset.act;
+  if(a==='skip'){S.screen='title';render();}
+  else if(a==='start'){pickJudges();S.screen='judges';render();}
+  else if(a==='rejudge'){pickJudges();render();}
+  else if(a==='cook'){resetSel();S.screen='build';render();}
+  else if(a==='pick'){pick(b.dataset.key,b.dataset.id);}
+  else if(a==='hint'){S.hint=!S.hint;document.getElementById('stage').innerHTML=stageHTML();}
+  else if(a==='back'){if(S.step>0){S.step--;render();}}
+  else if(a==='next'){
+    const st=STEPS[S.step];
+    if(st.req&&!S.sel[st.key].length){toast(st.title+'を選んでください');return;}
+    if(S.step<STEPS.length-1){S.step++;render();}
+    else{S.screen='boil';render();}
+  }
+  else if(a==='drop'){
+    S.boil={start:performance.now()};
+    b.textContent='麺を上げる';b.dataset.act='lift';
+    S.raf=requestAnimationFrame(tick);
+  }
+  else if(a==='lift'){lift();}
+  else if(a==='serve'){startTaste();}
+  else if(a==='nextjudge'){
+    if(S.tasteIdx<S.judges.length-1){S.tasteIdx++;S.phase='eat';render();}
+    else{S.screen='final';render();}
+  }
+  else if(a==='again'){resetSel();S.screen='build';render();}
+  else if(a==='newjudges'){pickJudges();resetSel();S.screen='judges';render();}
+});
+render();
+</script>
+</body>
+</html>
