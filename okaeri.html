@@ -58,6 +58,8 @@ h1{position:relative;writing-mode:vertical-rl;font-family:var(--f-title);font-we
 .stat{border:1px solid var(--line);background:var(--night);padding:10px 12px;display:grid;gap:2px}
 .stat span{font-family:var(--f-dot);font-size:12px;color:var(--ash);letter-spacing:.12em}
 .stat strong{font-family:var(--f-dot);font-weight:400;font-size:28px;font-variant-numeric:tabular-nums;line-height:1.2}
+.back-link{display:inline-block;margin-bottom:18px;font-family:var(--f-dot);font-size:13px;letter-spacing:.1em;color:var(--ash);text-decoration:none;border:1px solid var(--line);padding:4px 12px}
+.back-link:hover{color:var(--hozuki);border-color:var(--hozuki)}
 .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 .btn{background:transparent;border:1px solid var(--hozuki);color:var(--hozuki);font-family:var(--f-dot);font-size:15px;letter-spacing:.12em;padding:11px 20px;transition:background .2s,color .2s}
 .btn:hover{background:var(--hozuki);color:var(--ink)}
@@ -155,6 +157,7 @@ h1{position:relative;writing-mode:vertical-rl;font-family:var(--f-title);font-we
 <div id="whispers" aria-hidden="true"></div>
 
 <main class="wrap">
+  <a class="back-link" href="index.html">← ゲーム一覧</a>
   <section id="title-screen">
     <div class="title-col"><h1>おかえりさま</h1></div>
     <div class="title-body">

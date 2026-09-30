@@ -21,6 +21,7 @@ body{font-family:var(--body);padding-inline:16px;padding-block:12px 20px}
 .top h1{font-family:var(--display);font-weight:400;font-size:1.05rem;margin:0;letter-spacing:.04em}
 .top h1 i{font-style:normal;background:linear-gradient(90deg,var(--red),var(--blue),var(--yellow));-webkit-background-clip:text;background-clip:text;color:transparent}
 .mini{font:700 .8rem var(--body);color:var(--dim);background:var(--panel);border:1px solid var(--edge);border-radius:999px;padding:6px 12px;cursor:pointer}
+a.mini{text-decoration:none}
 .mini:focus-visible,.pad button:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
 canvas{display:block;width:100%;max-width:100%;aspect-ratio:16/9;border-radius:6px;background:#000;touch-action:none;cursor:pointer}
 .pad{display:grid;grid-template-columns:auto auto;grid-template-areas:"colors colors" "dpad acts";justify-content:space-between;gap:14px;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
@@ -49,6 +50,7 @@ canvas{display:block;width:100%;max-width:100%;aspect-ratio:16/9;border-radius:6
 <body>
 <main class="wrap">
   <header class="top">
+    <a class="mini" href="index.html">← 一覧</a>
     <h1><i>三色！</i>ハイパーマン</h1>
     <button id="snd" class="mini" type="button">音：OFF</button>
   </header>

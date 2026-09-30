@@ -24,6 +24,8 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;paddin
 button:focus-visible,textarea:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .app{max-width:560px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;position:relative}
 .top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;align-items:center;gap:12px;padding:10px 16px;background:color-mix(in srgb,var(--lacquer) 92%,transparent);backdrop-filter:blur(6px);border-bottom:1px solid var(--rule)}
+.back-link{font-size:13px;color:var(--paper-dim);text-decoration:none;border:1px solid var(--rule);border-radius:99px;padding:1px 10px;white-space:nowrap}
+.back-link:hover{color:var(--gold);border-color:var(--gold-dim)}
 .top .brand{font-family:var(--f-display);font-weight:800;letter-spacing:.12em;font-size:17px;color:var(--gold)}
 .top .cur{margin-left:auto;display:flex;gap:12px;font-size:13px;font-variant-numeric:tabular-nums;color:var(--paper-dim)}
 .top .cur b{color:var(--paper);font-weight:700}
@@ -832,7 +834,7 @@ function render(){
   const tabs = [['home','庵','ホーム'],['party','契','仲間'],['explore','探','探索'],['fuse','合','合体'],['summon','召','召喚・店'],['dex','鑑','図鑑']];
   const body = {home:viewHome, party:viewParty, explore:viewExplore, fuse:viewFuse, summon:viewSummon, dex:viewDex}[UI.tab]();
   app.innerHTML = `
-<header class="top"><span class="brand">異界契約録</span><span class="tod">${isNight()?'夜':'昼'}</span>
+<header class="top"><a class="back-link" href="index.html">← 一覧</a><span class="brand">異界契約録</span><span class="tod">${isNight()?'夜':'昼'}</span>
 <span class="cur"><span>両 <b>${S.gold}</b></span><span>霊符 <b>${S.fu}</b></span></span></header>
 <main>${body}</main>
 <nav class="tabs"><div class="tabs-in">${tabs.map(([k,i,l])=>`<button class="tab" data-a="tab:${k}" aria-current="${UI.tab===k}"><i>${i}</i>${l}</button>`).join('')}</div></nav>`;
@@ -843,6 +845,7 @@ function renderModal(){ $('#modal-root').innerHTML = UI.modal ? `<div class="mod
 function viewStart(){
   const starters = ['MON001','MON002','MON005'];
   return `<main style="padding-bottom:40px">
+<a class="back-link" href="index.html" style="align-self:flex-start">← ゲーム一覧</a>
 <div class="start"><div class="vtitle">異界契約録</div>
 <div class="sec"><p class="eyebrow">プロローグ</p>
 <p class="lore">人間界と「異界」が少しずつ溶け合い始めた。廃れた神社に、森に、洞窟に、妖怪と悪魔と幻獣が現れる。</p>

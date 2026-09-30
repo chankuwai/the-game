@@ -28,6 +28,8 @@ canvas{display:block;width:min(100%, calc((100dvh - 170px) * 16 / 9));max-width:
 .pad #bMelee{background:#3a2c0e;border-color:var(--kin)}
 .pad #bMelee.on{background:#8a6414}
 .pad button:focus-visible{outline:2px solid var(--kin);outline-offset:3px}
+.back-link{align-self:center;color:var(--muted);font-size:13px;text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:6px 14px}
+.back-link:hover{color:var(--ink);border-color:var(--kin)}
 .hint{text-align:center;color:var(--muted);font-size:12px;letter-spacing:.04em}
 @media (hover:hover) and (pointer:fine){ .pad{display:none} }
 </style>
@@ -50,6 +52,7 @@ canvas{display:block;width:min(100%, calc((100dvh - 170px) * 16 / 9));max-width:
     </div>
   </div>
   <p class="hint">キーボード：← → 移動 ／ X・スペース ジャンプ ／ Z 小判投げ ／ C 煙管で叩く ／ Enter 開始</p>
+  <a class="back-link" href="index.html">← ゲーム一覧へ</a>
 </div>
 
 <script>
