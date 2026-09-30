@@ -1,0 +1,1285 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>異界契約録</title>
+<meta name="description" content="妖怪・悪魔・幻獣と契約し、育て、戦わせ、合体させるクリーチャー収集RPGのプロトタイプ">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<style>
+/* Layout: 漆の地に金の罫を引いた一列の携帯型ゲーム盤。クリーチャーは属性色の「札（ふだ）」として並ぶ。単一の夜の世界観で固定する */
+:root{
+  --lacquer:#0e1613; --lacquer-2:#15201c; --lacquer-3:#1d2a25; --rule:#2d3d36;
+  --paper:#ebe4d0; --paper-dim:#a3a797; --gold:#caa55d; --gold-dim:#7f6c42;
+  --danger:#d4583f; --ok:#79b388; --mp:#6a97cc;
+  --f-display:"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;
+  --r:6px;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--lacquer);color:var(--paper);font-family:var(--f-body);font-size:15px;line-height:1.6;-webkit-tap-highlight-color:transparent}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.06;
+  background-image:radial-gradient(circle at 50% 100%, transparent 58%, var(--gold) 59%, transparent 62%, transparent 70%, var(--gold) 71%, transparent 74%);
+  background-size:44px 22px}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+button:focus-visible,textarea:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.app{max-width:560px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;position:relative}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;align-items:center;gap:12px;padding:10px 16px;background:color-mix(in srgb,var(--lacquer) 92%,transparent);backdrop-filter:blur(6px);border-bottom:1px solid var(--rule)}
+.top .brand{font-family:var(--f-display);font-weight:800;letter-spacing:.12em;font-size:17px;color:var(--gold)}
+.top .cur{margin-left:auto;display:flex;gap:12px;font-size:13px;font-variant-numeric:tabular-nums;color:var(--paper-dim)}
+.top .cur b{color:var(--paper);font-weight:700}
+.tod{font-size:12px;padding:1px 8px;border:1px solid var(--rule);border-radius:99px;color:var(--paper-dim)}
+main{flex:1;padding-inline:16px;padding-block:16px 96px;display:flex;flex-direction:column;gap:20px}
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--lacquer-2);border-top:1px solid var(--rule);padding-bottom:env(safe-area-inset-bottom,0px)}
+.tabs-in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(6,1fr)}
+.tab{display:flex;flex-direction:column;align-items:center;padding:8px 0 6px;font-size:11px;color:var(--paper-dim);gap:1px}
+.tab i{font-style:normal;font-family:var(--f-display);font-size:19px;font-weight:800;line-height:1.1}
+.tab[aria-current="true"]{color:var(--gold)}
+h1,h2,h3{font-family:var(--f-display);font-weight:800;margin:0;text-wrap:balance;letter-spacing:.04em}
+h2{font-size:20px}
+h3{font-size:16px}
+.eyebrow{font-size:11px;letter-spacing:.2em;color:var(--gold);text-transform:uppercase}
+.muted{color:var(--paper-dim)}
+.small{font-size:13px}
+p{margin:0}
+.sec{display:flex;flex-direction:column;gap:10px}
+.sec-h{display:flex;align-items:baseline;justify-content:space-between;gap:8px;border-bottom:1px solid var(--rule);padding-bottom:6px}
+.panel{background:var(--lacquer-2);border:1px solid var(--rule);border-radius:var(--r);padding:14px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:42px;padding:0 16px;border:1px solid var(--gold-dim);border-radius:var(--r);color:var(--gold);font-weight:700;letter-spacing:.04em}
+.btn:hover{border-color:var(--gold)}
+.btn.solid{background:var(--gold);color:#1a150a;border-color:var(--gold)}
+.btn.ghost{border-color:var(--rule);color:var(--paper)}
+.btn.danger{border-color:var(--danger);color:var(--danger)}
+.btn[disabled]{opacity:.35;cursor:not-allowed}
+.btn.wide{width:100%}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.el{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:20px;padding:0 5px;border-radius:3px;font-size:12px;font-weight:700;color:#10160f;background:var(--c)}
+.rar{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;padding:0 5px;border:1px solid var(--c);color:var(--c);border-radius:3px;line-height:18px}
+.rar.MYTHIC{border-image:linear-gradient(90deg,#e36fae,#caa55d,#6fd0c8) 1;color:#f0c9e0}
+.sigil{display:block;flex:none}
+.bar{height:6px;background:var(--lacquer-3);border-radius:3px;overflow:hidden}
+.bar>span{display:block;height:100%;background:var(--c,var(--ok));transition:width .35s}
+.grid-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px}
+.cc{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;background:var(--lacquer-2);border:1px solid var(--rule);border-radius:var(--r);text-align:center;position:relative;min-width:0}
+.cc:hover{border-color:var(--gold-dim)}
+.cc.on{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
+.cc-name{font-weight:700;font-size:13px;line-height:1.3;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cc-meta{font-size:11px;color:var(--paper-dim);display:flex;gap:4px;align-items:center;flex-wrap:wrap;justify-content:center}
+.badge{position:absolute;top:6px;left:6px;font-size:10px;color:#1a150a;background:var(--gold);border-radius:3px;padding:0 4px;font-weight:700}
+.hero{display:flex;flex-direction:column;gap:6px;padding:4px 0}
+.hero h1{font-size:34px;color:var(--gold);letter-spacing:.14em}
+.party-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.kv{display:grid;grid-template-columns:auto 1fr auto;gap:6px 10px;align-items:center;font-size:13px;font-variant-numeric:tabular-nums}
+.kv .bar{height:5px}
+.list{display:flex;flex-direction:column;gap:8px}
+.li{display:flex;gap:10px;align-items:center;padding:10px 12px;background:var(--lacquer-2);border:1px solid var(--rule);border-radius:var(--r);text-align:left;width:100%}
+.li .grow{flex:1;min-width:0}
+.li.on{border-color:var(--gold)}
+.li.off{opacity:.55}
+.note{font-size:13px;color:var(--paper-dim);border-left:2px solid var(--gold-dim);padding-left:10px}
+.dex-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:8px}
+.dex-cell{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 2px;border:1px solid var(--rule);border-radius:var(--r);background:var(--lacquer-2);font-size:11px;min-width:0}
+.dex-cell .no{color:var(--paper-dim);font-variant-numeric:tabular-nums;font-size:10px}
+.dex-cell .nm{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}
+.detail-head{display:flex;gap:14px;align-items:center}
+.detail-head .grow{min-width:0;display:flex;flex-direction:column;gap:4px}
+.lore{font-family:var(--f-display);font-size:15px;line-height:1.9}
+textarea{width:100%;min-height:90px;background:var(--lacquer);color:var(--paper);border:1px solid var(--rule);border-radius:var(--r);padding:8px;font:12px/1.5 ui-monospace,monospace;box-sizing:border-box}
+.altar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px}
+.slot{min-height:132px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:1px dashed var(--gold-dim);border-radius:var(--r);padding:8px;text-align:center;font-size:12px;color:var(--paper-dim)}
+.slot.filled{border-style:solid;color:var(--paper);background:var(--lacquer-2)}
+.plus{font-family:var(--f-display);font-size:26px;color:var(--gold)}
+.oracle{text-align:center;padding:14px;border:1px solid var(--rule);border-radius:var(--r);background:radial-gradient(circle at 50% 0%, color-mix(in srgb,var(--gold) 14%,transparent), transparent 70%)}
+.oracle strong{display:block;font-family:var(--f-display);font-size:22px;letter-spacing:.1em;color:var(--gold)}
+.start{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:start;padding-top:8px}
+.vtitle{writing-mode:vertical-rl;font-family:var(--f-display);font-weight:800;font-size:44px;letter-spacing:.3em;color:var(--gold);line-height:1}
+/* battle */
+.bt{display:flex;flex-direction:column;gap:10px;padding-block:10px 20px;padding-inline:12px;min-height:100%}
+.bt-top{display:flex;align-items:center;gap:8px;font-size:13px}
+.bt-top .grow{flex:1}
+.toggle{font-size:12px;padding:3px 10px;border:1px solid var(--rule);border-radius:99px;color:var(--paper-dim)}
+.toggle[aria-pressed="true"]{border-color:var(--gold);color:var(--gold)}
+.side{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.uc{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 6px 7px;background:var(--lacquer-2);border:1px solid var(--rule);border-radius:var(--r);min-width:0;text-align:center}
+.uc.act{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
+.uc.ko{opacity:.32;filter:grayscale(1)}
+.uc.tgt{border-color:var(--danger);animation:pulse 1s infinite}
+.uc.tgt.ally{border-color:var(--ok)}
+.uc .nm{font-size:12px;font-weight:700;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.uc .lv{font-size:10px;color:var(--paper-dim);font-variant-numeric:tabular-nums}
+.uc .bars{width:100%;display:flex;flex-direction:column;gap:2px}
+.uc .bar{height:5px}
+.uc .hpn{font-size:10px;font-variant-numeric:tabular-nums;color:var(--paper-dim)}
+.sts{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;min-height:14px}
+.st{font-size:9px;line-height:14px;padding:0 3px;border-radius:2px;background:var(--lacquer-3);color:var(--paper)}
+.gauge>span{background:linear-gradient(90deg,var(--gold-dim),var(--gold))}
+.gauge.full>span{animation:glow 1s infinite alternate}
+.logbox{background:var(--lacquer);border:1px solid var(--rule);border-radius:var(--r);padding:8px 10px;font-size:13px;min-height:92px;display:flex;flex-direction:column;justify-content:flex-end;gap:1px}
+.logbox div:last-child{color:var(--paper)}
+.logbox div{color:var(--paper-dim)}
+.cmd{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.cmd .btn{min-height:46px;padding:0 6px}
+.skl{display:flex;flex-direction:column;gap:6px}
+.skl .li{padding:8px 10px}
+.float{position:absolute;left:50%;top:30%;transform:translateX(-50%);font-family:var(--f-display);font-weight:800;font-size:22px;color:var(--paper);text-shadow:0 2px 0 #000,0 0 8px #000;pointer-events:none;animation:floatUp .9s ease-out forwards;white-space:nowrap}
+.float.crit{color:var(--gold);font-size:28px}
+.float.heal{color:var(--ok)}
+.float.miss{color:var(--paper-dim);font-size:16px}
+.float .eff{display:block;font-size:10px;font-family:var(--f-body)}
+.shake{animation:shake .3s}
+#cutin{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;background:rgba(5,8,7,.78);overflow:hidden}
+.ci-flash{position:absolute;inset:0;background:var(--c);opacity:0}
+.ci-band{position:relative;width:140%;padding:22px 0;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--c) 70%,#000) 20%,color-mix(in srgb,var(--c) 70%,#000) 80%,transparent);transform:skewY(-6deg);display:flex;align-items:center;justify-content:center;gap:20px}
+.ci-glyph{font-family:var(--f-display);font-weight:800;font-size:96px;line-height:1;color:var(--paper);text-shadow:0 0 24px var(--c)}
+.ci-txt{display:flex;flex-direction:column;transform:skewY(6deg)}
+.ci-txt span{font-size:13px;letter-spacing:.2em;color:var(--paper)}
+.ci-txt strong{font-family:var(--f-display);font-size:30px;letter-spacing:.12em;color:#fff}
+#cutin.run .ci-flash{animation:flash .5s ease-out}
+#cutin.run .ci-band{animation:band 1.4s cubic-bezier(.2,.8,.2,1)}
+#cutin.run .ci-glyph{animation:glyph 1.4s ease-out}
+.modal{position:fixed;inset:0;z-index:20;background:rgba(5,8,7,.82);display:flex;align-items:flex-end;justify-content:center;padding:16px}
+.modal-in{width:100%;max-width:520px;max-height:88vh;overflow:auto;background:var(--lacquer-2);border:1px solid var(--gold-dim);border-radius:10px;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px}
+.reveal{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
+.reveal .sigil{animation:rise .8s ease-out}
+.swirl{animation:spin 1.6s linear infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 2px color-mix(in srgb,var(--danger) 50%,transparent)}}
+@keyframes glow{to{filter:brightness(1.5)}}
+@keyframes floatUp{0%{opacity:0;transform:translate(-50%,6px)}15%{opacity:1}100%{opacity:0;transform:translate(-50%,-34px)}}
+@keyframes shake{25%{transform:translateX(-4px)}50%{transform:translateX(4px)}75%{transform:translateX(-2px)}}
+@keyframes flash{0%{opacity:.8}100%{opacity:0}}
+@keyframes band{0%{transform:skewY(-6deg) translateX(-100%)}18%{transform:skewY(-6deg) translateX(0)}82%{transform:skewY(-6deg) translateX(0)}100%{transform:skewY(-6deg) translateX(100%)}}
+@keyframes glyph{0%{transform:scale(3);filter:blur(8px);opacity:0}25%{transform:scale(1);filter:blur(0);opacity:1}}
+@keyframes rise{0%{transform:scale(.4) rotate(-30deg);opacity:0}100%{transform:none;opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){*,*::before{animation-duration:.01ms!important;animation-iteration-count:1!important;transition:none!important}}
+@media (min-width:600px){.hero h1{font-size:42px}}
+</style>
+
+<div class="app" id="app"></div>
+<div id="cutin" hidden></div>
+<div id="modal-root"></div>
+
+<script id="data">
+/* ===== データ層：ここに追記すればクリーチャー・技・合体が増える ===== */
+const ELEMENTS = {
+  炎:{c:'#e0693e',eff:['氷','金','毒'],res:['水','炎']},
+  水:{c:'#4a93cc',eff:['炎','土'],res:['水','氷']},
+  氷:{c:'#a6dcea',eff:['風','土'],res:['氷','金']},
+  雷:{c:'#e8cb4e',eff:['水','風','金'],res:['土','雷']},
+  風:{c:'#86c79a',eff:['毒','土'],res:['金']},
+  土:{c:'#b08a58',eff:['雷','炎','毒','金'],res:['風']},
+  光:{c:'#f1e4ae',eff:['闇','霊'],res:['光']},
+  闇:{c:'#9474c4',eff:['光','霊'],res:['闇']},
+  毒:{c:'#a6c645',eff:['水'],res:['毒','土','金','霊']},
+  霊:{c:'#8cc9c6',eff:['霊','光'],res:['闇']},
+  金:{c:'#bcc2cb',eff:['氷','毒'],res:['金','炎']},
+  混沌:{c:'#e0689f',eff:[],res:[]}
+};
+const RARITY = {
+  N:{i:0,m:1.0,cap:20,c:'#9aa39a'}, R:{i:1,m:1.08,cap:25,c:'#5fb8ab'}, SR:{i:2,m:1.16,cap:30,c:'#ab8fe3'},
+  SSR:{i:3,m:1.27,cap:35,c:'#e3b953'}, UR:{i:4,m:1.38,cap:40,c:'#e2615a'}, LR:{i:5,m:1.5,cap:45,c:'#f3ead0'},
+  MYTHIC:{i:6,m:1.62,cap:50,c:'#e36fae'}
+};
+const RAR_ORDER = ['N','R','SR','SSR','UR','LR','MYTHIC'];
+const NATURES = {
+  素直:{}, 勇猛:{atk:1.1,def:0.9}, 慎重:{def:1.1,spd:0.9}, 聡明:{mag:1.1,atk:0.9},
+  俊敏:{spd:1.1,hp:0.93}, 頑健:{hp:1.08,mag:0.92}, 冷徹:{mdf:1.1,atk:0.93}
+};
+const STATUS = {
+  poison:{n:'毒',t:3}, burn:{n:'火傷',t:3}, para:{n:'麻痺',t:2}, freeze:{n:'凍結',t:1}, sleep:{n:'睡眠',t:2},
+  curse:{n:'呪い',t:3}, fear:{n:'恐怖',t:2}, bleed:{n:'出血',t:3}, confuse:{n:'混乱',t:2}
+};
+const STAT_LABEL = {hp:'HP',atk:'攻撃',def:'防御',mag:'魔力',mdf:'魔防',spd:'素早さ'};
+
+/* k: phys物理 / mag魔法 / heal回復 / buff強化 / debuff弱体。tg: enemy / allE / ally / allA / self */
+const SKILLS = {
+  atk:{n:'通常攻撃',k:'phys',el:null,p:35,acc:95,mp:0,tg:'enemy'},
+  kibi:{n:'鬼火撃ち',k:'mag',el:'炎',p:45,acc:95,mp:5,tg:'enemy',st:['burn',.25]},
+  hitodama:{n:'人魂乱舞',k:'mag',el:'霊',p:30,acc:90,mp:9,tg:'allE'},
+  noroi:{n:'呪いの囁き',k:'debuff',el:'闇',acc:90,mp:6,tg:'enemy',st:['curse',.75],mods:[['atk',.8,3]]},
+  gouen:{n:'業炎',k:'mag',el:'炎',p:45,acc:90,mp:13,tg:'allE',st:['burn',.2]},
+  koura:{n:'甲羅打ち',k:'phys',el:'水',p:45,acc:95,mp:3,tg:'enemy'},
+  mizu:{n:'水鉄砲',k:'mag',el:'水',p:40,acc:100,mp:4,tg:'enemy'},
+  tetsuheki:{n:'鉄壁',k:'buff',mp:6,tg:'self',mods:[['def',1.7,2],['mdf',1.4,2]]},
+  shiriko:{n:'尻子玉抜き',k:'phys',el:'水',p:55,acc:90,mp:7,tg:'enemy',st:['fear',.3]},
+  gekiryu:{n:'激流',k:'mag',el:'水',p:65,acc:90,mp:10,tg:'enemy'},
+  uzu:{n:'渦潮',k:'mag',el:'水',p:45,acc:90,mp:12,tg:'allE'},
+  hyojin:{n:'氷刃',k:'phys',el:'氷',p:50,acc:95,mp:5,tg:'enemy'},
+  kogoe:{n:'凍え息',k:'debuff',el:'氷',acc:95,mp:5,tg:'enemy',mods:[['spd',.6,3]],st:['freeze',.15]},
+  fubuki:{n:'吹雪',k:'mag',el:'氷',p:35,acc:90,mp:11,tg:'allE',st:['freeze',.12]},
+  kanabou:{n:'金棒叩き',k:'phys',el:'土',p:62,acc:85,mp:5,tg:'enemy'},
+  ikari:{n:'憤怒の咆哮',k:'buff',mp:7,tg:'self',mods:[['atk',1.5,3]],gauge:15},
+  kien:{n:'鬼炎斬',k:'phys',el:'炎',p:55,acc:92,mp:7,tg:'enemy',st:['burn',.15]},
+  jiware:{n:'地割れ',k:'phys',el:'土',p:42,acc:88,mp:11,tg:'allE'},
+  raiko:{n:'雷光',k:'mag',el:'雷',p:45,acc:95,mp:5,tg:'enemy',st:['para',.2]},
+  denko:{n:'電光石火',k:'phys',el:'雷',p:38,acc:100,mp:3,tg:'enemy',crit:.3},
+  nuecry:{n:'凶鳥の声',k:'mag',el:'雷',p:38,acc:88,mp:12,tg:'allE',st:['para',.25]},
+  dokuga:{n:'毒牙',k:'phys',el:'毒',p:45,acc:95,mp:4,tg:'enemy',st:['poison',.4]},
+  itomaki:{n:'糸巻き',k:'debuff',el:'毒',acc:90,mp:5,tg:'enemy',mods:[['spd',.6,3]],st:['poison',.6]},
+  kumo:{n:'妖糸縛り',k:'debuff',el:'毒',acc:85,mp:6,tg:'enemy',st:['para',.6]},
+  tsuchigumo:{n:'土蜘蛛落とし',k:'phys',el:'土',p:60,acc:90,mp:8,tg:'enemy'},
+  makitsuki:{n:'巻きつき',k:'phys',el:'風',p:40,acc:95,mp:4,tg:'enemy',st:['para',.2]},
+  kamaitachi:{n:'鎌鼬',k:'phys',el:'風',p:44,acc:95,mp:5,tg:'enemy',crit:.25,st:['bleed',.3]},
+  senpu:{n:'旋風',k:'mag',el:'風',p:32,acc:92,mp:10,tg:'allE'},
+  hogo:{n:'守護の鈴',k:'buff',mp:11,tg:'allA',mods:[['def',1.3,3],['mdf',1.3,3]]},
+  honeyari:{n:'骨槍',k:'phys',el:'霊',p:50,acc:92,mp:5,tg:'enemy',st:['bleed',.3]},
+  onryo:{n:'怨霊の手',k:'mag',el:'闇',p:50,acc:92,mp:7,tg:'enemy',st:['curse',.3]},
+  meikai:{n:'冥界落とし',k:'mag',el:'闇',p:72,acc:85,mp:13,tg:'enemy'},
+  yami:{n:'闇礫',k:'mag',el:'闇',p:40,acc:95,mp:4,tg:'enemy'},
+  itazura:{n:'悪戯',k:'debuff',el:'闇',acc:85,mp:5,tg:'enemy',st:['confuse',.6]},
+  iyashi:{n:'癒しの歌',k:'heal',mp:8,tg:'ally',heal:.35},
+  hikari:{n:'光の爪',k:'phys',el:'光',p:45,acc:95,mp:4,tg:'enemy'},
+  datenn:{n:'堕天の光',k:'mag',el:'光',p:70,acc:90,mp:12,tg:'enemy'},
+  makai:{n:'魔界の闇',k:'mag',el:'闇',p:62,acc:92,mp:12,tg:'enemy',st:['fear',.25]},
+  yoroi:{n:'鎧崩し',k:'phys',el:'金',p:50,acc:92,mp:6,tg:'enemy',mods:[['def',.7,3]]},
+  kyomu:{n:'虚無喰い',k:'mag',el:'混沌',p:80,acc:95,mp:15,tg:'enemy',drain:.4},
+  /* 必殺技（ゲージ100で使用） */
+  u001:{n:'百鬼火',k:'mag',el:'炎',p:90,tg:'allE',st:['burn',.5],ult:1},
+  u002:{n:'河童大相撲',k:'phys',el:'水',p:150,tg:'enemy',st:['fear',.5],ult:1},
+  u003:{n:'雪月葬',k:'mag',el:'氷',p:85,tg:'allE',st:['freeze',.35],ult:1},
+  u004:{n:'鬼神憤激',k:'phys',el:'炎',p:150,tg:'enemy',lowHp:1,ult:1},
+  u005:{n:'天雷轟',k:'mag',el:'雷',p:135,tg:'enemy',st:['para',.6],crit:.4,ult:1},
+  u006:{n:'黒縄地獄',k:'phys',el:'毒',p:75,tg:'allE',st:['poison',.8],ult:1},
+  u007:{n:'天衣無縫',k:'phys',el:'風',p:80,tg:'allE',amods:[['spd',1.4,3]],ult:1},
+  u008:{n:'骸の大波',k:'phys',el:'霊',p:95,tg:'allE',st:['fear',.4],ult:1},
+  u009:{n:'契約の代償',k:'mag',el:'闇',p:125,tg:'enemy',st:['curse',.8],ult:1},
+  u010:{n:'猫神の祝福',k:'heal',tg:'allA',heal:.6,cleanse:1,ult:1},
+  u011:{n:'金剛甲羅陣',k:'buff',tg:'allA',mods:[['def',1.6,3],['mdf',1.4,3]],heal:.25,ult:1},
+  u012:{n:'大瀑布',k:'mag',el:'水',p:110,tg:'allE',ult:1},
+  u101:{n:'劫火・焔鬼乱舞',k:'phys',el:'炎',p:130,tg:'allE',st:['burn',.6],ult:1},
+  u102:{n:'百雷夜行',k:'mag',el:'雷',p:110,tg:'allE',st:['para',.5],ult:1},
+  u103:{n:'永久凍土',k:'mag',el:'氷',p:120,tg:'allE',st:['freeze',.5],ult:1},
+  u104:{n:'千本の糸',k:'mag',el:'毒',p:100,tg:'allE',st:['poison',1],mods:[['spd',.6,3]],ult:1},
+  u105:{n:'深海の咆哮',k:'mag',el:'水',p:125,tg:'allE',drain:.3,ult:1},
+  u106:{n:'黄昏の審判',k:'mag',el:'光',p:140,tg:'allE',st:['fear',.4],ult:1},
+  u200:{n:'百鬼夜行・虚無',k:'mag',el:'混沌',p:190,tg:'allE',rand:.5,ult:1}
+};
+
+const ABILITIES = {
+  ignite:{n:'燃え移り',d:'攻撃が当たると20%で火傷を与える'},
+  shellWater:{n:'皿の水',d:'HPが50%より多い間、防御と魔防が1.3倍'},
+  frostBreath:{n:'氷の吐息',d:'攻撃が当たった相手の素早さを奪う'},
+  rage:{n:'怒気変換',d:'HP40%以下で攻撃1.5倍。必殺ゲージが1.5倍の速さで溜まる'},
+  thunderFirst:{n:'迅雷',d:'戦闘で最初の行動は必ず会心になる'},
+  venomHunter:{n:'毒牙の狩人',d:'毒状態の相手へのダメージ1.6倍'},
+  flutter:{n:'ひらひら',d:'受ける攻撃の命中率を15下げる'},
+  undying:{n:'不屈の骸',d:'戦闘中一度だけ、倒れる攻撃をHP1で耐える'},
+  mischief:{n:'悪戯心',d:'攻撃が当たると25%で恐怖か呪いを与える'},
+  purr:{n:'癒しの気配',d:'行動後、一番弱っている味方のHPを6%回復'},
+  ironShell:{n:'鉄甲',d:'受ける物理ダメージを25%軽減'},
+  counter:{n:'返し甲羅',d:'物理攻撃を受けると25%で反撃する'},
+  torrent:{n:'激流',d:'水属性の技が1.3倍。HP50%以下ならさらに1.2倍'},
+  hellfire:{n:'焔将の威',d:'炎属性の技が1.3倍。敵を倒すと必殺ゲージ+40'},
+  nue:{n:'鵺の啼き声',d:'攻撃が当たると20%で麻痺させる'},
+  moonFuneral:{n:'雪月の葬送',d:'攻撃が当たると15%で凍結。凍結中の相手へのダメージ1.5倍'},
+  jorogumo:{n:'絡新婦の糸',d:'攻撃が当たると25%で毒。さらに相手の素早さを下げる'},
+  abyss:{n:'深淵の渦',d:'与えたダメージの25%を吸収する'},
+  twinKings:{n:'光闇双極',d:'光と闇の技がどちらも得意属性になる。毎ターンHP5%回復'},
+  magatsu:{n:'禍津',d:'与えるダメージ1.25倍。状態異常にかからない'}
+};
+
+/* b: hp atk def mag mdf spd crit(%) res  / ai: aggro mage guard trick boss */
+const SPECIES = {
+  MON001:{name:'鬼火童子',kana:'おにびどうじ',race:'妖火',motif:'日本妖怪・鬼火',el:['炎','霊'],rar:'N',glyph:'燈',shape:'round',ai:'mage',
+    look:'頭が青白い炎になった子鬼。壊れた提灯の骨を胴に巻き、歩くたびに火の粉がこぼれる。',pers:'いたずら好きで寂しがり',style:'火傷を撒く魔法型',
+    lore:'夜道で迷った子供を家まで照らしたという火の子。異界の融合で帰る家を失い、契約者の灯りになることを選んだ。',
+    b:{hp:52,atk:44,def:40,mag:72,mdf:56,spd:80,crit:8,res:30},abil:'ignite',learn:[[1,'kibi'],[3,'hitodama'],[6,'noroi'],[10,'gouen']],ult:'u001'},
+  MON002:{name:'甲羅河童',kana:'こうらかっぱ',race:'水妖',motif:'日本妖怪・河童',el:['水'],rar:'N',glyph:'河',shape:'hex',ai:'guard',
+    look:'甲羅を前面に回して鎧にした武闘派の河童。頭の皿の水が満ちている間は滅法硬い。',pers:'義理堅く、相撲に目がない',style:'硬さで耐えて殴り返す防御型',
+    lore:'川辺の村を守ってきた一族の末裔。異界の水が濁り始めてから、皿の水を守るため鎧の技を磨いた。',
+    b:{hp:72,atk:62,def:72,mag:40,mdf:50,spd:45,crit:6,res:40},abil:'shellWater',learn:[[1,'koura'],[1,'mizu'],[4,'tetsuheki'],[7,'shiriko'],[12,'gekiryu']],ult:'u002',
+    evo:[{to:'MON011',lv:10,type:'防御型'},{to:'MON012',lv:10,type:'攻撃型'}]},
+  MON003:{name:'雪女郎',kana:'ゆきじょろう',race:'氷霊',motif:'日本妖怪・雪女',el:['氷'],rar:'R',glyph:'雪',shape:'ofuda',ai:'trick',
+    look:'霜で織った白無垢をまとう女。袖を振るうと周囲の時間ごと凍りつき、足音が消える。',pers:'物静かで、嘘を嫌う',style:'相手の速さを奪う妨害型',
+    lore:'吹雪の夜に旅人を見逃した罪で里を追われた。氷は殺すためではなく、止めるために使うと決めている。',
+    b:{hp:58,atk:45,def:48,mag:82,mdf:70,spd:72,crit:8,res:45},abil:'frostBreath',learn:[[1,'hyojin'],[1,'kogoe'],[5,'fubuki'],[9,'onryo']],ult:'u003'},
+  MON004:{name:'怒鬼',kana:'いかりおに',race:'鬼',motif:'日本妖怪・鬼',el:['炎','土'],rar:'R',glyph:'鬼',shape:'mask',ai:'aggro',
+    look:'溶岩のひびが走る赤黒い肌の大鬼。金棒の先は怒りに応じて赤熱する。',pers:'短気だが情に厚い',style:'追い詰められるほど強くなる超火力型',
+    lore:'怒りを燃料に変える一族。怒りを抑えることを覚えた者だけが里を出て、契約者と組むことを許される。',
+    b:{hp:82,atk:86,def:60,mag:34,mdf:42,spd:50,crit:12,res:35},abil:'rage',learn:[[1,'kanabou'],[3,'ikari'],[6,'kien'],[11,'jiware']],ult:'u004'},
+  MON005:{name:'雷獣',kana:'らいじゅう',race:'獣',motif:'日本の伝承・雷獣',el:['雷'],rar:'N',glyph:'雷',shape:'diamond',ai:'aggro',
+    look:'稲妻と一緒に落ちてくる鼬ほどの獣。尾が帯電していて、触れた木の葉が焦げる。',pers:'落ち着きがない',style:'誰よりも先に動く超高速型',
+    lore:'雷雲から落ちては人里を走り回る。本当は空に帰り方が分からないだけらしい。',
+    b:{hp:50,atk:66,def:40,mag:55,mdf:40,spd:96,crit:15,res:25},abil:'thunderFirst',learn:[[1,'raiko'],[1,'denko'],[5,'kamaitachi'],[9,'nuecry']],ult:'u005'},
+  MON006:{name:'毒蜘蛛',kana:'どくぐも',race:'蟲',motif:'日本妖怪・土蜘蛛',el:['毒','土'],rar:'R',glyph:'蜘',shape:'hex',ai:'trick',
+    look:'岩のような甲殻を持つ大蜘蛛。背中の模様は近づくと人の顔に見える。',pers:'用心深く、執念深い',style:'毒で削ってから仕留める状態異常特化',
+    lore:'古い都の地下に巣を張っていた土蜘蛛の眷属。異界の穴から地上へ溢れ出した。',
+    b:{hp:60,atk:68,def:55,mag:50,mdf:50,spd:62,crit:10,res:40},abil:'venomHunter',learn:[[1,'dokuga'],[1,'itomaki'],[5,'kumo'],[9,'tsuchigumo']],ult:'u006'},
+  MON007:{name:'一反木綿',kana:'いったんもめん',race:'付喪神',motif:'日本妖怪・一反木綿',el:['風'],rar:'N',glyph:'布',shape:'ofuda',ai:'aggro',
+    look:'墨で経文が書かれた一反の布。裾が刃のように硬くなり、風を切って舞う。',pers:'気まぐれで陽気',style:'攻撃をかわしながら切り刻む回避型',
+    lore:'寺の幟が百年風に吹かれて付喪神になった。書かれた経文のせいか、悪霊にはめっぽう嫌われる。',
+    b:{hp:55,atk:58,def:42,mag:52,mdf:58,spd:86,crit:10,res:35},abil:'flutter',learn:[[1,'makitsuki'],[1,'kamaitachi'],[4,'senpu'],[8,'hogo']],ult:'u007'},
+  MON008:{name:'がしゃどくろ',kana:'がしゃどくろ',race:'アンデッド',motif:'日本妖怪・がしゃどくろ',el:['霊','闇'],rar:'SR',glyph:'骸',shape:'round',ai:'guard',
+    look:'無数の骨が組み上がった巨大な骸骨。肋の中で名もなき魂が青く灯る。',pers:'寡黙。仲間の骨を集めている',style:'倒れても立ち上がる耐久型',
+    lore:'弔われなかった者たちの骨が寄り集まった存在。夜の廃神社でだけ、稀に姿を見せる。',
+    b:{hp:96,atk:82,def:70,mag:60,mdf:55,spd:35,crit:10,res:55},abil:'undying',learn:[[1,'honeyari'],[1,'onryo'],[5,'tetsuheki'],[9,'meikai']],ult:'u008'},
+  MON009:{name:'インプ',kana:'いんぷ',race:'小悪魔',motif:'ヨーロッパの悪魔・インプ',el:['闇'],rar:'N',glyph:'魔',shape:'diamond',ai:'trick',
+    look:'煤けた蝙蝠の翼と、契約書を丸めた尻尾を持つ小悪魔。',pers:'口が達者で損得勘定が早い',style:'混乱と呪いで場を乱す撹乱型',
+    lore:'西の地獄から流れてきた下級悪魔。契約の抜け穴を探すのが趣味だが、結んだ約束は意外と守る。',
+    b:{hp:48,atk:50,def:40,mag:66,mdf:50,spd:82,crit:12,res:30},abil:'mischief',learn:[[1,'yami'],[1,'itazura'],[4,'noroi'],[8,'meikai']],ult:'u009'},
+  MON010:{name:'ケットシー',kana:'けっとしー',race:'妖精',motif:'ケルトの伝承・ケットシー',el:['光','風'],rar:'R',glyph:'猫',shape:'round',ai:'guard',
+    look:'胸に白い星形の毛を持つ、二本足で歩く黒猫。鈴のついた外套を羽織っている。',pers:'気位が高いが面倒見がいい',style:'味方を支える回復特化',
+    lore:'猫の王国の外交官。人間界と異界の境で迷った者を手当てして回っている。',
+    b:{hp:60,atk:52,def:50,mag:74,mdf:70,spd:74,crit:10,res:50},abil:'purr',learn:[[1,'hikari'],[1,'iyashi'],[4,'hogo'],[8,'senpu'],[12,'datenn']],ult:'u010'},
+  MON011:{name:'鎧河童',kana:'よろいかっぱ',race:'水妖',motif:'河童・進化（防御型）',el:['水','金'],rar:'SR',glyph:'鎧',shape:'hex',ai:'guard',
+    look:'甲羅が鋼の大鎧に変わった河童。皿には鉄の蓋がはめられている。',pers:'頑固一徹',style:'殴られるほど強い反撃型',
+    lore:'守りを極めた甲羅河童の姿。村の子供たちは雨宿りにその甲羅の下へ潜り込む。',
+    b:{hp:90,atk:70,def:100,mag:40,mdf:72,spd:40,crit:6,res:55},abil:'ironShell',extra:['counter'],learn:[[1,'koura'],[1,'tetsuheki'],[1,'yoroi'],[12,'hogo'],[16,'gekiryu']],ult:'u011'},
+  MON012:{name:'激流河童',kana:'げきりゅうかっぱ',race:'水妖',motif:'河童・進化（攻撃型）',el:['水'],rar:'SR',glyph:'瀑',shape:'diamond',ai:'aggro',
+    look:'甲羅を捨て、両腕に渦を纏った細身の河童。立つだけで足元に流れが生まれる。',pers:'血気盛ん',style:'水流で押し流す高火力型',
+    lore:'攻めを極めた甲羅河童の姿。重い甲羅を川に沈め、その身ひとつで滝を割ったという。',
+    b:{hp:74,atk:90,def:58,mag:72,mdf:55,spd:68,crit:12,res:40},abil:'torrent',learn:[[1,'gekiryu'],[1,'shiriko'],[1,'koura'],[14,'uzu']],ult:'u012'},
+  MON101:{name:'焔鬼将',kana:'えんきしょう',race:'鬼神',motif:'合体・鬼×鬼火',el:['炎','闇'],rar:'SSR',glyph:'焔',shape:'mask',ai:'aggro',fusionOnly:1,
+    look:'燃える鎧武者の姿をした鬼の将。兜の角から黒い炎が噴き出し、背には鬼火の旗を負う。',pers:'誇り高く、配下を見捨てない',style:'全体を焼き払う超火力型',
+    lore:'怒りの鬼と迷い火が合わさって生まれた将。地獄門を守る者として、挑む契約者の器を量る。',
+    b:{hp:100,atk:106,def:78,mag:70,mdf:60,spd:62,crit:15,res:50},abil:'hellfire',learn:[[1,'kien'],[1,'gouen'],[1,'ikari'],[1,'meikai']],ult:'u101'},
+  MON102:{name:'鵺',kana:'ぬえ',race:'合成獣',motif:'合体・雷獣×一反木綿',el:['雷','風'],rar:'SR',glyph:'鵺',shape:'diamond',ai:'aggro',fusionOnly:1,
+    look:'猿の顔、狸の胴、虎の手足、蛇の尾。雷雲をまとって夜空を滑るように飛ぶ。',pers:'正体を知られるのを嫌う',style:'麻痺を撒く高速型',
+    lore:'その啼き声を聞いた者は病に伏すと伝えられる。本人は歌っているつもりらしい。',
+    b:{hp:70,atk:80,def:58,mag:78,mdf:58,spd:94,crit:14,res:45},abil:'nue',learn:[[1,'raiko'],[1,'denko'],[1,'nuecry'],[1,'kamaitachi']],ult:'u102'},
+  MON103:{name:'雪月葬姫',kana:'せつげつそうき',race:'氷霊',motif:'合体・雪女×がしゃどくろ',el:['氷','霊'],rar:'SSR',glyph:'葬',shape:'ofuda',ai:'mage',fusionOnly:1,
+    look:'骨の冠を戴いた氷の喪姫。裾から伸びる霜は、踏んだ者の足跡を墓標に変える。',pers:'弔いを重んじる',style:'凍結を重ねる魔法特化',
+    lore:'誰にも弔われなかった魂を、雪で包んで眠らせる者。彼女の通った後には白い静けさだけが残る。',
+    b:{hp:76,atk:55,def:62,mag:110,mdf:92,spd:78,crit:10,res:65},abil:'moonFuneral',learn:[[1,'fubuki'],[1,'kogoe'],[1,'onryo'],[1,'hyojin']],ult:'u103'},
+  MON104:{name:'絡新婦',kana:'じょろうぐも',race:'蟲',motif:'合体・毒蜘蛛×インプ',el:['毒','闇'],rar:'SR',glyph:'絡',shape:'hex',ai:'trick',fusionOnly:1,
+    look:'上半身は艶やかな遊女、下半身は黒い大蜘蛛。指先から金色の糸を紡ぐ。',pers:'甘い言葉で人を試す',style:'毒と鈍足で追い詰める妨害型',
+    lore:'悪魔の契約術を覚えた蜘蛛の化生。糸で結ばれた約束は、決してほどけない。',
+    b:{hp:68,atk:62,def:58,mag:84,mdf:70,spd:72,crit:12,res:55},abil:'jorogumo',learn:[[1,'kumo'],[1,'dokuga'],[1,'itomaki'],[1,'noroi']],ult:'u104'},
+  MON105:{name:'深淵海王',kana:'しんえんかいおう',race:'海魔',motif:'合体・河童×がしゃどくろ',el:['水','闇'],rar:'SSR',glyph:'淵',shape:'round',ai:'aggro',fusionOnly:1,
+    look:'沈没船の残骸を甲羅にした巨大な海の王。眼窩の奥で深海の灯が揺れる。',pers:'鷹揚だが貪欲',style:'奪った命で戦い続ける吸収型',
+    lore:'海で消えた者たちの骨と、川の守り手の魂が深みで出会って生まれた。潮の満ち引きはこの王の呼吸だという。',
+    b:{hp:112,atk:90,def:86,mag:86,mdf:72,spd:48,crit:10,res:60},abil:'abyss',learn:[[1,'gekiryu'],[1,'uzu'],[1,'shiriko'],[1,'meikai']],ult:'u105'},
+  MON106:{name:'堕天双王',kana:'だてんそうおう',race:'堕天使',motif:'合体・妖精×悪魔',el:['光','闇'],rar:'UR',glyph:'双',shape:'star',ai:'mage',fusionOnly:1,
+    look:'白と黒、二対の翼を持つ双面の王。片方の顔は祈り、もう片方は嗤っている。',pers:'慈悲深く、同時に冷酷',style:'光と闇を操る魔法型',
+    lore:'癒す者と唆す者が一つになった矛盾の王。善悪のどちらにも与せず、ただ契約だけを尊ぶ。',
+    b:{hp:96,atk:90,def:80,mag:112,mdf:92,spd:80,crit:15,res:70},abil:'twinKings',learn:[[1,'datenn'],[1,'makai'],[1,'iyashi'],[1,'hogo']],ult:'u106'},
+  MON200:{name:'禍津神ヤソマガツ',kana:'まがつかみやそまがつ',race:'神',motif:'神話合体・三王と禁忌の香',el:['闇','混沌'],rar:'MYTHIC',glyph:'禍',shape:'star',ai:'boss',fusionOnly:1,
+    look:'八十の顔が浮かんでは消える黒い神体。輪郭が定まらず、見る者ごとに違う姿に見える。',pers:'計り知れない',style:'あらゆる災いを振りまく規格外',
+    lore:'異界と人間界の境が裂けた原因とも、裂け目を塞ぐ唯一の手段とも言われる。呼び出した契約者の名は、どの記録にも残っていない。',
+    b:{hp:130,atk:120,def:100,mag:126,mdf:100,spd:86,crit:20,res:90},abil:'magatsu',learn:[[1,'kyomu'],[1,'makai'],[1,'gouen'],[1,'noroi']],ult:'u200'}
+};
+
+/* 合体レシピ。sets のどれか一つに一致すると out が生まれる。item があれば触媒が必要 */
+const RECIPES = [
+  {out:'MON101',sets:[['MON001','MON004']]},
+  {out:'MON102',sets:[['MON005','MON007']]},
+  {out:'MON103',sets:[['MON003','MON008']]},
+  {out:'MON104',sets:[['MON006','MON009']]},
+  {out:'MON105',sets:[['MON002','MON008'],['MON011','MON008'],['MON012','MON008']]},
+  {out:'MON106',sets:[['MON009','MON010']]},
+  {out:'MON200',sets:[['MON101','MON103','MON106']],item:'kinki'}
+];
+
+const AREAS = [
+  {id:'shrine',name:'廃神社',lv:[1,4],count:[1,2],desc:'朽ちた鳥居の奥。鬼火が迷い子を誘う。夜は骨の鳴る音がする。',
+    pool:[['MON001',3],['MON002',3],['MON005',3],['MON007',3],['MON009',3]],night:[['MON008',1]]},
+  {id:'forest',name:'呪われた森',lv:[4,8],count:[2,3],desc:'木々に張られた糸が月明かりに光る。猫の鈴の音を頼りに進め。',
+    pool:[['MON006',3],['MON009',2],['MON010',2],['MON007',2],['MON004',1]],night:[['MON008',1],['MON003',1]]},
+  {id:'cave',name:'氷結洞窟',lv:[7,12],count:[3,3],desc:'息も凍る地底の洞。鬼たちが暖を取りに集まっている。',
+    pool:[['MON003',3],['MON002',2],['MON004',2],['MON005',2],['MON008',1]],night:[['MON009',2]]},
+  {id:'hell',name:'地獄門',req:10,desc:'異界の最深部へ続く門。焔鬼将が契約者の器を量る。',
+    boss:[['MON004',10],['MON101',13],['MON001',10]]}
+];
+
+const ITEMS = {
+  fuda:{n:'回復の札',d:'味方1体のHPを40%回復',price:120,battle:'ally'},
+  reisui:{n:'霊水',d:'味方1体のMPを30回復',price:100,battle:'ally'},
+  hangon:{n:'反魂の札',d:'倒れた味方1体をHP30%で復活',price:260,battle:'dead'},
+  kinki:{n:'禁忌の香',d:'三体合体の触媒。何が起きても知らない',price:3000}
+};
+const SUMMON = {cost:5, rates:{N:60,R:32,SR:8}};
+const DEX_REWARDS = [
+  {n:3,fu:5,label:'霊符×5'},{n:6,fu:10,label:'霊符×10'},{n:10,gold:1000,kinki:1,label:'1000両と禁忌の香'},
+  {n:15,fu:20,label:'霊符×20'},{n:19,gold:5000,label:'5000両・図鑑完成'}
+];
+const TITLES = [[0,'新米契約者'],[5,'異界の旅人'],[10,'百鬼の友'],[15,'合体術師'],[19,'異界契約録の主']];
+</script>
+
+<script id="engine">
+/* ===== ロジック層：DOMに触れない ===== */
+const R = () => Math.random();
+const pick = a => a[Math.floor(R()*a.length)];
+const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
+const randInt = (a,b) => a + Math.floor(R()*(b-a+1));
+const wpick = pool => { const t = pool.reduce((s,[,w])=>s+w,0); let r = R()*t; for (const [id,w] of pool){ if((r-=w)<0) return id; } return pool[0][0]; };
+
+const Engine = (() => {
+  const SK = ['atk','def','mag','mdf','spd'];
+  const rIdx = id => RARITY[SPECIES[id].rar].i;
+
+  function statsOf(inst){
+    const sp = SPECIES[inst.sp], nat = NATURES[inst.nature] || {};
+    const rm = RARITY[sp.rar].m * (1 + 0.04*(inst.gen||0)) * (inst.variant?1.18:1);
+    const lv = inst.lv, s = {};
+    s.hp = Math.floor(sp.b.hp*(2+lv*0.45)*rm*inst.iv.hp*(nat.hp||1));
+    SK.forEach(k => s[k] = Math.floor(sp.b[k]*(0.6+lv*0.12)*rm*inst.iv[k]*(nat[k]||1)));
+    s.crit = sp.b.crit + (inst.variant?5:0);
+    s.res = sp.b.res;
+    s.mp = Math.floor(20 + sp.b.mag*0.35 + lv*3);
+    return s;
+  }
+  const learnedUpTo = (id,lv) => SPECIES[id].learn.filter(([l])=>l<=lv).map(([,s])=>s);
+  function makeInst(id, lv){
+    const iv = {}; ['hp',...SK].forEach(k => iv[k] = +(0.9+R()*0.2).toFixed(3));
+    const learned = learnedUpTo(id, lv);
+    const sp = SPECIES[id];
+    return {sp:id, lv, exp:0, iv, nature:pick(Object.keys(NATURES)), learned, equip:learned.slice(-4),
+      abil:[sp.abil, ...(sp.extra||[])], gen:0, variant:false};
+  }
+  function ivGrade(inst){
+    const v = Object.values(inst.iv), a = v.reduce((s,x)=>s+x,0)/v.length;
+    return a>=1.06?'S':a>=1.02?'A':a>=0.98?'B':'C';
+  }
+  const expNeed = lv => Math.floor(16*Math.pow(lv,1.55));
+  const levelCap = inst => RARITY[SPECIES[inst.sp].rar].cap + 5*(inst.gen||0);
+  function gainExp(inst, amt){
+    const out = {ups:0, learned:[]}, cap = levelCap(inst);
+    if (inst.lv >= cap) return out;
+    inst.exp += amt;
+    while (inst.lv < cap && inst.exp >= expNeed(inst.lv)){
+      inst.exp -= expNeed(inst.lv); inst.lv++; out.ups++;
+      SPECIES[inst.sp].learn.forEach(([l,id]) => {
+        if (l <= inst.lv && !inst.learned.includes(id)){ inst.learned.push(id); out.learned.push(id); if (inst.equip.length<4) inst.equip.push(id); }
+      });
+    }
+    if (inst.lv >= cap) inst.exp = 0;
+    return out;
+  }
+  const evoOptions = inst => (SPECIES[inst.sp].evo||[]).filter(e => inst.lv >= e.lv);
+  function evolve(inst, to){
+    inst.sp = to; inst.abil[0] = SPECIES[to].abil;
+    (SPECIES[to].extra||[]).forEach(a => inst.abil.push(a));
+    inst.abil = [...new Set(inst.abil)].slice(0,3);
+    learnedUpTo(to, inst.lv).forEach(id => { if(!inst.learned.includes(id)){ inst.learned.push(id); if(inst.equip.length<4) inst.equip.push(id); } });
+  }
+
+  /* ---- 合体 ---- */
+  const recipeKey = ids => ids.slice().sort().join('+');
+  RECIPES.forEach(r => r.keys = r.sets.map(recipeKey));
+  const findRecipe = ids => RECIPES.find(r => r.keys.includes(recipeKey(ids)));
+  const FALLBACK = Object.keys(SPECIES).filter(id => !SPECIES[id].fusionOnly);
+  const producers = out => RECIPES.filter(r=>r.out===out);
+
+  function preview(ids, itemOn, found){
+    const r = findRecipe(ids);
+    if (r){
+      if (r.item && !itemOn) return {kind:'need-item'};
+      if (found[recipeKey(ids)]) return {kind:'known', out:r.out};
+      return {kind: rIdx(r.out)>=3 ? 'legend' : 'unknown'};
+    }
+    if (ids.length === 3) return {kind:'none3'};
+    return {kind:'random'};
+  }
+  function fuse(insts, itemOn){
+    const ids = insts.map(i=>i.sp), r = findRecipe(ids);
+    let out, recipe = false;
+    if (r && (!r.item || itemOn)){ out = r.out; recipe = true; }
+    else {
+      if (ids.length === 3) return null;
+      const maxR = Math.max(...ids.map(rIdx));
+      const els = new Set(ids.flatMap(id=>SPECIES[id].el));
+      let pool = FALLBACK.filter(id => !ids.includes(id) && rIdx(id)>=maxR && rIdx(id)<=maxR+1 && SPECIES[id].el.some(e=>els.has(e)));
+      if (!pool.length) pool = FALLBACK.filter(id => !ids.includes(id) && rIdx(id)>=maxR);
+      if (!pool.length) pool = FALLBACK.filter(id => !ids.includes(id));
+      out = pick(pool);
+    }
+    const avgLv = insts.reduce((s,i)=>s+i.lv,0)/insts.length;
+    const child = makeInst(out, Math.max(1, Math.floor(avgLv*0.6)));
+    child.gen = Math.max(...insts.map(i=>i.gen||0)) + 1;
+    Object.keys(child.iv).forEach(k => {
+      const pa = insts.reduce((s,i)=>s+i.iv[k],0)/insts.length;
+      child.iv[k] = +clamp((pa + child.iv[k])/2 * (0.99 + R()*0.06), 0.88, 1.15).toFixed(3);
+    });
+    child.nature = R()<0.6 ? pick(insts).nature : child.nature;
+    const abnormal = R() < 0.05 + avgLv*0.003;
+    child.variant = abnormal;
+    const pAbil = [...new Set(insts.flatMap(i=>i.abil))].filter(a => !child.abil.includes(a));
+    if (pAbil.length) child.abil.push(pick(pAbil));
+    child.abil = child.abil.slice(0,3);
+    const pSk = [...new Set(insts.flatMap(i=>i.learned))].filter(s => !child.learned.includes(s));
+    const inherited = [];
+    for (let n=0; n<2 && pSk.length; n++){ const s = pSk.splice(Math.floor(R()*pSk.length),1)[0]; inherited.push(s); child.learned.push(s); }
+    child.equip = child.learned.filter(s=>!inherited.includes(s)).slice(-3).concat(inherited.slice(0,1));
+    return {child, recipe, key:recipeKey(ids), abnormal, inherited};
+  }
+
+  /* ---- 属性 ---- */
+  function elemMult(el, defEls){
+    if (!el) return 1;
+    if (el === '混沌') return 1.25;
+    let m = 1;
+    defEls.forEach(d => { if (ELEMENTS[el].eff.includes(d)) m *= 1.5; if (ELEMENTS[el].res.includes(d)) m *= 0.67; });
+    return m;
+  }
+  const weaknesses = els => Object.keys(ELEMENTS).filter(a => a!=='混沌' && elemMult(a, els) > 1);
+
+  /* ---- 戦闘 ---- */
+  class Battle {
+    constructor(allies, enemies, opts={}){
+      this.night = !!opts.night;
+      this.units = [];
+      allies.forEach((inst,i) => this.units.push(this.mk(inst,'a',i)));
+      enemies.forEach((inst,i) => this.units.push(this.mk(inst,'e',i)));
+      this.queue = []; this.round = 0;
+    }
+    mk(inst, side, i){
+      const sp = SPECIES[inst.sp], st = statsOf(inst);
+      return {id:side+i, side, inst, sp, name:(inst.variant?'異形・':'')+sp.name, lv:inst.lv, max:st, hp:st.hp, mp:st.mp, gauge:0,
+        sts:{}, mods:[], abil:inst.abil.slice(), skills:inst.equip.slice(), ult:sp.ult, def:false, flags:{}, ai:inst.aiOverride||sp.ai, el:sp.el};
+    }
+    unit(id){ return this.units.find(u=>u.id===id); }
+    alive(side){ return this.units.filter(u=>u.side===side && u.hp>0); }
+    foes(u){ return this.alive(u.side==='a'?'e':'a'); }
+    friends(u){ return this.alive(u.side); }
+    has(u,a){ return u.abil.includes(a); }
+    snap(){ const o={}; this.units.forEach(u => o[u.id]={hp:u.hp, mp:u.mp, g:Math.floor(u.gauge), sts:Object.keys(u.sts), buf:u.mods.length}); return o; }
+    eff(u,k){
+      let v = u.max[k], m = 1;
+      u.mods.forEach(x => { if (x.s===k) m *= x.m; });
+      v *= clamp(m, 0.3, 3);
+      if (k==='atk' && this.has(u,'rage') && u.hp < u.max.hp*0.4) v *= 1.5;
+      if ((k==='def'||k==='mdf') && this.has(u,'shellWater') && u.hp > u.max.hp*0.5) v *= 1.3;
+      if (k==='atk' && u.sts.fear) v *= 0.7;
+      if (k==='atk' && u.sts.burn) v *= 0.85;
+      if (k==='spd' && u.sts.para) v *= 0.6;
+      return Math.max(1, v);
+    }
+    result(){ if (!this.alive('e').length) return 'win'; if (!this.alive('a').length) return 'lose'; return null; }
+    next(){
+      if (!this.queue.length){
+        this.round++;
+        this.queue = this.units.filter(u=>u.hp>0).map(u=>({u, s:this.eff(u,'spd')*(0.9+R()*0.2)})).sort((a,b)=>b.s-a.s).map(x=>x.u);
+      }
+      const u = this.queue.shift();
+      return (u && u.hp>0) ? u : null;
+    }
+    addGauge(u, v){ if (u.sts.curse || u.hp<=0) return; u.gauge = Math.min(100, u.gauge + v*(this.has(u,'rage')?1.5:1)); }
+    startTurn(u){
+      const ev = [], L = (m,t='log',x={}) => ev.push({t, m, id:u.id, ...x, snap:this.snap()});
+      u.def = false;
+      u.mp = Math.min(u.max.mp, u.mp + 3);
+      if (this.has(u,'twinKings') && u.hp < u.max.hp){ const h = Math.ceil(u.max.hp*0.05); u.hp = Math.min(u.max.hp, u.hp+h); L(null,'heal',{v:h}); }
+      u.mods.forEach(x=>x.t--); u.mods = u.mods.filter(x=>x.t>0);
+      const dot = {poison:.08, burn:.06, bleed:.05, curse:.05};
+      for (const s of Object.keys(dot)){
+        if (!u.sts[s]) continue;
+        const d = Math.max(1, Math.floor(u.max.hp*dot[s])); u.hp = Math.max(0, u.hp-d);
+        L(`${u.name}は${STATUS[s].n}で${d}のダメージ`,'hit',{v:d});
+        if (--u.sts[s].t <= 0) delete u.sts[s];
+        if (u.hp<=0){ L(`${u.name}は倒れた`,'ko'); return {ev, canAct:false}; }
+      }
+      let canAct = true;
+      if (u.sts.freeze){ delete u.sts.freeze; L(`${u.name}は凍りついて動けない`); canAct = false; }
+      else if (u.sts.sleep){ if (--u.sts.sleep.t<=0){ delete u.sts.sleep; L(`${u.name}は目を覚ました`); } else { L(`${u.name}は眠っている`); canAct = false; } }
+      else if (u.sts.para){ if (R()<0.3){ L(`${u.name}は痺れて動けない`); canAct = false; } if (--u.sts.para.t<=0) delete u.sts.para; }
+      ['fear','confuse'].forEach(s => { if (u.sts[s] && --u.sts[s].t<0) delete u.sts[s]; });
+      return {ev, canAct};
+    }
+    applySts(t, s, ch, ev){
+      if (!s || t.hp<=0 || t.sts[s] || this.has(t,'magatsu')) return;
+      if (R() < ch*(1 - t.max.res/250)){
+        t.sts[s] = {t:STATUS[s].t};
+        ev.push({t:'log', m:`${t.name}は${STATUS[s].n}になった`, id:t.id, snap:this.snap()});
+      }
+    }
+    calc(u, t, sk, forceCrit){
+      const phys = sk.k==='phys';
+      const A = this.eff(u, phys?'atk':'mag'), D = this.eff(t, phys?'def':'mdf');
+      let v = sk.p * clamp(A/D, 0.3, 3) * (0.45 + u.lv*0.11) * 1.25 * (0.9 + R()*0.2);
+      const em = elemMult(sk.el, t.el); v *= em;
+      if (sk.el && (u.el.includes(sk.el) || (this.has(u,'twinKings') && (sk.el==='光'||sk.el==='闇')))) v *= 1.2;
+      const crit = forceCrit || R() < u.max.crit/100 + (sk.crit||0);
+      if (crit) v *= 1.5;
+      if (this.night && (u.el.includes('霊')||u.el.includes('闇'))) v *= 1.15;
+      if (this.has(u,'venomHunter') && t.sts.poison) v *= 1.6;
+      if (this.has(u,'torrent') && sk.el==='水'){ v *= 1.3; if (u.hp < u.max.hp*0.5) v *= 1.2; }
+      if (this.has(u,'hellfire') && sk.el==='炎') v *= 1.3;
+      if (this.has(u,'moonFuneral') && t.sts.freeze) v *= 1.5;
+      if (this.has(u,'magatsu')) v *= 1.25;
+      if (sk.lowHp) v *= 1 + (1 - u.hp/u.max.hp);
+      if (t.def) v *= 0.5;
+      if (phys && this.has(t,'ironShell')) v *= 0.75;
+      return {v:Math.max(1, Math.round(v)), crit, em};
+    }
+    act(u, a){
+      const ev = [], L = (m, x={}) => ev.push({t:'log', m, id:u.id, ...x, snap:this.snap()});
+      if (u.hp<=0) return ev;
+      if (u.sts.bleed && a.kind!=='defend'){ const d = Math.max(1,Math.floor(u.max.hp*0.04)); u.hp = Math.max(1,u.hp-d); ev.push({t:'hit',id:u.id,v:d,m:`${u.name}の傷口が開いた`,snap:this.snap()}); }
+      if (a.kind==='defend'){ u.def = true; this.addGauge(u, 12); L(`${u.name}は身構えた`); return this.after(u, ev); }
+      if (a.kind==='item'){
+        const t = a.target, it = ITEMS[a.item];
+        if (a.item==='fuda'){ const h = Math.floor(t.max.hp*0.4); t.hp = Math.min(t.max.hp, t.hp+h); ev.push({t:'heal',id:t.id,v:h,m:`${it.n}で${t.name}のHPが${h}回復`,snap:this.snap()}); }
+        if (a.item==='reisui'){ t.mp = Math.min(t.max.mp, t.mp+30); L(`${it.n}で${t.name}のMPが回復`); }
+        if (a.item==='hangon' && t.hp<=0){ t.hp = Math.floor(t.max.hp*0.3); t.sts = {}; t.gauge = 0; ev.push({t:'heal',id:t.id,v:t.hp,m:`${t.name}が蘇った`,snap:this.snap()}); }
+        return this.after(u, ev);
+      }
+      let sk = a.kind==='attack' ? SKILLS.atk : a.kind==='ult' ? SKILLS[u.ult] : SKILLS[a.skill];
+      if (a.kind==='ult'){ if (u.gauge<100) sk = SKILLS.atk; else { u.gauge = 0; ev.push({t:'ult', id:u.id, sk:u.ult, m:`${u.name}の必殺技「${sk.n}」`, snap:this.snap()}); } }
+      else if (a.kind==='skill'){ if (u.mp < sk.mp) sk = SKILLS.atk; else u.mp -= sk.mp; }
+      let foes = this.foes(u), friends = this.friends(u);
+      let targets;
+      if (u.sts.confuse && R()<0.35){
+        L(`${u.name}は混乱している`);
+        sk = SKILLS.atk; targets = [pick(this.units.filter(x=>x.hp>0 && x!==u))];
+      } else {
+        const alive = x => x && x.hp>0 && this.units.includes(x);
+        switch (sk.tg){
+          case 'enemy': targets = [alive(a.target) && a.target.side!==u.side ? a.target : pick(foes)]; break;
+          case 'allE': targets = foes; break;
+          case 'ally': targets = [alive(a.target) && a.target.side===u.side ? a.target : friends.slice().sort((x,y)=>x.hp/x.max.hp-y.hp/y.max.hp)[0]]; break;
+          case 'allA': targets = friends; break;
+          default: targets = [u];
+        }
+        if (a.kind!=='ult') L(sk===SKILLS.atk ? `${u.name}の攻撃` : `${u.name}の${sk.n}`);
+      }
+      targets = targets.filter(Boolean);
+      const firstCrit = this.has(u,'thunderFirst') && !u.flags.acted;
+      for (const t of targets){
+        if (t.hp<=0) continue;
+        if (sk.p){
+          let acc = (sk.acc||100) - (this.has(t,'flutter')?15:0);
+          if (!sk.ult && R()*100 > acc){ ev.push({t:'miss', id:t.id, m:`${t.name}には当たらなかった`, snap:this.snap()}); continue; }
+          const r = this.calc(u, t, sk, firstCrit);
+          let v = r.v;
+          if (t.hp - v <= 0 && this.has(t,'undying') && !t.flags.undying){ t.flags.undying = 1; v = t.hp - 1; }
+          t.hp = Math.max(0, t.hp - v);
+          if (t.sts.sleep) delete t.sts.sleep;
+          this.addGauge(u, 10); this.addGauge(t, v/t.max.hp*50);
+          ev.push({t:'hit', id:t.id, v, crit:r.crit, em:r.em, m:`${t.name}に${v}のダメージ${r.crit?'（会心）':''}${r.em>1.01?' 効果は抜群':r.em<0.99?' いまひとつ':''}`, snap:this.snap()});
+          if (t.flags.undying===1 && t.hp===1){ t.flags.undying = 2; L(`${t.name}は骨を鳴らして踏みとどまった`); }
+          const drain = (sk.drain||0) + (this.has(u,'abyss')?0.25:0);
+          if (drain && u.hp>0){ const h = Math.ceil(v*drain); u.hp = Math.min(u.max.hp, u.hp+h); ev.push({t:'heal', id:u.id, v:h, snap:this.snap()}); }
+          if (t.hp>0){
+            if (sk.st) this.applySts(t, sk.st[0], sk.st[1], ev);
+            if (sk.rand) this.applySts(t, pick(Object.keys(STATUS)), sk.rand, ev);
+            if (this.has(u,'ignite')) this.applySts(t,'burn',.2,ev);
+            if (this.has(u,'mischief')) this.applySts(t, R()<.5?'fear':'curse', .25, ev);
+            if (this.has(u,'nue')) this.applySts(t,'para',.2,ev);
+            if (this.has(u,'moonFuneral')) this.applySts(t,'freeze',.15,ev);
+            if (this.has(u,'magatsu')) this.applySts(t, pick(Object.keys(STATUS)), .3, ev);
+            if (this.has(u,'jorogumo')){ this.applySts(t,'poison',.25,ev); t.mods.push({s:'spd',m:.85,t:2}); }
+            if (this.has(u,'frostBreath')) t.mods.push({s:'spd',m:.8,t:2});
+            if (sk.mods && sk.k!=='buff') sk.mods.forEach(([s,m,tt]) => t.mods.push({s,m,t:tt}));
+            if (sk.k==='phys' && this.has(t,'counter') && u.hp>0 && R()<0.25){
+              const c = this.calc(t, u, SKILLS.atk, false); const cv = Math.round(c.v*0.8); u.hp = Math.max(0, u.hp-cv);
+              ev.push({t:'hit', id:u.id, v:cv, m:`${t.name}の返し甲羅。${u.name}に${cv}のダメージ`, snap:this.snap()});
+              if (u.hp<=0) ev.push({t:'ko', id:u.id, m:`${u.name}は倒れた`, snap:this.snap()});
+            }
+          } else {
+            ev.push({t:'ko', id:t.id, m:`${t.name}は倒れた`, snap:this.snap()});
+            if (this.has(u,'hellfire')) this.addGauge(u, 40);
+          }
+        } else if (sk.k==='debuff'){
+          if (R()*100 > (sk.acc||100)){ ev.push({t:'miss', id:t.id, m:`${t.name}には効かなかった`, snap:this.snap()}); continue; }
+          if (sk.mods) sk.mods.forEach(([s,m,tt]) => t.mods.push({s,m,t:tt}));
+          if (sk.mods) L(`${t.name}の${sk.mods.map(x=>STAT_LABEL[x[0]]).join('・')}が下がった`);
+          if (sk.st) this.applySts(t, sk.st[0], sk.st[1], ev);
+        }
+        if (sk.heal && t.hp>0){ const h = Math.floor(t.max.hp*sk.heal); t.hp = Math.min(t.max.hp, t.hp+h); ev.push({t:'heal', id:t.id, v:h, m:`${t.name}のHPが${h}回復`, snap:this.snap()}); }
+        if (sk.cleanse && t.hp>0) t.sts = {};
+        if (sk.k==='buff' && sk.mods && t.hp>0){ sk.mods.forEach(([s,m,tt]) => t.mods.push({s,m,t:tt+1})); L(`${t.name}の${sk.mods.map(x=>STAT_LABEL[x[0]]).join('・')}が上がった`); }
+      }
+      if (sk.amods) friends.forEach(f => sk.amods.forEach(([s,m,tt]) => f.mods.push({s,m,t:tt+1})));
+      if (sk.gauge) this.addGauge(u, sk.gauge);
+      if (sk.amods) L(`味方全体の素早さが上がった`);
+      u.flags.acted = true;
+      return this.after(u, ev);
+    }
+    after(u, ev){
+      if (u.hp>0 && this.has(u,'purr')){
+        const f = this.friends(u).filter(x=>x.hp<x.max.hp).sort((x,y)=>x.hp/x.max.hp-y.hp/y.max.hp)[0];
+        if (f){ const h = Math.ceil(f.max.hp*0.06); f.hp = Math.min(f.max.hp, f.hp+h); ev.push({t:'heal', id:f.id, v:h, snap:this.snap()}); }
+      }
+      return ev;
+    }
+    /* 敵AI（オート戦闘でも共用） */
+    ai(u){
+      const foes = this.foes(u), friends = this.friends(u);
+      const low = arr => arr.slice().sort((x,y)=>x.hp/x.max.hp-y.hp/y.max.hp)[0];
+      const usable = u.skills.filter(id => SKILLS[id] && SKILLS[id].mp <= u.mp);
+      const best = (filter) => {
+        let bestA = {kind:'attack', target:low(foes)}, bestS = 35;
+        for (const id of usable){
+          const s = SKILLS[id]; if (!s.p || (filter && !filter(s))) continue;
+          const tgt = s.tg==='allE' ? null : foes.slice().sort((x,y)=>elemMult(s.el,y.el)-elemMult(s.el,x.el) || x.hp-y.hp)[0];
+          const score = s.p * (s.tg==='allE' ? foes.reduce((a,f)=>a+elemMult(s.el,f.el),0)*0.8 : elemMult(s.el, tgt.el)) * (u.el.includes(s.el)?1.2:1);
+          if (score > bestS){ bestS = score; bestA = {kind:'skill', skill:id, target:tgt}; }
+        }
+        return bestA;
+      };
+      if (u.gauge >= 100){
+        const us = SKILLS[u.ult];
+        if (us.heal ? friends.some(f=>f.hp<f.max.hp*0.6) : true) return {kind:'ult', target: us.tg==='ally'?low(friends):low(foes)};
+      }
+      const heal = usable.find(id => SKILLS[id].k==='heal');
+      if (heal && friends.some(f=>f.hp < f.max.hp*0.45) && (u.ai==='guard' || R()<0.5)) return {kind:'skill', skill:heal, target:low(friends)};
+      switch (u.ai){
+        case 'guard': {
+          const buff = usable.find(id => SKILLS[id].k==='buff');
+          if (buff && !u.mods.some(m=>m.m>1) && R()<0.35) return {kind:'skill', skill:buff, target:u};
+          if (R()<0.12) return {kind:'defend'};
+          return best();
+        }
+        case 'trick': {
+          const st = usable.filter(id => { const s = SKILLS[id]; return (s.k==='debuff') || (s.st && s.st[1]>=0.4); });
+          const cands = foes.filter(f => !Object.keys(f.sts).length);
+          if (st.length && cands.length && R()<0.6) return {kind:'skill', skill:pick(st), target:pick(cands)};
+          return best();
+        }
+        case 'mage': return best(s => s.k==='mag') ;
+        case 'boss': {
+          if (u.hp < u.max.hp*0.5 && !u.flags.enraged){ u.flags.enraged = 1; const b = usable.find(id=>SKILLS[id].k==='buff'); if (b) return {kind:'skill', skill:b, target:u}; }
+          return best();
+        }
+        default: {
+          const buff = usable.find(id => SKILLS[id].k==='buff' && SKILLS[id].tg==='self');
+          if (buff && !u.mods.some(m=>m.s==='atk') && R()<0.25) return {kind:'skill', skill:buff, target:u};
+          return best();
+        }
+      }
+    }
+  }
+
+  return {statsOf, makeInst, ivGrade, expNeed, levelCap, gainExp, evoOptions, evolve, preview, fuse, findRecipe, recipeKey, producers, elemMult, weaknesses, Battle, rIdx};
+})();
+</script>
+
+<script id="ui">
+/* ===== UI層 ===== */
+const SAVE_KEY = 'ikai-keiyaku-save-v1';
+let S = null;
+let UI = {tab:'home', sel:null, dexSel:null, fuse:[null,null,null], fuseItem:false, confirm:null, modal:null, io:''};
+let BT = null;
+let SIG = 0;
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const reduced = () => window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+const isNight = () => { const h = new Date().getHours(); return h>=18 || h<5; };
+const byUid = uid => S.roster.find(c => c.uid===uid);
+
+function save(){ try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch(e){} }
+function load(){ try { const t = localStorage.getItem(SAVE_KEY); return t ? JSON.parse(t) : null; } catch(e){ return null; } }
+
+/* ---------- 札（クリーチャー絵） ---------- */
+const SHAPES = {
+  round:'M50,6 A44,44 0 1,1 49.9,6Z',
+  ofuda:'M24,4 H76 L81,10 V90 L76,96 H24 L19,90 V10Z',
+  hex:'M50,4 L90,27 V73 L50,96 L10,73 V27Z',
+  diamond:'M50,3 L96,50 L50,97 L4,50Z',
+  mask:'M50,10 C78,10 91,28 89,50 C87,76 70,94 50,94 C30,94 13,76 11,50 C9,28 22,10 50,10Z',
+  star:'M50,2 L60,30 L88,18 L72,44 L98,50 L72,56 L88,82 L60,70 L50,98 L40,70 L12,82 L28,56 L2,50 L28,44 L12,18 L40,30Z'
+};
+const MOTIF = {
+  炎:['M0,-6 C3,-2 4,1 0,6 C-4,1 -3,-2 0,-6Z',0], 水:['M-6,1 Q-3,-4 0,1 T6,1',1], 氷:['M0,-6V6M-5,-3L5,3M-5,3L5,-3',1],
+  雷:['M-2,-6L3,-1L-1,0L2,6L-3,1L1,0Z',0], 風:['M-6,2 Q0,-6 6,2',1], 土:['M-4,-3L4,-3L5,3L-5,3Z',0],
+  光:['M0,-6L1.5,-1.5L6,0L1.5,1.5L0,6L-1.5,1.5L-6,0L-1.5,-1.5Z',0], 闇:['M2,-6 A6,6 0 1,0 2,6 A4.5,4.5 0 1,1 2,-6Z',0],
+  毒:['M-4,1a2.6,2.6 0 1,0 5.2,0a2.6,2.6 0 1,0 -5.2,0M2,-4a1.6,1.6 0 1,0 3.2,0a1.6,1.6 0 1,0 -3.2,0',0],
+  霊:['M0,-5 C4,-5 4,2 0,2 C-2,2 -1,6 -4,6 C-2,4 -4,-5 0,-5Z',0], 金:['M-3,-5H3L6,0L3,5H-3L-6,0Z',0], 混沌:['M-6,0Q0,-6 6,0Q0,6 -6,0Z',0]
+};
+function sigil(spId, size, o={}){
+  const sp = SPECIES[spId], ri = RARITY[sp.rar].i, rc = RARITY[sp.rar].c;
+  const shadow = o.mode==='shadow', unknown = o.mode==='unknown';
+  const e1 = ELEMENTS[sp.el[0]].c, e2 = ELEMENTS[sp.el[1]||sp.el[0]].c, id = 'sg'+(++SIG);
+  const shape = SHAPES[sp.shape] || SHAPES.round;
+  if (unknown) return `<svg class="sigil" viewBox="0 0 100 100" width="${size}" height="${size}" aria-hidden="true"><path d="${SHAPES.round}" fill="none" stroke="#2d3d36" stroke-dasharray="4 4"/><text x="50" y="52" text-anchor="middle" dominant-baseline="central" font-size="34" fill="#4a5a52" font-family="serif">？</text></svg>`;
+  let motifs = '';
+  const n = 6 + ri, seed = parseInt(spId.slice(3))*23;
+  for (let i=0;i<n;i++){
+    const el = sp.el[i % sp.el.length], [d, stroke] = MOTIF[el], c = shadow ? '#26332e' : ELEMENTS[el].c;
+    motifs += `<path d="${d}" transform="translate(50 50) rotate(${(i*360/n+seed)%360}) translate(0 -35) scale(${ri>=3?1.1:0.95})" ${stroke?`fill="none" stroke="${c}" stroke-width="1.6" stroke-linecap="round"`:`fill="${c}"`} opacity="${shadow?1:.85}"/>`;
+  }
+  const horns = sp.shape==='mask' ? `<path d="M30,16 L20,0 L40,11Z M70,16 L80,0 L60,11Z" fill="${shadow?'#26332e':rc}"/>` : '';
+  const variant = o.variant ? `<circle cx="50" cy="50" r="47" fill="none" stroke="#e2615a" stroke-width="1.5" stroke-dasharray="3 5"/>` : '';
+  const stroke = shadow ? '#2d3d36' : (sp.rar==='MYTHIC' ? `url(#${id}m)` : rc);
+  return `<svg class="sigil" viewBox="0 0 100 100" width="${size}" height="${size}" aria-hidden="true">
+<defs><radialGradient id="${id}" cx="50%" cy="42%" r="62%"><stop offset="0" stop-color="${e1}" stop-opacity=".6"/><stop offset=".62" stop-color="${e2}" stop-opacity=".2"/><stop offset="1" stop-color="#0e1613" stop-opacity="0"/></radialGradient>
+<linearGradient id="${id}m" x1="0" x2="1"><stop offset="0" stop-color="#e36fae"/><stop offset=".5" stop-color="#caa55d"/><stop offset="1" stop-color="#6fd0c8"/></linearGradient></defs>
+${horns}<path d="${shape}" fill="#131c19" stroke="${stroke}" stroke-width="${ri>=3?2.6:1.5}"/>
+${shadow?'':`<path d="${shape}" fill="url(#${id})"/>`}${motifs}${variant}
+${shadow?'':`<text x="50" y="52" text-anchor="middle" dominant-baseline="central" font-size="${sp.glyph.length>1?30:40}" font-weight="800" font-family="'Shippori Mincho B1',serif" fill="#ebe4d0" stroke="#0e1613" stroke-width="3" paint-order="stroke">${sp.glyph}</text>`}
+</svg>`;
+}
+const elChips = els => els.map(e => `<span class="el" style="--c:${ELEMENTS[e].c}">${e}</span>`).join('');
+const rarChip = r => `<span class="rar ${r}" style="--c:${RARITY[r].c}">${r}</span>`;
+const instName = c => (c.variant?'異形・':'') + SPECIES[c.sp].name;
+
+/* ---------- 共通 ---------- */
+function addToRoster(inst){
+  inst.uid = 'c'+(S.uidN++);
+  S.roster.push(inst);
+  S.dex.seen[inst.sp] = 1; S.dex.own[inst.sp] = 1;
+  if (S.party.length < 3) S.party.push(inst.uid);
+  return inst;
+}
+function newGame(starter){
+  S = {v:1, gold:600, fu:5, items:{fuda:3,reisui:2,hangon:1,kinki:0}, roster:[], party:[], dex:{seen:{},own:{}}, recipes:{}, wins:0, boss:0, claimed:{}, uidN:1, fusions:0};
+  addToRoster(Engine.makeInst(starter, 4));
+  const others = ['MON001','MON002','MON005','MON007','MON009'].filter(x=>x!==starter).sort(()=>R()-0.5).slice(0,2);
+  others.forEach(id => addToRoster(Engine.makeInst(id, 3)));
+  UI.tab = 'home'; save(); render();
+}
+const ownCount = () => Object.keys(S.dex.own).length;
+const TOTAL = Object.keys(SPECIES).length;
+const titleNow = () => TITLES.filter(([n])=>ownCount()>=n).pop()[1];
+const maxLv = () => Math.max(...S.roster.map(c=>c.lv));
+
+/* ---------- 描画 ---------- */
+function render(){
+  const app = $('#app');
+  if (!S){ app.innerHTML = viewStart(); return; }
+  if (BT){ app.innerHTML = viewBattle(); renderModal(); return; }
+  const tabs = [['home','庵','ホーム'],['party','契','仲間'],['explore','探','探索'],['fuse','合','合体'],['summon','召','召喚・店'],['dex','鑑','図鑑']];
+  const body = {home:viewHome, party:viewParty, explore:viewExplore, fuse:viewFuse, summon:viewSummon, dex:viewDex}[UI.tab]();
+  app.innerHTML = `
+<header class="top"><span class="brand">異界契約録</span><span class="tod">${isNight()?'夜':'昼'}</span>
+<span class="cur"><span>両 <b>${S.gold}</b></span><span>霊符 <b>${S.fu}</b></span></span></header>
+<main>${body}</main>
+<nav class="tabs"><div class="tabs-in">${tabs.map(([k,i,l])=>`<button class="tab" data-a="tab:${k}" aria-current="${UI.tab===k}"><i>${i}</i>${l}</button>`).join('')}</div></nav>`;
+  renderModal();
+}
+function renderModal(){ $('#modal-root').innerHTML = UI.modal ? `<div class="modal"><div class="modal-in">${UI.modal}</div></div>` : ''; }
+
+function viewStart(){
+  const starters = ['MON001','MON002','MON005'];
+  return `<main style="padding-bottom:40px">
+<div class="start"><div class="vtitle">異界契約録</div>
+<div class="sec"><p class="eyebrow">プロローグ</p>
+<p class="lore">人間界と「異界」が少しずつ溶け合い始めた。廃れた神社に、森に、洞窟に、妖怪と悪魔と幻獣が現れる。</p>
+<p class="lore">彼らは敵とは限らない。人を守る妖怪もいれば、約束を守る悪魔もいる。あなたは「契約者」として、最初の一体と契りを結ぶ。</p></div></div>
+<div class="sec"><div class="sec-h"><h2>最初の契約</h2><span class="muted small">残りの2体は縁で決まる</span></div>
+<div class="list">${starters.map(id=>{ const sp=SPECIES[id]; return `<div class="li">${sigil(id,72)}<div class="grow"><div class="row"><h3>${sp.name}</h3>${elChips(sp.el)}${rarChip(sp.rar)}</div>
+<p class="small muted">${sp.style}。${sp.look}</p></div><button class="btn solid" data-a="start:${id}">契約</button></div>`;}).join('')}</div></div>
+</main>`;
+}
+
+function viewHome(){
+  const party = S.party.map(byUid).filter(Boolean);
+  const own = ownCount();
+  return `
+<section class="hero"><p class="eyebrow">${titleNow()}</p><h1>契約者の庵</h1>
+<p class="muted">${isNight()?'今は夜。霊と闇の者の力が15%強まり、夜にしか現れない者もいる。':'今は昼。夜（18時〜5時）になると、霊と闇の者が騒ぎ出す。'}</p></section>
+<section class="sec"><div class="sec-h"><h3>いまの一行</h3><button class="small muted" data-a="tab:party">編成する</button></div>
+<div class="party-row">${party.map(c=>`<button class="cc" data-a="open:${c.uid}">${sigil(c.sp,64,{variant:c.variant})}<div class="cc-name">${instName(c)}</div><div class="cc-meta">Lv ${c.lv} ${elChips(SPECIES[c.sp].el)}</div></button>`).join('')}</div>
+<div class="row"><button class="btn solid" data-a="tab:explore">探索に出る</button><button class="btn" data-a="tab:fuse">合体の祭壇へ</button></div></section>
+<section class="sec"><div class="sec-h"><h3>図鑑</h3><span class="small muted">${own} / ${TOTAL} 体と契約</span></div>
+<div class="bar" style="--c:var(--gold)"><span style="width:${own/TOTAL*100}%"></span></div>
+<div class="list">${DEX_REWARDS.map((r,i)=>{ const done=S.claimed[i], ok=own>=r.n;
+  return `<div class="li ${done?'off':''}"><div class="grow"><b>${r.n}体</b> <span class="muted small">報酬：${r.label}</span></div>${done?'<span class="small muted">受取済</span>':`<button class="btn ${ok?'solid':''}" ${ok?'':'disabled'} data-a="claim:${i}">受け取る</button>`}</div>`;}).join('')}</div></section>
+<section class="sec"><div class="sec-h"><h3>記録</h3><span class="small muted">勝利 ${S.wins} ・ 合体 ${S.fusions||0}</span></div>
+<p class="note">進行はこの端末のブラウザに自動で保存されるわ。別の端末へ移すときは書き出した文字列を読み込んで。</p>
+<div class="row"><button class="btn ghost" data-a="export">書き出す</button><button class="btn ghost" data-a="import">読み込む</button><button class="btn danger" data-a="reset">最初から</button></div>
+${UI.io ? `<textarea id="io-text" aria-label="セーブデータ">${esc(UI.io==='import'?'':UI.io)}</textarea><div class="row">${UI.io==='import'?'<button class="btn solid" data-a="doImport">この内容で読み込む</button>':'<button class="btn" data-a="copy">コピー</button>'}<button class="btn ghost" data-a="closeIo">閉じる</button></div>`:''}
+${UI.confirm==='reset' ? `<div class="panel row"><span class="grow">すべての契約を解いて最初からやり直すのね？</span><button class="btn danger" data-a="doReset">やり直す</button><button class="btn ghost" data-a="cancelConfirm">やめる</button></div>`:''}
+</section>`;
+}
+
+function viewParty(){
+  if (UI.sel) return viewDetail(byUid(UI.sel));
+  const list = S.roster.slice().sort((a,b)=>Engine.rIdx(b.sp)-Engine.rIdx(a.sp) || b.lv-a.lv);
+  return `
+<section class="sec"><div class="sec-h"><h2>パーティ</h2><span class="small muted">最大3体。札を開いて入れ替え</span></div>
+<div class="party-row">${[0,1,2].map(i=>{ const c = byUid(S.party[i]); return c ? `<button class="cc on" data-a="open:${c.uid}"><span class="badge">${i+1}</span>${sigil(c.sp,64,{variant:c.variant})}<div class="cc-name">${instName(c)}</div><div class="cc-meta">Lv ${c.lv}</div></button>` : `<div class="slot">空き</div>`; }).join('')}</div></section>
+<section class="sec"><div class="sec-h"><h2>契約中の仲間</h2><span class="small muted">${S.roster.length} / 30</span></div>
+<div class="grid-cards">${list.map(c=>{ const sp=SPECIES[c.sp], inP=S.party.includes(c.uid); const evo = Engine.evoOptions(c).length;
+  return `<button class="cc ${inP?'on':''}" data-a="open:${c.uid}">${inP?'<span class="badge">編成中</span>':''}${evo?'<span class="badge" style="left:auto;right:6px;background:var(--ok)">進化</span>':''}${sigil(c.sp,64,{variant:c.variant})}<div class="cc-name">${instName(c)}</div><div class="cc-meta">Lv ${c.lv} ${rarChip(sp.rar)}</div></button>`;}).join('')}</div></section>`;
+}
+
+function statRows(st, extra){
+  const keys = ['hp','atk','def','mag','mdf','spd'], mx = Math.max(...keys.filter(k=>k!=='hp').map(k=>st[k]))*1.15;
+  return `<div class="kv">${keys.map(k=>`<span class="muted">${STAT_LABEL[k]}</span><div class="bar" style="--c:${k==='hp'?'var(--ok)':'var(--gold)'}"><span style="width:${k==='hp'?100:st[k]/mx*100}%"></span></div><b>${st[k]}</b>`).join('')}
+<span class="muted">会心率</span><span></span><b>${st.crit}%</b><span class="muted">状態耐性</span><span></span><b>${st.res}</b>${extra||''}</div>`;
+}
+function skillLine(id, o={}){
+  const s = SKILLS[id], kind = {phys:'物理',mag:'魔法',heal:'回復',buff:'強化',debuff:'弱体'}[s.k];
+  const tg = {enemy:'単体',allE:'敵全体',ally:'味方単体',allA:'味方全体',self:'自分'}[s.tg];
+  const fx = [s.p?`威力${s.p}`:'', s.st?`${STATUS[s.st[0]].n}${Math.round(s.st[1]*100)}%`:'', s.mods?s.mods.map(m=>`${STAT_LABEL[m[0]]}${m[1]>1?'↑':'↓'}`).join(' '):'', s.heal?`HP${Math.round(s.heal*100)}%回復`:'', s.drain?'吸収':'', s.crit?'会心↑':'', s.lowHp?'瀕死ほど強い':'', s.rand?'ランダム状態異常':''].filter(Boolean).join('・');
+  return `<div class="grow"><div class="row" style="gap:6px"><b>${s.n}</b>${s.el?elChips([s.el]):''}<span class="small muted">${kind}・${tg}${s.ult?'':` ・MP${s.mp}`}</span></div><div class="small muted">${fx}</div></div>`;
+}
+function viewDetail(c){
+  if (!c){ UI.sel = null; return viewParty(); }
+  const sp = SPECIES[c.sp], st = Engine.statsOf(c), cap = Engine.levelCap(c), need = Engine.expNeed(c.lv), evo = Engine.evoOptions(c);
+  const inP = S.party.indexOf(c.uid);
+  return `<div><button class="btn ghost" data-a="back">一覧へ戻る</button></div>
+<section class="detail-head">${sigil(c.sp,112,{variant:c.variant})}<div class="grow"><div class="row">${rarChip(sp.rar)}${elChips(sp.el)}</div><h2>${instName(c)}</h2>
+<p class="small muted">${sp.race}・${sp.motif}</p><p class="small">性格 ${c.nature} ・ 個体 ${Engine.ivGrade(c)}${c.gen?` ・ 合体${c.gen}代目`:''}</p></div></section>
+${c.variant?'<p class="note">異形合体で生まれた特殊個体。全能力が大きく伸びている。</p>':''}
+<section class="sec"><div class="sec-h"><h3>Lv ${c.lv} <span class="small muted">/ 上限 ${cap}</span></h3><span class="small muted">${c.lv>=cap?'成長限界':`次まで ${need-c.exp}`}</span></div>
+<div class="bar" style="--c:var(--mp)"><span style="width:${c.lv>=cap?100:c.exp/need*100}%"></span></div>
+${statRows(st, `<span class="muted">MP</span><span></span><b>${st.mp}</b>`)}</section>
+${evo.length?`<section class="sec"><div class="sec-h"><h3>進化できる</h3></div><div class="list">${evo.map(e=>`<div class="li">${sigil(e.to,56)}<div class="grow"><b>${SPECIES[e.to].name}</b> <span class="small muted">${e.type}</span><div class="small muted">${SPECIES[e.to].style}</div></div><button class="btn solid" data-a="evolve:${c.uid}:${e.to}">進化</button></div>`).join('')}</div></section>`:''}
+<section class="sec"><div class="sec-h"><h3>固有能力</h3></div><div class="list">${c.abil.map((a,i)=>`<div class="li"><div class="grow"><b>${ABILITIES[a].n}</b>${i>0?' <span class="small muted">継承</span>':''}<div class="small muted">${ABILITIES[a].d}</div></div></div>`).join('')}</div></section>
+<section class="sec"><div class="sec-h"><h3>技編成</h3><span class="small muted">${c.equip.length} / 4 装備</span></div>
+<div class="list">${c.learned.map(id=>{ const on=c.equip.includes(id); return `<button class="li ${on?'on':'off'}" data-a="equip:${c.uid}:${id}">${skillLine(id)}<span class="small ${on?'':'muted'}">${on?'装備中':'外す中'}</span></button>`;}).join('')}
+<div class="li on">${skillLine(sp.ult)}<span class="small" style="color:var(--gold)">必殺</span></div></div>
+${sp.learn.filter(([l,id])=>!c.learned.includes(id)).length?`<p class="small muted">これから覚える：${sp.learn.filter(([l,id])=>!c.learned.includes(id)).map(([l,id])=>`Lv${l} ${SKILLS[id].n}`).join('、')}</p>`:''}</section>
+<section class="sec"><div class="sec-h"><h3>図鑑より</h3></div><p class="small">${sp.look}</p><p class="small muted">性格：${sp.pers} ／ 戦い方：${sp.style} ／ 弱点：${Engine.weaknesses(sp.el).join('・')||'なし'}</p></section>
+<section class="sec"><div class="sec-h"><h3>編成</h3></div>
+<div class="row">${[0,1,2].map(i=>`<button class="btn ${inP===i?'solid':''}" data-a="setParty:${c.uid}:${i}">${i+1}枠目に${inP===i?'編成中':'置く'}</button>`).join('')}${inP>=0&&S.party.length>1?`<button class="btn ghost" data-a="unParty:${c.uid}">外す</button>`:''}</div>
+${UI.confirm===('rel'+c.uid)?`<div class="panel row"><span class="grow">契約を解くと戻らないわ。${relPrice(c)}両を受け取る？</span><button class="btn danger" data-a="doRelease:${c.uid}">解く</button><button class="btn ghost" data-a="cancelConfirm">やめる</button></div>`:(S.roster.length>1?`<button class="btn danger" data-a="release:${c.uid}">契約を解く</button>`:'')}</section>`;
+}
+const relPrice = c => Math.floor((40 + c.lv*15) * RARITY[SPECIES[c.sp].rar].m * (1+Engine.rIdx(c.sp)));
+
+function viewExplore(){
+  const ml = maxLv();
+  return `<section class="sec"><div class="sec-h"><h2>探索</h2><span class="tod">${isNight()?'夜の出現あり':'昼'}</span></div>
+<p class="muted small">勝つと経験値と両と霊符が手に入る。倒した相手が契約に応じることもあるわ。</p></section>
+<div class="list">${AREAS.map(a=>{
+  const locked = a.req && ml < a.req;
+  const pool = a.boss ? a.boss.map(x=>x[0]) : [...a.pool, ...a.night].map(x=>x[0]);
+  const nightOnly = a.night ? a.night.map(x=>x[0]) : [];
+  return `<div class="panel sec"><div class="row" style="justify-content:space-between"><h3>${a.name}</h3><span class="small muted">${a.boss?'ボス':`Lv ${a.lv[0]}〜${a.lv[1]}`}</span></div>
+<p class="small muted">${a.desc}</p>
+<div class="row" style="gap:4px">${[...new Set(pool)].map(id=>`<span title="${S.dex.seen[id]?SPECIES[id].name:'？'}" style="${nightOnly.includes(id)&&!isNight()?'opacity:.35':''}">${sigil(id,34,{mode:S.dex.own[id]?'':S.dex.seen[id]?'shadow':'unknown'})}</span>`).join('')}</div>
+${locked?`<p class="small" style="color:var(--danger)">いずれかの仲間がLv${a.req}に達すると門が開く（最高Lv ${ml}）</p>`:`<button class="btn ${a.boss?'danger':'solid'} wide" data-a="battle:${a.id}">${a.boss?'門に挑む':'探索する'}</button>`}</div>`;}).join('')}</div>`;
+}
+
+function viewFuse(){
+  const slots = UI.fuse.map(byUidSafe);
+  const filled = slots.filter(Boolean);
+  const used = new Set(UI.fuse.filter(Boolean));
+  let oracle = '<p class="muted small">祭壇に2体を捧げると新しい命が生まれる。特別な三体と触媒で、さらに奥の扉が開くとも。</p>';
+  if (filled.length >= 2){
+    const p = Engine.preview(filled.map(c=>c.sp), UI.fuseItem, S.recipes);
+    const t = {
+      known:[SPECIES[p.out]?.name, '既知の合体。確実にこの者が生まれる'],
+      legend:['？？？？','伝説級の気配。未知の反応がある'],
+      unknown:['？？？？','未知の反応。何かの組み合わせに当たっている'],
+      random:['不安定な魔力','決まった反応はない。同系統の何者かが生まれる'],
+      'need-item':['異常な魔力','反応しかけている。触媒が足りない'],
+      none3:['沈黙','この三体では何も起きない']
+    }[p.kind];
+    oracle = `<div class="oracle">${p.kind==='known'?sigil(p.out,72):''}<strong>${t[0]}</strong><span class="small muted">${t[1]}</span></div>`;
+  }
+  const canFuse = filled.length>=2 && !(filled.length===3 && ['none3','need-item'].includes(Engine.preview(filled.map(c=>c.sp),UI.fuseItem,S.recipes).kind)) && S.roster.length - filled.length >= 0;
+  const found = Object.keys(S.recipes);
+  return `<section class="sec"><div class="sec-h"><h2>合体の祭壇</h2><span class="small muted">素材は消える</span></div>
+<div class="altar">${slotHtml(slots[0],0)}<span class="plus">＋</span>${slotHtml(slots[1],1)}</div>
+<div class="row" style="justify-content:center"><span class="plus" style="font-size:18px">＋</span>${slotHtml(slots[2],2,true)}</div>
+${S.items.kinki>0?`<button class="li ${UI.fuseItem?'on':'off'}" data-a="fuseItem"><div class="grow"><b>禁忌の香を焚く</b><div class="small muted">所持 ${S.items.kinki}。三体合体の触媒</div></div><span class="small">${UI.fuseItem?'使う':'使わない'}</span></button>`:''}
+${oracle}
+<button class="btn solid wide" ${canFuse?'':'disabled'} data-a="doFuse">合体する</button></section>
+<section class="sec"><div class="sec-h"><h3>素材を選ぶ</h3><span class="small muted">タップで祭壇へ</span></div>
+<div class="grid-cards">${S.roster.filter(c=>!used.has(c.uid)).map(c=>`<button class="cc" data-a="fsel:${c.uid}">${S.party.includes(c.uid)?'<span class="badge">編成中</span>':''}${sigil(c.sp,56,{variant:c.variant})}<div class="cc-name">${instName(c)}</div><div class="cc-meta">Lv ${c.lv} ${rarChip(SPECIES[c.sp].rar)}</div></button>`).join('')}</div></section>
+<section class="sec"><div class="sec-h"><h3>発見したレシピ</h3><span class="small muted">${found.length} / ${RECIPES.reduce((s,r)=>s+r.keys.length,0)}</span></div>
+${found.length?`<div class="list">${found.map(k=>{ const r=Engine.findRecipe(k.split('+')); return `<div class="li"><div class="grow small">${k.split('+').map(id=>SPECIES[id].name).join(' ＋ ')}${r.item?' ＋ 禁忌の香':''}</div><b>${SPECIES[r.out].name}</b></div>`;}).join('')}</div>`:'<p class="small muted">まだない。試した組み合わせが特別なら、ここに記録される。</p>'}</section>`;
+}
+function byUidSafe(u){ return u ? byUid(u) : null; }
+function slotHtml(c, i, third){
+  if (c) return `<button class="slot filled" data-a="funsel:${i}">${sigil(c.sp,64,{variant:c.variant})}<b>${instName(c)}</b><span class="muted">Lv ${c.lv}・外す</span></button>`;
+  return `<div class="slot" ${third?'style="min-height:80px;min-width:140px"':''}>${third?'三体目（任意）':'空き'}</div>`;
+}
+
+function viewSummon(){
+  return `<section class="sec"><div class="sec-h"><h2>召喚陣</h2><span class="small muted">霊符${SUMMON.cost}枚で1回</span></div>
+<div class="oracle"><strong>召喚</strong><span class="small muted">N ${SUMMON.rates.N}% ・ R ${SUMMON.rates.R}% ・ SR ${SUMMON.rates.SR}%。合体でしか生まれない者は出ない</span></div>
+<button class="btn solid wide" ${S.fu>=SUMMON.cost&&S.roster.length<30?'':'disabled'} data-a="summon">霊符を捧げる（所持 ${S.fu}）</button>
+<p class="small muted">霊符は探索の勝利、図鑑の報酬、店で手に入る。課金はない。</p></section>
+<section class="sec"><div class="sec-h"><h2>よろず屋</h2><span class="small muted">所持 ${S.gold}両</span></div>
+<div class="list">${Object.entries(ITEMS).map(([k,it])=>`<div class="li"><div class="grow"><b>${it.n}</b> <span class="small muted">所持 ${S.items[k]||0}</span><div class="small muted">${it.d}</div></div><button class="btn" ${S.gold>=it.price?'':'disabled'} data-a="buy:${k}">${it.price}両</button></div>`).join('')}
+<div class="li"><div class="grow"><b>霊符</b> <span class="small muted">所持 ${S.fu}</span><div class="small muted">召喚に使う札</div></div><button class="btn" ${S.gold>=400?'':'disabled'} data-a="buy:fu">400両</button></div></div></section>`;
+}
+
+function viewDex(){
+  if (UI.dexSel) return viewDexDetail(UI.dexSel);
+  const ids = Object.keys(SPECIES);
+  return `<section class="sec"><div class="sec-h"><h2>異界図鑑</h2><span class="small muted">契約 ${ownCount()} ・ 遭遇 ${Object.keys(S.dex.seen).length} ・ 全 ${TOTAL}</span></div>
+<p class="small muted">影は遭遇しただけの者。まだ見ぬ者は「？」のまま。</p>
+<div class="dex-grid">${ids.map(id=>{ const own=S.dex.own[id], seen=S.dex.seen[id];
+  return `<button class="dex-cell" data-a="${seen?'dex:'+id:''}" ${seen?'':'disabled'}><span class="no">${id.replace('MON','No.')}</span>${sigil(id,52,{mode:own?'':seen?'shadow':'unknown'})}<span class="nm">${seen?SPECIES[id].name:'？？？'}</span></button>`;}).join('')}</div></section>`;
+}
+function viewDexDetail(id){
+  const sp = SPECIES[id], own = S.dex.own[id];
+  const areas = AREAS.filter(a => (a.pool||[]).concat(a.night||[], a.boss||[]).some(x=>x[0]===id)).map(a => a.name + ((a.night||[]).some(x=>x[0]===id)?'（夜）':''));
+  const prods = Engine.producers(id);
+  const known = prods.flatMap(r=>r.keys.filter(k=>S.recipes[k]).map(k=>k.split('+').map(x=>SPECIES[x].name).join(' ＋ ')+(r.item?' ＋ 禁忌の香':'')));
+  const unknownN = prods.reduce((s,r)=>s+r.keys.filter(k=>!S.recipes[k]).length,0);
+  const evoFrom = Object.entries(SPECIES).filter(([,s])=>(s.evo||[]).some(e=>e.to===id)).map(([k,s])=>`${s.name}（Lv${s.evo.find(e=>e.to===id).lv}）`);
+  const base = Engine.statsOf({sp:id,lv:10,iv:{hp:1,atk:1,def:1,mag:1,mdf:1,spd:1},nature:'素直',gen:0});
+  return `<div><button class="btn ghost" data-a="dexBack">図鑑へ戻る</button></div>
+<section class="detail-head">${sigil(id,112,{mode:own?'':'shadow'})}<div class="grow"><span class="small muted">${id.replace('MON','No.')} ・ ${sp.kana}</span><h2>${sp.name}</h2><div class="row">${rarChip(sp.rar)}${elChips(sp.el)}</div><p class="small muted">${sp.race}・${sp.motif}</p></div></section>
+${own?`<p class="lore">${sp.lore}</p>
+<section class="sec"><p class="small">${sp.look}</p><p class="small muted">性格：${sp.pers} ／ 戦い方：${sp.style} ／ 弱点：${Engine.weaknesses(sp.el).join('・')||'なし'}</p></section>
+<section class="sec"><div class="sec-h"><h3>能力の目安</h3><span class="small muted">Lv10・標準個体</span></div>${statRows(base)}</section>
+<section class="sec"><div class="sec-h"><h3>固有能力</h3></div><div class="li"><div class="grow"><b>${ABILITIES[sp.abil].n}</b><div class="small muted">${ABILITIES[sp.abil].d}</div></div></div>${(sp.extra||[]).map(a=>`<div class="li"><div class="grow"><b>${ABILITIES[a].n}</b><div class="small muted">${ABILITIES[a].d}</div></div></div>`).join('')}</section>
+<section class="sec"><div class="sec-h"><h3>習得技</h3></div><div class="list">${sp.learn.map(([l,s])=>`<div class="li"><span class="small muted" style="width:36px">Lv${l}</span>${skillLine(s)}</div>`).join('')}<div class="li"><span class="small" style="width:36px;color:var(--gold)">必殺</span>${skillLine(sp.ult)}</div></div></section>`
+:`<p class="note">まだ契約していない。姿と伝承は契約すると明らかになる。</p>`}
+<section class="sec"><div class="sec-h"><h3>出会い方</h3></div>
+<p class="small">${areas.length?'出現：'+areas.join('、'):'野生では見つかっていない'}</p>
+${evoFrom.length?`<p class="small">進化：${evoFrom.join('、')}から</p>`:''}
+${prods.length?`<p class="small">合体レシピ：${known.length?known.join(' ／ '):'未発見'}${unknownN?`（未発見 ${unknownN}件）`:''}</p>`:''}
+${!sp.fusionOnly?'<p class="small muted">召喚でも出会える</p>':''}</section>`;
+}
+
+/* ---------- 戦闘 ---------- */
+function startBattle(areaId){
+  const area = AREAS.find(a=>a.id===areaId);
+  const party = S.party.map(byUid).filter(Boolean);
+  let enemies;
+  if (area.boss){
+    enemies = area.boss.map(([id,lv]) => { const e = Engine.makeInst(id,lv); if (id==='MON101') e.aiOverride = 'boss'; return e; });
+  } else {
+    const pool = area.pool.concat(isNight()?area.night:[]);
+    enemies = Array.from({length:randInt(area.count[0],area.count[1])}, () => Engine.makeInst(wpick(pool), randInt(area.lv[0],area.lv[1])));
+  }
+  enemies.forEach(e => S.dex.seen[e.sp] = 1);
+  const b = new Engine.Battle(party, enemies, {night:isNight()});
+  BT = {b, area, disp:b.snap(), log:[area.boss?'地獄門が開く。焔の将が待っていた。':`${area.name}で異界の気配がする。`], mode:'wait', actor:null, sub:null, pending:null, resolve:null, auto:false, fast:false, over:null};
+  save(); render(); loop();
+}
+async function loop(){
+  const b = BT.b;
+  while (!b.result()){
+    const u = b.next(); if (!u) continue;
+    BT.actor = u.id;
+    const st = b.startTurn(u);
+    await play(st.ev);
+    if (!BT || b.result()) break;
+    if (!st.canAct) continue;
+    let action;
+    if (u.side==='a' && !BT.auto){
+      action = await chooseAction(u);
+      if (!BT) return;
+      if (action.kind==='flee'){
+        if (R()<0.65){ BT.log.push('うまく逃げ切った'); render(); await wait(500); endBattle('flee'); return; }
+        await play([{t:'log', m:'逃げられなかった', snap:b.snap()}]); continue;
+      }
+      if (action.kind==='item') S.items[action.item]--;
+    } else action = b.ai(u);
+    await play(b.act(u, action));
+    if (!BT) return;
+  }
+  BT.actor = null;
+  endBattle(b.result());
+}
+function chooseAction(u){
+  return new Promise(res => {
+    BT.mode = 'cmd'; BT.sub = null; BT.pending = null;
+    BT.resolve = a => { BT.mode = 'wait'; BT.sub = null; BT.pending = null; BT.resolve = null; res(a); render(); };
+    render();
+  });
+}
+async function play(evs){
+  for (const e of evs){
+    if (!BT) return;
+    if (e.m) BT.log.push(e.m);
+    if (BT.log.length > 40) BT.log.splice(0, BT.log.length-40);
+    if (e.snap) BT.disp = e.snap;
+    render();
+    if (e.t==='ult'){ await cutin(e); continue; }
+    if (e.t==='hit'||e.t==='heal'||e.t==='miss') floatAt(e);
+    await wait(reduced() ? 120 : BT.fast ? 150 : (e.t==='log' ? 300 : 460));
+  }
+}
+function floatAt(e){
+  const el = document.getElementById('u-'+e.id); if (!el) return;
+  const f = document.createElement('span');
+  f.className = 'float ' + (e.t==='heal'?'heal':e.t==='miss'?'miss':e.crit?'crit':'');
+  f.innerHTML = e.t==='miss' ? 'MISS' : (e.t==='heal'?'+':'') + e.v + (e.em>1.01?'<span class="eff">抜群</span>':'');
+  el.appendChild(f);
+  if (e.t==='hit') el.classList.add('shake');
+  setTimeout(() => f.remove(), 950);
+}
+function cutin(e){
+  return new Promise(res => {
+    const u = BT.b.unit(e.id), sk = SKILLS[e.sk], c = sk.el ? ELEMENTS[sk.el].c : '#caa55d';
+    const ov = $('#cutin');
+    ov.innerHTML = `<div class="ci-flash" style="--c:${c}"></div><div class="ci-band" style="--c:${c}"><div class="ci-glyph" style="--c:${c}">${u.sp.glyph}</div><div class="ci-txt"><span>${esc(u.name)}</span><strong>${sk.n}</strong></div></div>`;
+    ov.hidden = false; ov.classList.remove('run'); void ov.offsetWidth; ov.classList.add('run');
+    setTimeout(() => { ov.hidden = true; ov.classList.remove('run'); res(); }, reduced() ? 400 : BT.fast ? 800 : 1500);
+  });
+}
+function unitCard(u){
+  const d = BT.disp[u.id] || {hp:u.hp, mp:u.mp, g:0, sts:[]};
+  const ko = d.hp<=0, mode = BT.mode;
+  const tgt = (mode==='target-e' && u.side==='e' && !ko) || (mode==='target-a' && u.side==='a' && !ko) || (mode==='target-dead' && u.side==='a' && ko);
+  const hpPct = d.hp/u.max.hp*100;
+  return `<button class="uc ${BT.actor===u.id&&!BT.over?'act':''} ${ko?'ko':''} ${tgt?'tgt '+(u.side==='a'?'ally':''):''}" id="u-${u.id}" ${tgt?`data-a="tgt:${u.id}"`:'tabindex="-1"'}>
+${sigil(u.inst.sp, 52, {variant:u.inst.variant})}
+<div class="nm">${esc(u.name)}</div><div class="lv">Lv ${u.lv} ${elChips(u.el)}</div>
+<div class="bars"><div class="bar" style="--c:${hpPct<30?'var(--danger)':'var(--ok)'}"><span style="width:${hpPct}%"></span></div>
+${u.side==='a'?`<div class="hpn">${d.hp}/${u.max.hp}</div><div class="bar" style="--c:var(--mp)"><span style="width:${d.mp/u.max.mp*100}%"></span></div>`:''}
+<div class="bar gauge ${d.g>=100?'full':''}"><span style="width:${d.g}%"></span></div></div>
+<div class="sts">${d.sts.map(s=>`<span class="st">${STATUS[s].n}</span>`).join('')}</div></button>`;
+}
+function viewBattle(){
+  const b = BT.b, u = BT.actor ? b.unit(BT.actor) : null;
+  let panel = '';
+  if (BT.over) panel = '';
+  else if (BT.mode==='cmd' && u){
+    if (BT.sub==='skills'){
+      panel = `<div class="skl">${u.skills.map(id=>{ const s=SKILLS[id], ok=u.mp>=s.mp; return `<button class="li ${ok?'':'off'}" ${ok?`data-a="useSkill:${id}"`:'disabled'}>${skillLine(id)}</button>`;}).join('')}<button class="btn ghost" data-a="bcancel">戻る</button></div>`;
+    } else if (BT.sub==='items'){
+      const its = Object.entries(ITEMS).filter(([k,it])=>it.battle && S.items[k]>0);
+      panel = `<div class="skl">${its.length?its.map(([k,it])=>`<button class="li" data-a="useItem:${k}"><div class="grow"><b>${it.n}</b> <span class="small muted">×${S.items[k]}</span><div class="small muted">${it.d}</div></div></button>`).join(''):'<p class="small muted">使える道具がない</p>'}<button class="btn ghost" data-a="bcancel">戻る</button></div>`;
+    } else {
+      const d = BT.disp[u.id];
+      panel = `<p class="small"><b style="color:var(--gold)">${esc(u.name)}</b> はどうする？ <span class="muted">MP ${d.mp}/${u.max.mp}</span></p>
+<div class="cmd"><button class="btn solid" data-a="cmd:attack">攻撃</button><button class="btn" data-a="cmd:skills">技・魔法</button><button class="btn" data-a="cmd:defend">防御</button>
+<button class="btn" data-a="cmd:items">道具</button><button class="btn ${d.g>=100?'solid':''}" ${d.g>=100?'':'disabled'} data-a="cmd:ult">必殺技</button><button class="btn ghost" ${BT.area.boss?'disabled':''} data-a="cmd:flee">逃げる</button></div>`;
+    }
+  } else if (BT.mode.startsWith('target')){
+    panel = `<p class="small">${BT.mode==='target-e'?'狙う相手を選んで':'対象の味方を選んで'}</p><button class="btn ghost" data-a="bcancel">戻る</button>`;
+  }
+  return `<div class="bt"><div class="bt-top"><b>${BT.area.name}</b><span class="muted grow">第${b.round}巡</span>
+<button class="toggle" aria-pressed="${BT.auto}" data-a="auto">オート</button><button class="toggle" aria-pressed="${BT.fast}" data-a="fast">速</button></div>
+<div class="side">${b.units.filter(x=>x.side==='e').map(unitCard).join('')}</div>
+<div class="logbox" aria-live="polite">${BT.log.slice(-4).map(l=>`<div>${esc(l)}</div>`).join('')}</div>
+<div class="side">${b.units.filter(x=>x.side==='a').map(unitCard).join('')}</div>
+${panel}</div>`;
+}
+function endBattle(res){
+  const b = BT.b;
+  const party = b.units.filter(u=>u.side==='a');
+  const foes = b.units.filter(u=>u.side==='e');
+  let html = '';
+  if (res==='win'){
+    S.wins++;
+    const boss = !!BT.area.boss;
+    const exp = foes.reduce((s,f)=>s + Math.floor((10+f.lv*7)*RARITY[f.sp.rar].m), 0) * (boss?1.5:1);
+    const gold = foes.reduce((s,f)=>s + f.lv*12, 0) + randInt(10,40);
+    const fu = boss ? 10 : (R()<0.7?1:2);
+    S.gold += gold; S.fu += fu;
+    const drops = [];
+    if (R()<0.2){ S.items.fuda++; drops.push('回復の札'); }
+    if (boss){ if (!S.boss || R()<0.3){ S.items.kinki++; drops.push('禁忌の香'); } S.boss++; }
+    const lines = party.map(p => {
+      const g = Engine.gainExp(p.inst, Math.floor(exp * (p.hp>0?1:0.5)));
+      return `<div class="li">${sigil(p.inst.sp,40,{variant:p.inst.variant})}<div class="grow"><b>${esc(p.name)}</b> <span class="small muted">Lv ${p.inst.lv}</span>
+${g.ups?`<div class="small" style="color:var(--gold)">レベルが${g.ups}上がった${g.learned.length?`。${g.learned.map(s=>SKILLS[s].n).join('、')}を覚えた`:''}</div>`:''}
+${Engine.evoOptions(p.inst).length?'<div class="small" style="color:var(--ok)">進化できる</div>':''}</div></div>`;
+    }).join('');
+    const rates = [0.55,0.38,0.22,0.12,0.06,0.04,0.02];
+    BT.offers = foes.filter(f => R() < rates[RARITY[f.sp.rar].i] * (boss?0.5:1)).map(f => { f.inst.exp = 0; delete f.inst.aiOverride; return f.inst; });
+    html = `<h2>勝利</h2><p class="small muted">経験値 ${Math.floor(exp)} ・ ${gold}両 ・ 霊符 ${fu}${drops.length?' ・ '+drops.join('、'):''}</p><div class="list">${lines}</div>
+${BT.offers.length?`<div class="sec"><div class="sec-h"><h3>契約を望む者がいる</h3></div><div class="list" id="offers">${BT.offers.map((o,i)=>`<div class="li">${sigil(o.sp,48)}<div class="grow"><b>${SPECIES[o.sp].name}</b> <span class="small muted">Lv ${o.lv}</span> ${rarChip(SPECIES[o.sp].rar)}<div class="small muted">${SPECIES[o.sp].style}</div></div><button class="btn solid" data-a="contract:${i}">契約</button></div>`).join('')}</div></div>`:''}
+<button class="btn wide" data-a="leave">庵へ戻る</button>`;
+  } else if (res==='lose'){
+    html = `<h2>全滅</h2><p class="muted">一行は庵に担ぎ込まれた。傷は癒えたわ。編成や技を見直して、もう一度。</p><button class="btn wide" data-a="leave">庵へ戻る</button>`;
+  } else { BT = null; save(); render(); return; }
+  BT.over = res; UI.modal = html; save(); render();
+}
+
+/* ---------- 操作 ---------- */
+const A = {
+  tab:t => { UI.tab = t; UI.sel = null; UI.dexSel = null; UI.confirm = null; render(); window.scrollTo(0,0); },
+  start:id => newGame(id),
+  open:uid => { UI.tab = 'party'; UI.sel = uid; UI.confirm = null; render(); window.scrollTo(0,0); },
+  back:() => { UI.sel = null; UI.confirm = null; render(); },
+  equip:(uid,id) => { const c = byUid(uid); const i = c.equip.indexOf(id);
+    if (i>=0){ if (c.equip.length>1) c.equip.splice(i,1); } else if (c.equip.length<4) c.equip.push(id); else { c.equip.shift(); c.equip.push(id); }
+    save(); render(); },
+  evolve:(uid,to) => { const c = byUid(uid); Engine.evolve(c,to); S.dex.seen[to]=1; S.dex.own[to]=1; save();
+    UI.modal = `<div class="reveal">${sigil(to,140)}<p class="eyebrow">進化</p><h2>${SPECIES[to].name}</h2><p class="small muted">${SPECIES[to].look}</p></div><button class="btn solid wide" data-a="closeModal">見届けた</button>`; render(); },
+  setParty:(uid,i) => { i=+i; const cur = S.party.indexOf(uid); if (cur>=0) S.party.splice(cur,1);
+    if (i < S.party.length) S.party.splice(i,0,uid); else S.party.push(uid);
+    if (S.party.length>3){ const drop = S.party.findIndex((x,j)=>j!==i && x!==uid); S.party.splice(drop===-1?3:drop,1); }
+    save(); render(); },
+  unParty:uid => { if (S.party.length>1) S.party = S.party.filter(x=>x!==uid); save(); render(); },
+  release:uid => { UI.confirm = 'rel'+uid; render(); },
+  doRelease:uid => { const c = byUid(uid); S.gold += relPrice(c); S.roster = S.roster.filter(x=>x.uid!==uid); S.party = S.party.filter(x=>x!==uid);
+    if (!S.party.length && S.roster.length) S.party.push(S.roster[0].uid); UI.sel = null; UI.confirm = null; save(); render(); },
+  cancelConfirm:() => { UI.confirm = null; render(); },
+  claim:i => { const r = DEX_REWARDS[i]; if (S.claimed[i] || ownCount()<r.n) return; S.claimed[i]=1; S.fu += r.fu||0; S.gold += r.gold||0; S.items.kinki += r.kinki||0; save(); render(); },
+  battle:id => startBattle(id),
+  fsel:uid => { const i = UI.fuse.indexOf(null); if (i<0) return; UI.fuse[i] = uid; render(); },
+  funsel:i => { UI.fuse[+i] = null; render(); },
+  fuseItem:() => { UI.fuseItem = !UI.fuseItem; render(); },
+  doFuse:() => {
+    const insts = UI.fuse.filter(Boolean).map(byUid);
+    const r = Engine.fuse(insts, UI.fuseItem); if (!r) return;
+    if (UI.fuseItem && insts.length===3 && r.recipe) S.items.kinki--;
+    const uids = insts.map(c=>c.uid);
+    S.roster = S.roster.filter(c=>!uids.includes(c.uid));
+    const wasParty = S.party.some(u=>uids.includes(u));
+    S.party = S.party.filter(u=>!uids.includes(u));
+    const isNew = !S.dex.own[r.child.sp];
+    addToRoster(r.child);
+    if (wasParty && !S.party.includes(r.child.uid) && S.party.length<3) S.party.push(r.child.uid);
+    const newRecipe = r.recipe && !S.recipes[r.key];
+    if (r.recipe) S.recipes[r.key] = 1;
+    S.fusions = (S.fusions||0)+1;
+    UI.fuse = [null,null,null]; UI.fuseItem = false; save();
+    const sp = SPECIES[r.child.sp];
+    UI.modal = `<div class="reveal"><div class="swirl">${insts.map(c=>sigil(c.sp,40)).join('')}</div></div>`;
+    render();
+    setTimeout(() => {
+      UI.modal = `<div class="reveal">${sigil(r.child.sp,150,{variant:r.child.variant})}
+<p class="eyebrow">${r.abnormal?'異形合体':RARITY[sp.rar].i>=4?'神話級の誕生':r.recipe?'特殊合体':'合体'}</p><h2>${instName(r.child)}</h2><div class="row">${rarChip(sp.rar)}${elChips(sp.el)}${isNew?'<span class="small" style="color:var(--gold)">図鑑に新規登録</span>':''}</div>
+<p class="small muted">${sp.look}</p>
+<p class="small">Lv ${r.child.lv} ・ 合体${r.child.gen}代目${r.child.abil.length>1?` ・ 継承能力「${ABILITIES[r.child.abil[r.child.abil.length-1]].n}」`:''}${r.inherited.length?` ・ 継承技「${r.inherited.map(s=>SKILLS[s].n).join('」「')}」`:''}</p>
+${newRecipe?'<p class="note">新しい合体レシピを発見。祭壇に記録された。</p>':''}</div><button class="btn solid wide" data-a="openNew:${r.child.uid}">札を見る</button><button class="btn ghost wide" data-a="closeModal">閉じる</button>`;
+      render();
+    }, reduced() ? 200 : 1500);
+  },
+  openNew:uid => { UI.modal = null; A.open(uid); },
+  summon:() => {
+    if (S.fu < SUMMON.cost || S.roster.length>=30) return;
+    S.fu -= SUMMON.cost;
+    const rar = wpick(Object.entries(SUMMON.rates));
+    const pool = Object.keys(SPECIES).filter(id=>!SPECIES[id].fusionOnly && !(SPECIES[id].evo===undefined && Object.values(SPECIES).some(s=>(s.evo||[]).some(e=>e.to===id))) && SPECIES[id].rar===rar);
+    const id = pick(pool);
+    const isNew = !S.dex.own[id];
+    const c = addToRoster(Engine.makeInst(id, randInt(2,5)));
+    save();
+    UI.modal = `<div class="reveal">${sigil(id,150)}<p class="eyebrow">${rar==='SR'?'強い気配':'召喚'}</p><h2>${SPECIES[id].name}</h2><div class="row">${rarChip(SPECIES[id].rar)}${elChips(SPECIES[id].el)}${isNew?'<span class="small" style="color:var(--gold)">図鑑に新規登録</span>':''}</div><p class="small muted">${SPECIES[id].look}</p></div>
+<button class="btn solid wide" data-a="openNew:${c.uid}">札を見る</button><button class="btn ghost wide" data-a="closeModal">閉じる</button>`;
+    render();
+  },
+  buy:k => { if (k==='fu'){ if (S.gold<400) return; S.gold-=400; S.fu++; } else { const it = ITEMS[k]; if (S.gold<it.price) return; S.gold-=it.price; S.items[k]=(S.items[k]||0)+1; } save(); render(); },
+  dex:id => { UI.dexSel = id; render(); window.scrollTo(0,0); },
+  dexBack:() => { UI.dexSel = null; render(); },
+  closeModal:() => { UI.modal = null; render(); },
+  export:() => { try { UI.io = btoa(unescape(encodeURIComponent(JSON.stringify(S)))); } catch(e){ UI.io = ''; } render(); },
+  import:() => { UI.io = 'import'; render(); },
+  closeIo:() => { UI.io = ''; render(); },
+  copy:() => { const t = $('#io-text'); navigator.clipboard?.writeText(t.value).catch(()=>{ t.select(); }); t.select(); },
+  doImport:() => { try { const d = JSON.parse(decodeURIComponent(escape(atob($('#io-text').value.trim())))); if (!d.roster) throw 0; S = d; UI.io=''; save(); render(); } catch(e){ UI.io='import'; render(); $('#io-text').placeholder='読み込めなかった。書き出した文字列をそのまま貼り付けて。'; } },
+  reset:() => { UI.confirm = 'reset'; render(); },
+  doReset:() => { try { localStorage.removeItem(SAVE_KEY); } catch(e){} S = null; UI = {tab:'home', sel:null, dexSel:null, fuse:[null,null,null], fuseItem:false, confirm:null, modal:null, io:''}; render(); },
+  /* 戦闘コマンド */
+  auto:() => { BT.auto = !BT.auto; if (BT.auto && BT.resolve){ const u = BT.b.unit(BT.actor); BT.resolve(BT.b.ai(u)); } else render(); },
+  fast:() => { BT.fast = !BT.fast; render(); },
+  cmd:k => {
+    const u = BT.b.unit(BT.actor);
+    if (k==='attack'){ BT.pending = {kind:'attack'}; BT.mode = 'target-e'; }
+    else if (k==='skills' || k==='items'){ BT.sub = k; }
+    else if (k==='defend') return BT.resolve({kind:'defend'});
+    else if (k==='flee') return BT.resolve({kind:'flee'});
+    else if (k==='ult'){ const s = SKILLS[u.ult]; if (s.tg==='enemy'){ BT.pending={kind:'ult'}; BT.mode='target-e'; } else if (s.tg==='ally'){ BT.pending={kind:'ult'}; BT.mode='target-a'; } else return BT.resolve({kind:'ult'}); }
+    render();
+  },
+  useSkill:id => { const s = SKILLS[id];
+    if (s.tg==='enemy'){ BT.pending={kind:'skill',skill:id}; BT.mode='target-e'; BT.sub=null; }
+    else if (s.tg==='ally'){ BT.pending={kind:'skill',skill:id}; BT.mode='target-a'; BT.sub=null; }
+    else return BT.resolve({kind:'skill',skill:id});
+    render(); },
+  useItem:k => { const it = ITEMS[k]; BT.pending = {kind:'item', item:k}; BT.mode = it.battle==='dead' ? 'target-dead' : 'target-a'; BT.sub = null;
+    if (BT.mode==='target-dead' && !BT.b.units.some(u=>u.side==='a'&&u.hp<=0)){ BT.mode='cmd'; BT.log.push('倒れた仲間はいない'); }
+    render(); },
+  tgt:id => { if (!BT.resolve || !BT.pending) return; BT.resolve({...BT.pending, target:BT.b.unit(id)}); },
+  bcancel:() => { BT.mode = 'cmd'; BT.sub = null; BT.pending = null; render(); },
+  contract:i => { const o = BT.offers[i]; if (!o || o.taken) return;
+    if (S.roster.length>=30){ return; }
+    o.taken = 1; addToRoster(o); save();
+    const btn = document.querySelector(`[data-a="contract:${i}"]`); if (btn){ btn.outerHTML = '<span class="small" style="color:var(--gold)">契約した</span>'; }
+    UI.modal = $('.modal-in').innerHTML; },
+  leave:() => { BT = null; UI.modal = null; save(); render(); window.scrollTo(0,0); }
+};
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-a]'); if (!el || el.disabled) return;
+  const v = el.dataset.a; if (!v) return;
+  const [k, ...args] = v.split(':');
+  if (A[k]) A[k](...args);
+});
+
+/* 起動 */
+function boot(d){
+  if (d && d.S) S = d.S; else S = load();
+  render();
+}
+window.claude?.hot?.snapshot?.(() => ({S}));
+window.claude?.hot?.ready ? window.claude.hot.ready(boot) : boot(window.claude?.hot?.data ?? {});
+</script>
+
+</body></html>
