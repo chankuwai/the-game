@@ -29,7 +29,7 @@ canvas{display:block;width:min(100%, calc((100dvh - 96px) * 1.5));max-width:100%
 <div id="wrap">
   <header>
     <h1>ぽいっと金魚すくい</h1>
-    <a href="index.html">← ゲーム一覧</a>
+    <div style="display:flex;align-items:center;gap:12px"><button class="tg-auto tg-inline" type="button" aria-pressed="false" aria-label="オートプレイ">AUTO</button><a href="index.html">← ゲーム一覧</a></div>
   </header>
   <canvas id="cv" width="960" height="640" aria-label="金魚すくいのゲーム画面"></canvas>
   <p class="hint">押している間ポイが水に入り、離すとすくい上げる。スマホは指の少し上にポイが出るわ。</p>
@@ -173,7 +173,7 @@ function endGame() {
   const left = Math.max(0, pois);
   const bonus = left * 300;
   score += bonus;
-  const isBest = score > best;
+  const isBest = !window.tgAuto && score > best;
   if (isBest) { best = score; try { localStorage.setItem(BEST_KEY, String(best)); } catch (e) {} }
   endInfo = { bonus, left, isBest, timeUp: timeLeft <= 0 };
   state = 'result'; resultAt = performance.now();
@@ -312,7 +312,49 @@ function updatePoi(dt) {
   }
 }
 
+/* ---------- オートプレイ ---------- */
+let autoFish = null, autoHeld = false, autoDownT = 0, autoAimT = 0;
+function autoPilot(dt) {
+  if (!window.tgAuto) {
+    if (autoHeld) { ptr.pressed = false; poi.needRelease = false; autoHeld = false; }
+    return;
+  }
+  autoHeld = true;
+  if (state === 'title') { startGame(); poi.needRelease = false; return; }
+  if (state === 'result') { if (performance.now() - resultAt > 4000) { startGame(); poi.needRelease = false; } return; }
+  if (poi.state !== 'ok') { ptr.pressed = false; poi.needRelease = false; return; }
+  if (poi.down) {
+    autoDownT += dt;
+    const inside = fish.filter(catchable);
+    const snug = inside.some(f => Math.hypot(f.x - poi.x, f.y - poi.y) < POI_R * .55);
+    if ((snug && poi.load <= poi.dur - 1) || autoDownT > 2.6 || poi.load > poi.dur) ptr.pressed = false;
+    return;
+  }
+  autoDownT = 0;
+  autoAimT += dt;
+  if (!autoFish || !fish.includes(autoFish) || autoAimT > 3) {
+    autoAimT = 0; autoFish = null;
+    let bestV = 0;
+    for (const f of fish) {
+      if (f.drop > 0 || f.T.weight > poi.dur - 6 || (f.key === 'nushi' && poi.dur < 70)) continue;
+      const v = f.T.score / (1 + Math.hypot(f.x - poi.x, f.y - poi.y) / 250) * (f.T.shy ? .5 : 1);
+      if (v > bestV) { bestV = v; autoFish = f; }
+    }
+    // 紙が弱って狙える魚がいないときは、一番軽い魚で勝負して次のポイへ
+    if (!autoFish) autoFish = fish.filter(f => f.drop <= 0).sort((a, b) => a.T.weight - b.T.weight)[0] || null;
+  }
+  if (!autoFish) { ptr.pressed = false; return; }
+  const f = autoFish;
+  const tx = clamp(f.x + Math.cos(f.a) * 38, POOL.x + 30, POOL.x + POOL.w - 30);
+  const ty = clamp(f.y + Math.sin(f.a) * 38, POOL.y + 30, POOL.y + POOL.h - 30);
+  const dx = tx - ptr.x, dy = ty - ptr.y, d = Math.hypot(dx, dy), step = 700 * dt;
+  if (d > step) { ptr.x += dx / d * step; ptr.y += dy / d * step; }
+  else { ptr.x = tx; ptr.y = ty; }
+  ptr.pressed = Math.hypot(tx - poi.x, ty - poi.y) < 14;
+}
+
 function update(dt) {
+  autoPilot(dt);
   for (const f of fish) updateFish(f, dt);
   updatePoi(dt);
 
@@ -720,6 +762,34 @@ function loop(now) {
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
+</script>
+<style>
+.tg-auto{position:fixed;z-index:2147483647;top:calc(8px + env(safe-area-inset-top,0px));left:calc(88px + env(safe-area-inset-left,0px));
+  display:inline-block;margin:0;padding:6px 12px;border-radius:999px;background:rgba(12,14,24,.72);color:#fff;cursor:pointer;
+  font:700 13px/1.2 "Hiragino Sans","Yu Gothic",sans-serif;letter-spacing:.06em;border:1px solid rgba(255,255,255,.35);box-shadow:none;
+  -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);-webkit-tap-highlight-color:transparent;transform:none}
+.tg-auto.tg-inline{position:static;flex:none}
+.tg-auto[aria-pressed="true"]{background:#f5c518;color:#1a1400;border-color:#f5c518;animation:tg-auto-pulse 1.2s ease-in-out infinite alternate}
+.tg-auto:focus-visible{outline:2px solid #fff;outline-offset:2px}
+@keyframes tg-auto-pulse{to{box-shadow:0 0 12px rgba(245,197,24,.8)}}
+@media (prefers-reduced-motion:reduce){.tg-auto[aria-pressed="true"]{animation:none}}
+</style>
+<script>
+(function(){
+  window.tgAuto = false;
+  var b = document.querySelector('.tg-auto');
+  if (!b) return;
+  var stop = function(e){ e.stopPropagation(); };
+  ['pointerdown','pointerup','mousedown','touchstart','keydown'].forEach(function(t){ b.addEventListener(t, stop); });
+  b.addEventListener('click', function(e){
+    e.stopPropagation();
+    window.tgAuto = !window.tgAuto;
+    b.setAttribute('aria-pressed', String(window.tgAuto));
+    b.textContent = window.tgAuto ? 'AUTO ON' : 'AUTO';
+    b.blur();
+    window.dispatchEvent(new Event('tgauto'));
+  });
+})();
 </script>
 </body>
 </html>

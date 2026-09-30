@@ -59,7 +59,7 @@ button:focus-visible{outline:3px solid var(--pen);outline-offset:3px}
 <div id="app">
   <header>
     <h1>うろおぼえ画伯</h1>
-    <a href="index.html">← ゲーム一覧</a>
+    <div style="display:flex;align-items:center;gap:12px"><button class="tg-auto tg-inline" type="button" aria-pressed="false" aria-label="オートプレイ">AUTO</button><a href="index.html">← ゲーム一覧</a></div>
   </header>
   <div class="status"><span id="round">全5問</span><span>合計 <b id="total">0</b> 点</span></div>
   <div class="stage" id="stage">
@@ -325,7 +325,7 @@ function showEnd() {
   $('round').textContent = '結果';
   $('endTotal').textContent = total;
   const [r, m] = rankOf(total);
-  const isBest = total > best;
+  const isBest = !window.tgAuto && total > best;
   if (isBest) { best = total; try { localStorage.setItem(BEST_KEY, String(best)); } catch (e) {} }
   $('rank').textContent = '称号：' + r;
   $('rankMsg').textContent = m + (isBest ? '（ハイスコア更新）' : '');
@@ -415,11 +415,43 @@ function draw(t) {
   }
 }
 
+/* ---------- オートプレイ：うろ覚えっぽく描く ---------- */
+let autoPlan = null, autoWait = 0;
+function makeAutoPlan() {
+  // 覚え違い：全体のずれ・大きさ・ゆがみ＋手ぶれ
+  const skew = 1 + (Math.random() - .5) * .25, sx = (Math.random() - .5) * 60, sy = (Math.random() - .5) * 60;
+  const ph = Math.random() * TAU, amp = 4 + round * 2.5;
+  return target.map(poly => resample(poly, 7).map(([x, y], i) => [
+    (x - S / 2) * skew + S / 2 + sx + Math.sin(i * .15 + ph) * amp + (Math.random() - .5) * 3,
+    (y - S / 2) / skew + S / 2 + sy + Math.cos(i * .12 + ph) * amp + (Math.random() - .5) * 3,
+  ]));
+}
+function autoPilot(dt) {
+  if (!window.tgAuto) { autoPlan = null; return; }
+  autoWait -= dt;
+  if (state === 'title') { startGame(); return; }
+  if (state === 'draw') {
+    if (!autoPlan) { autoPlan = makeAutoPlan(); autoWait = .5; }
+    if (autoWait > 0) return;
+    let n = Math.ceil(dt * 90);
+    while (n-- > 0 && autoPlan.length) {
+      if (!cur) cur = [];
+      cur.push(autoPlan[0].shift());
+      if (!autoPlan[0].length) { autoPlan.shift(); strokes.push(cur); cur = null; }
+    }
+    if (!autoPlan.length) { autoPlan = null; finishDraw(); autoWait = 2.6; }
+    return;
+  }
+  if (state === 'judge' && autoWait <= 0 && tState > 1.2) { autoWait = 0; $('btns').querySelector('button.main').click(); return; }
+  if (state === 'end' && autoWait <= 0) { autoWait = 99; setTimeout(() => { if (window.tgAuto && state === 'end') startGame(); }, 5000); }
+}
+
 /* ---------- ループ ---------- */
 let prev = performance.now();
 function frame(now) {
   const dt = Math.min(.05, (now - prev) / 1000); prev = now;
   tState += dt;
+  autoPilot(dt);
   if (state === 'ready') {
     const n = Math.floor(tState / .5);
     if (n !== lastCount && n < 3) { lastCount = n; tone(660, .08, 'square', .05); }
@@ -461,6 +493,34 @@ cv.addEventListener('pointercancel', endStroke);
 
 showTitle();
 requestAnimationFrame(frame);
+</script>
+<style>
+.tg-auto{position:fixed;z-index:2147483647;top:calc(8px + env(safe-area-inset-top,0px));left:calc(88px + env(safe-area-inset-left,0px));
+  display:inline-block;margin:0;padding:6px 12px;border-radius:999px;background:rgba(12,14,24,.72);color:#fff;cursor:pointer;
+  font:700 13px/1.2 "Hiragino Sans","Yu Gothic",sans-serif;letter-spacing:.06em;border:1px solid rgba(255,255,255,.35);box-shadow:none;
+  -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);-webkit-tap-highlight-color:transparent;transform:none}
+.tg-auto.tg-inline{position:static;flex:none}
+.tg-auto[aria-pressed="true"]{background:#f5c518;color:#1a1400;border-color:#f5c518;animation:tg-auto-pulse 1.2s ease-in-out infinite alternate}
+.tg-auto:focus-visible{outline:2px solid #fff;outline-offset:2px}
+@keyframes tg-auto-pulse{to{box-shadow:0 0 12px rgba(245,197,24,.8)}}
+@media (prefers-reduced-motion:reduce){.tg-auto[aria-pressed="true"]{animation:none}}
+</style>
+<script>
+(function(){
+  window.tgAuto = false;
+  var b = document.querySelector('.tg-auto');
+  if (!b) return;
+  var stop = function(e){ e.stopPropagation(); };
+  ['pointerdown','pointerup','mousedown','touchstart','keydown'].forEach(function(t){ b.addEventListener(t, stop); });
+  b.addEventListener('click', function(e){
+    e.stopPropagation();
+    window.tgAuto = !window.tgAuto;
+    b.setAttribute('aria-pressed', String(window.tgAuto));
+    b.textContent = window.tgAuto ? 'AUTO ON' : 'AUTO';
+    b.blur();
+    window.dispatchEvent(new Event('tgauto'));
+  });
+})();
 </script>
 </body>
 </html>
