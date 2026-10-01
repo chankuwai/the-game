@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>錬成キメラ研究所</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+/* Layout: 地下研究室の机。上に日付・行動・財布・疑惑の札、その下に檻（持ち物）と、外出・錬成・売買の帳面 */
+:root{
+  --bg:#141218; --panel:#1f1c25; --panel2:#2a2631; --ink:#ece6f2; --muted:#9a92a8; --line:#363042;
+  --acc:#9a6aff; --gold:#e8b84a; --red:#e0574a; --green:#7fbf6a; --sus:#ff7a5a;
+  --disp:"Dela Gothic One","Hiragino Kaku Gothic StdN",sans-serif;
+  --body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+[hidden]{display:none!important}
+#app{max-width:640px;margin:0 auto;padding:52px 14px 32px}
+.btn{border:1.5px solid var(--ink);background:transparent;border-radius:999px;padding:9px 18px;font-weight:900;font-size:15px}
+.btn.main{background:var(--acc);border-color:var(--acc);color:#120a22}
+.btn.gold{background:var(--gold);border-color:var(--gold);color:#1d1404}
+.btn.red{background:var(--red);border-color:var(--red);color:#fff}
+.btn.sm{padding:6px 12px;font-size:13px}
+.btn:disabled{opacity:.35;cursor:default}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.grow{flex:1}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+
+/* タイトル */
+.title{min-height:calc(100dvh - 90px);display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;text-align:center}
+.title canvas{width:220px;height:165px}
+.title h1{margin:0;font-family:var(--disp);font-weight:400;font-size:clamp(38px,11vw,64px);line-height:1.1}
+.title h1 small{display:block;font-size:.4em;color:var(--acc);letter-spacing:.2em}
+.title p{margin:0;line-height:1.9;color:#d8d0e4;max-width:30em;text-wrap:balance}
+.title .warn{font-size:13px;color:var(--sus)}
+
+/* 札 */
+.top{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:center}
+.top .day{font-family:var(--disp);font-size:24px}
+.top .day small{font-family:var(--body);font-weight:700;font-size:13px;color:var(--muted);margin-left:6px}
+.top .ap{text-align:right;font-weight:900;font-size:13px;color:var(--muted)}
+.top .ap i{display:inline-block;width:12px;height:12px;border-radius:50%;background:var(--acc);margin-left:4px;vertical-align:middle}
+.top .ap i.used{background:var(--line)}
+.top .meta{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:4px 16px;font-size:13px;color:var(--muted);font-weight:700}
+.top .meta b{color:var(--ink);font-size:16px}
+.top .meta .g b{color:var(--gold)}
+.meter{grid-column:1/-1;display:grid;grid-template-columns:auto 1fr auto;gap:4px 8px;align-items:center;font-size:12px;font-weight:900;color:var(--muted)}
+.meter .bar{height:9px;border-radius:5px;background:var(--line);overflow:hidden}
+.meter .bar i{display:block;height:100%}
+.meter .sus i{background:linear-gradient(90deg,#d9a24a,var(--sus))}
+.meter .kid i{background:var(--red)}
+.meter span.v{font-variant-numeric:tabular-nums;color:var(--ink)}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:12px 0 10px}
+.tabs button{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:10px 2px;font-weight:900;font-size:14px}
+.tabs button[aria-selected="true"]{background:var(--acc);color:#120a22;border-color:var(--acc)}
+.sec{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px}
+.sec h2{margin:0 0 6px;font-size:16px}
+.sec p{margin:0 0 8px;font-size:13px;line-height:1.7;color:#d8d0e4}
+.acts{display:grid;gap:8px}
+.act{display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;align-items:center;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.act .ico{font-size:26px}
+.act b{display:block;font-size:15px}
+.act small{display:block;font-size:12px;color:var(--muted);line-height:1.6}
+
+/* 檻 */
+.cages{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+.cage{background:var(--panel);border:1.5px solid var(--line);border-radius:12px;padding:8px;text-align:left;display:grid;gap:4px;position:relative}
+.cage[aria-pressed="true"]{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc)}
+.cage canvas{width:100%;aspect-ratio:4/3;border-radius:8px;background:repeating-linear-gradient(90deg,#2a2631 0 10px,#24212b 10px 12px)}
+.cage .nm{font-weight:900;font-size:13px;line-height:1.3}
+.cage .st{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.cage .tag{position:absolute;top:12px;left:12px;font-size:10px;font-weight:900;padding:2px 6px;border-radius:999px;background:var(--red);color:#fff}
+.cage .tag.gen{left:auto;right:12px;background:var(--acc);color:#120a22}
+.cage.empty{display:grid;place-items:center;min-height:120px;color:var(--muted);font-size:12px;border-style:dashed}
+.fuse{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin:8px 0}
+.fuse .slot{background:var(--panel2);border:1.5px dashed var(--line);border-radius:12px;min-height:90px;display:grid;place-items:center;font-size:12px;color:var(--muted);padding:6px;text-align:center}
+.fuse .slot canvas{width:100%;aspect-ratio:4/3}
+.fuse .plus{font-family:var(--disp);font-size:26px;color:var(--acc)}
+.pred{font-size:13px;color:#d8d0e4;line-height:1.7;background:var(--panel2);border-radius:10px;padding:8px 12px}
+.pred b{color:var(--gold)}
+.shop .act{grid-template-columns:auto 1fr auto}
+.log{font-size:13px;line-height:1.8;color:#d8d0e4}
+
+/* 札（モーダル） */
+.modal{position:fixed;inset:0;background:rgba(5,3,10,.72);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px}
+.sheet{width:min(100%,460px);background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;max-height:calc(100dvh - 32px);overflow:auto}
+.sheet h2{margin:0 0 8px;font-family:var(--disp);font-weight:400;font-size:24px;text-align:center}
+.sheet p{margin:0 0 10px;line-height:1.8;color:#d8d0e4;font-size:14px}
+.sheet canvas{display:block;margin:0 auto 10px;width:260px;height:195px}
+.kid{display:grid;grid-template-columns:72px 1fr;gap:12px;align-items:center;margin-bottom:10px}
+.kid canvas{width:72px;height:72px;margin:0}
+.bubble{background:#f6f0ff;color:#1a1424;border-radius:14px;padding:10px 14px;font-weight:900;line-height:1.6;position:relative}
+.bubble::before{content:"";position:absolute;left:-8px;top:18px;border:8px solid transparent;border-right-color:#f6f0ff;border-left:0}
+.choices{display:grid;gap:8px}
+.choices button{text-align:left;border:1px solid var(--line);background:var(--panel2);border-radius:12px;padding:10px 14px;font-weight:700;line-height:1.5}
+.choices button small{display:block;color:var(--muted);font-size:11px;font-weight:700}
+.verdict{font-family:var(--disp);font-size:22px;text-align:center;margin:4px 0 8px}
+.verdict.ok{color:var(--green)} .verdict.ng{color:var(--red)}
+
+/* ゲームオーバー */
+.over{min-height:calc(100dvh - 90px);display:flex;flex-direction:column;justify-content:center;align-items:center;gap:18px;text-align:center}
+.over canvas{width:180px;height:180px}
+.over .line{font-family:var(--disp);font-weight:400;font-size:clamp(22px,6.2vw,40px);line-height:1.4;color:#f0e8ff;text-shadow:0 0 30px rgba(154,106,255,.6);margin:0;text-wrap:balance}
+.over .line small{display:block;font-family:var(--body);font-size:13px;color:var(--muted);font-weight:700;margin-bottom:6px;letter-spacing:.2em}
+.over p{margin:0;color:#d8d0e4;line-height:1.8}
+.result{text-align:center;display:grid;gap:12px}
+.result h2{margin:0;font-family:var(--disp);font-weight:400;font-size:clamp(30px,9vw,44px)}
+.result canvas{width:260px;height:195px;margin:0 auto}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;font-weight:900;font-size:14px;z-index:200;pointer-events:none;animation:toast 1.8s ease forwards;max-width:calc(100% - 32px)}
+@keyframes toast{0%{opacity:0}12%,80%{opacity:1}100%{opacity:0}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="modal-root"></div>
+<script>
+'use strict';
+/* ================= データ ================= */
+// 部位：head 頭の形, col 体の色, legs 脚, tail 尾, wings 翼
+const ANIMALS = {
+  inu:      { n: '犬',   pow: 14, spd: 14, def: 8,  int: 12, head: 'dog',    col: '#c08850', legs: 4, tail: 'fluffy', price: 20 },
+  neko:     { n: '猫',   pow: 10, spd: 18, def: 6,  int: 14, head: 'cat',    col: '#9a9a9a', legs: 4, tail: 'thin',   price: 20 },
+  niwatori: { n: '鶏',   pow: 6,  spd: 10, def: 5,  int: 6,  head: 'bird',   col: '#f2efe6', legs: 2, tail: 'feather', wings: 'bird', comb: true, price: 12 },
+  kaeru:    { n: '蛙',   pow: 8,  spd: 12, def: 6,  int: 6,  head: 'frog',   col: '#6aa84f', legs: 4, tail: null,     price: 10 },
+  nezumi:   { n: '鼠',   pow: 4,  spd: 20, def: 4,  int: 10, head: 'mouse',  col: '#8a7f75', legs: 4, tail: 'thin',   price: 8 },
+  hebi:     { n: '蛇',   pow: 16, spd: 14, def: 10, int: 12, head: 'snake',  col: '#5f8a3a', legs: 0, tail: 'snake',  price: 35 },
+  koumori:  { n: '蝙蝠', pow: 8,  spd: 24, def: 4,  int: 10, head: 'bat',    col: '#4a3f4a', legs: 2, tail: null,     wings: 'bat', price: 30 },
+  yagi:     { n: '山羊', pow: 14, spd: 10, def: 16, int: 10, head: 'goat',   col: '#e8e0d0', legs: 4, tail: null,     price: 35 },
+  karasu:   { n: '烏',   pow: 8,  spd: 18, def: 6,  int: 30, head: 'bird',   col: '#26232b', legs: 2, tail: 'feather', wings: 'bird', price: 40 },
+  saru:     { n: '猿',   pow: 14, spd: 16, def: 8,  int: 34, head: 'monkey', col: '#a0703a', legs: 2, tail: 'thin',   price: 45 },
+  kuma:     { n: '熊',   pow: 32, spd: 10, def: 22, int: 12, head: 'bear',   col: '#5a3a24', legs: 4, tail: null,     price: 80 },
+  washi:    { n: '鷲',   pow: 22, spd: 28, def: 10, int: 18, head: 'eagle',  col: '#6b4a2a', legs: 2, tail: 'feather', wings: 'bird', price: 80 },
+  ookami:   { n: '狼',   pow: 26, spd: 24, def: 14, int: 18, head: 'dog',    col: '#6f7378', legs: 4, tail: 'fluffy', price: 80 },
+  kame:     { n: '亀',   pow: 10, spd: 4,  def: 42, int: 16, head: 'turtle', col: '#4f7a5a', legs: 4, tail: null,     shell: true, price: 70 },
+};
+const FORESTS = [
+  { n: '森の入口',   cost: 0,   pool: ['inu', 'neko', 'niwatori', 'kaeru', 'nezumi'] },
+  { n: '森の奥',     cost: 200, pool: ['hebi', 'koumori', 'yagi', 'karasu', 'saru', 'inu', 'neko'] },
+  { n: '霊獣の森',   cost: 550, pool: ['kuma', 'washi', 'ookami', 'kame', 'hebi', 'saru', 'karasu'] },
+];
+// 村人：alibi は言い訳の通りやすさに効く
+const VILLAGERS = [
+  { id: 'gen',   n: 'ゲン',     job: '旅人',     alibi: '旅',   hair: '#3a2a1a', cloth: '#7a5a3a' },
+  { id: 'sakichi', n: 'サキチ', job: '行商人',   alibi: '商い', hair: '#1a1a1a', cloth: '#4a6a8a' },
+  { id: 'tome',  n: 'トメ',     job: '飲んだくれ', alibi: '酒', hair: '#8a8a8a', cloth: '#8a4a4a' },
+  { id: 'gonzo', n: 'ゴンゾウ', job: '借金取り', alibi: '仕事', hair: '#2a2a2a', cloth: '#2a2a3a' },
+  { id: 'obaba', n: 'オババ',   job: '占い師',   alibi: '山',   hair: '#e8e8e8', cloth: '#6a3a8a' },
+  { id: 'lute',  n: 'リュート', job: '吟遊詩人', alibi: '旅',   hair: '#c8a040', cloth: '#3a7a5a' },
+  { id: 'kazura', n: 'カズラ',  job: '薬売り',   alibi: '商い', hair: '#5a2a1a', cloth: '#8a7a3a' },
+  { id: 'matagi', n: 'マタギ',  job: '木こり',   alibi: '山',   hair: '#4a3a2a', cloth: '#5a6a3a' },
+];
+const EXCUSES = [
+  { tag: '旅',   t: '遠い国へ旅に出たって言ってたよ' },
+  { tag: '商い', t: '仕入れで都まで行ってるらしいよ' },
+  { tag: '酒',   t: '隣町の酒場に入り浸ってるんだってさ' },
+  { tag: '仕事', t: '取り立ての仕事で忙しいんだって' },
+  { tag: '山',   t: '山に籠もって修行してるそうだよ' },
+  { tag: '知らない', t: 'さあ……最近見てないなあ' },
+  { tag: '菓子', t: 'それより、お菓子食べるかい？' },
+];
+const KID = 'ケンタ';
+const DAYS = 30, AP_PER_DAY = 3, SAVE_KEY = 'chimera_best', TALK_INT = 50;
+const SHOP = [
+  { id: 'cage',   n: '檻を増やす',     d: '檻が2つ増える',                     cost: 120, max: 3 },
+  { id: 'cloth',  n: '檻にかける黒い布', d: '人の面影があるキメラを子供に見られにくくなる', cost: 150, max: 1 },
+  { id: 'incense', n: 'お香を焚く',    d: '研究所の妙な匂いを消す。疑惑 −15',  cost: 60,  max: 99 },
+];
+
+/* ================= 状態 ================= */
+let G = null, UI = { screen: 'title', tab: 'out', modal: null, sel: [] };
+let best = 0;
+try { best = parseInt(localStorage.getItem(SAVE_KEY) || '0', 10) || 0; } catch (e) { best = 0; }
+const rnd = (a, b) => a + Math.random() * (b - a);
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const snd = n => { if (window.tgSound) window.tgSound.play(n); };
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+
+function newGame() {
+  G = {
+    day: 1, ap: AP_PER_DAY, gold: 150, sus: 0, kid: 0, cages: [], cap: 6, forest: 0,
+    owned: { cage: 0, cloth: 0, incense: 0 }, used: [], lastHumanDay: -99, missing: [],
+    log: ['街はずれの古い屋敷を買い取り、地下に研究室をこしらえた。三十日後には国家錬金術師の査定がある。'],
+    stats: { fused: 0, fail: 0, humans: 0, excuses: 0, sold: 0 },
+  };
+  for (let i = 0; i < 2; i++) G.cages.push(makeAnimal(pick(FORESTS[0].pool)));
+  UI = { screen: 'game', tab: 'out', modal: null, sel: [] };
+  render();
+}
+let uid = 1;
+function makeAnimal(k) {
+  const a = ANIMALS[k];
+  const v = () => rnd(.85, 1.15);
+  return { id: uid++, kind: 'animal', sp: [k], name: a.n, pow: Math.round(a.pow * v()), spd: Math.round(a.spd * v()), def: Math.round(a.def * v()), int: Math.round(a.int * v()),
+    head: k, body: k, legs: k, tail: k, wings: a.wings ? k : null, humans: [], gen: 0, seed: Math.floor(Math.random() * 1e9) };
+}
+function makeHuman(v) {
+  return { id: uid++, kind: 'human', sp: ['human'], name: v.n, hid: v.id, pow: Math.round(rnd(10, 16)), spd: Math.round(rnd(9, 14)), def: Math.round(rnd(5, 9)), int: Math.round(rnd(72, 90)),
+    head: 'human:' + v.id, body: 'human:' + v.id, legs: 'human:' + v.id, tail: null, wings: null, humans: [v.id], gen: 0, seed: Math.floor(Math.random() * 1e9) };
+}
+const grade = c => Math.round(c.pow + c.spd + c.def + c.int * 1.5 + (c.gen ? c.gen * 6 : 0));
+const sellPrice = c => c.kind === 'animal' ? ANIMALS[c.sp[0]].price : c.kind === 'human' ? 0 : Math.round(grade(c) * .9 * (c.humans.length ? 1.4 : 1));
+const partName = p => p ? (p.startsWith('human') ? '人' : ANIMALS[p].n) : '';
+function chimeraName(c) {
+  if (c.kind !== 'chimera') return c.name;
+  const h = partName(c.head), b = partName(c.body);
+  return h === b ? `${h}もどき` : `${h}頭の${b}`;
+}
+
+/* ================= 錬成 ================= */
+function fusePreview(a, b) {
+  const gen = Math.max(a.gen, b.gen) + 1;
+  const ok = clamp(.97 - gen * .04, .7, .97);
+  const st = k => Math.round(Math.max(a[k], b[k]) * .75 + Math.min(a[k], b[k]) * .5);
+  return { gen, ok, pow: st('pow'), spd: st('spd'), def: st('def'), int: st('int') };
+}
+function fuse(a, b) {
+  const pv = fusePreview(a, b);
+  G.ap--;
+  G.cages = G.cages.filter(c => c !== a && c !== b);
+  G.stats.fused++;
+  const humans = [...new Set([...a.humans, ...b.humans])];
+  let c;
+  if (Math.random() > pv.ok) {
+    G.stats.fail++;
+    const keep = grade(a) >= grade(b) ? a : b;
+    G.cages.push(keep);
+    c = { id: uid++, kind: 'chimera', sp: [...a.sp, ...b.sp], name: '失敗作', fail: true, pow: Math.round(pv.pow * .45), spd: Math.round(pv.spd * .45), def: Math.round(pv.def * .45), int: Math.round(pv.int * .3),
+      head: pick([a.head, b.head]), body: pick([a.body, b.body]), legs: pick([a.legs, b.legs]), tail: pick([a.tail, b.tail]), wings: null, humans, gen: pv.gen, seed: Math.floor(Math.random() * 1e9) };
+    snd('bad');
+  } else {
+    const v = () => rnd(.95, 1.12), flip = Math.random() < .5, hp = flip ? a : b, bp = flip ? b : a;
+    c = { id: uid++, kind: 'chimera', sp: [...a.sp, ...b.sp], pow: Math.round(pv.pow * v()), spd: Math.round(pv.spd * v()), def: Math.round(pv.def * v()), int: Math.round(pv.int * v()),
+      head: hp.head, body: bp.body, legs: pick([a.legs, b.legs]), tail: pick([a.tail, b.tail].filter(Boolean).concat([null])) , wings: a.wings || b.wings ? pick([a.wings, b.wings, a.wings || b.wings]) : null, humans, gen: pv.gen, seed: Math.floor(Math.random() * 1e9) };
+    if (!c.tail && (a.tail || b.tail) && Math.random() < .6) c.tail = a.tail || b.tail;
+    c.name = chimeraName(c);
+    snd(humans.length ? 'summon' : 'evolve');
+  }
+  G.cages.push(c);
+  if (c.humans.length && c.int >= TALK_INT && !c.fail) c.talk = true;
+  G.log.unshift(`${G.day}日目　${a.name}と${b.name}を掛け合わせて「${c.name}」が生まれた。`);
+  UI.sel = [];
+  UI.modal = { type: 'born', c };
+  render();
+}
+
+/* ================= 外出 ================= */
+function hunt() {
+  if (G.ap <= 0) return;
+  if (G.cages.length >= G.cap) { toast('檻がいっぱい。売るか掛け合わせよう'); return; }
+  G.ap--;
+  const pool = FORESTS[G.forest].pool, got = [];
+  for (let i = 0; i < 2 && G.cages.length < G.cap; i++) { const a = makeAnimal(pick(pool)); G.cages.push(a); got.push(a.name); }
+  snd('pick'); toast(`${FORESTS[G.forest].n}で${got.join('と')}を捕まえた`);
+  afterAction();
+}
+function invite() {
+  if (G.ap <= 0) return;
+  const left = VILLAGERS.filter(v => !G.used.includes(v.id));
+  if (!left.length) { toast('もう村に声をかけられる人がいない'); return; }
+  G.ap--;
+  const v = pick(left);
+  UI.modal = { type: 'visitor', v };
+  snd('click'); render();
+}
+function keepHuman(v) {
+  if (G.cages.length >= G.cap) { toast('檻がいっぱい'); return; }
+  const rush = G.day - G.lastHumanDay < 5;
+  G.used.push(v.id); G.missing.push(v.id); G.lastHumanDay = G.day;
+  G.sus = clamp(G.sus + 26 + (rush ? 14 : 0) + G.stats.humans * 4, 0, 100);
+  G.stats.humans++;
+  G.cages.push(makeHuman(v));
+  G.log.unshift(`${G.day}日目　${v.job}の${v.n}に「研究に協力して」もらうことになった。`);
+  UI.modal = null; snd('charge');
+  toast(`${v.n}は地下室へ案内された……`);
+  afterAction();
+}
+function teaHuman(v) {
+  G.sus = clamp(G.sus - 8, 0, 100);
+  G.log.unshift(`${G.day}日目　${v.job}の${v.n}にお茶を出して、にこやかに帰した。`);
+  UI.modal = null; snd('good'); toast(`${v.n}は上機嫌で帰っていった（疑惑 −8）`);
+  afterAction();
+}
+function sell(id) {
+  const c = G.cages.find(x => x.id === id); if (!c || c.kind === 'human') return;
+  const p = sellPrice(c);
+  G.gold += p; G.cages = G.cages.filter(x => x !== c); G.stats.sold++;
+  if (c.humans.length) { G.sus = clamp(G.sus + 10, 0, 100); toast(`見世物小屋に${c.name}を${p}Gで売った。「どこかで見た顔だ」と噂が立つ（疑惑 +10）`); }
+  else toast(`${c.name}を${p}Gで売った`);
+  UI.sel = UI.sel.filter(x => x !== id);
+  snd('coin'); render();
+}
+function buy(id) {
+  const it = SHOP.find(s => s.id === id);
+  if (!it || G.gold < it.cost || G.owned[id] >= it.max) return;
+  G.gold -= it.cost; G.owned[id]++;
+  if (id === 'cage') G.cap += 2;
+  if (id === 'incense') G.sus = clamp(G.sus - 15, 0, 100);
+  snd('coin'); toast(`${it.n}：${it.d}`); render();
+}
+function goDeeper(i) {
+  const f = FORESTS[i];
+  if (G.gold < f.cost || G.forest >= i) return;
+  G.gold -= f.cost; G.forest = i;
+  snd('good'); toast(`${f.n}に入れるようになった`); render();
+}
+function afterAction() { render(); if (G.ap <= 0 && !UI.modal) { /* 夜は自分で「寝る」を押す */ } }
+
+/* ================= 一日の終わり ================= */
+function sleep() {
+  if (UI.modal) return;
+  const upkeep = G.cages.filter(c => c.kind !== 'human').length;
+  G.gold = Math.max(0, G.gold - upkeep);
+  G.day++; G.ap = AP_PER_DAY;
+  G.sus = clamp(G.sus - 4, 0, 100);
+  if (G.day > DAYS) { startJudge(); return; }
+  // 勘のいい子供がやってくる
+  const humanChimera = G.cages.find(c => c.humans.length && c.kind === 'chimera' && !c.fail);
+  const p = G.missing.length ? clamp((G.sus - 18) / 75, 0, .85) : 0;
+  if (G.missing.length && (Math.random() < p || G.sus >= 75)) kidVisit(humanChimera && Math.random() < .45 ? humanChimera : null);
+  else { snd('click'); render(); }
+}
+function kidVisit(seen) {
+  const mid = pick(G.missing), who = VILLAGERS.find(v => v.id === mid);
+  let q, choices;
+  if (seen) {
+    const hv = VILLAGERS.find(v => v.id === seen.humans[0]);
+    q = `ねえ、この${seen.name}……なんだか${hv.n}さんと同じ目をしてるね。`;
+    choices = [
+      { t: '気のせいだよ。動物の目はみんなこんなものさ', base: .45 },
+      { t: '生まれつきこういう顔なんだ', base: .35 },
+      { t: 'それより、お菓子食べるかい？', base: .4, sweet: true },
+    ];
+    if (G.owned.cloth) choices.unshift({ t: '（さっと檻に黒い布をかける）なにもいないよ', base: .75 });
+    UI.modal = { type: 'kid', q, choices, who: hv, seen };
+  } else {
+    q = `ねえ……${who.job}の${who.n}さん、どこ行ったの？`;
+    const right = EXCUSES.filter(e => e.tag === who.alibi);
+    const other = EXCUSES.filter(e => e.tag !== who.alibi);
+    const opts = [...right, ...other.sort(() => Math.random() - .5).slice(0, 2)].sort(() => Math.random() - .5);
+    choices = opts.map(e => ({ t: e.t, base: e.tag === who.alibi ? .85 : e.tag === '知らない' ? .4 : e.tag === '菓子' ? .4 : .18, sweet: e.tag === '菓子' }));
+    UI.modal = { type: 'kid', q, choices, who };
+  }
+  snd('charge'); render();
+}
+function answer(i) {
+  const m = UI.modal; if (!m || m.type !== 'kid' || m.result) return;
+  const c = m.choices[i];
+  // 確信が強いほど、何を言っても通りにくい。人の面影があるキメラが檻にいると、さらに疑われる
+  const visible = !m.seen && G.cages.some(x => x.humans.length && x.kind === 'chimera' && !x.fail) && !G.owned.cloth;
+  const chance = clamp(c.base - G.kid / 250 - (visible ? .1 : 0), .05, .95);
+  const ok = Math.random() < chance;
+  G.stats.excuses++;
+  if (ok) {
+    G.kid = clamp(G.kid + (c.sweet ? 8 : 4), 0, 100); G.sus = clamp(G.sus - 10, 0, 100);
+    m.result = { ok: true, line: c.sweet ? '「……うん、もらう」お菓子を頬張って帰っていった。でも時々こっちを振り返っていた。' : '「ふーん、そうなんだ」納得したように帰っていった。' };
+    snd('good');
+  } else {
+    G.kid = clamp(G.kid + 28 + Math.round(rnd(0, 14)), 0, 100); G.sus = clamp(G.sus + 6, 0, 100);
+    m.result = { ok: false, line: pick(['「うそだ。この前と言ってることが違うよ」', '「……地下室から、変な声がするの、知ってるよ」', '「ふーん」じっとこちらの目を見て、黙って帰っていった。', '「お母さんに言っちゃおうかな」']) };
+    snd('bad');
+  }
+  render();
+}
+function closeKid() {
+  UI.modal = null;
+  if (G.kid >= 100) { gameOver(); return; }
+  render();
+}
+function gameOver() {
+  UI.screen = 'over'; UI.modal = null; snd('lose'); render();
+}
+
+/* ================= 査定 ================= */
+function startJudge() {
+  const pool = G.cages.filter(c => c.kind === 'chimera' && !c.fail);
+  // 人語を話して合格に届くものがいればそれを、いなければ一番格の高いものを出す
+  const passer = pool.filter(c => c.talk && grade(c) >= 200).sort((a, b) => grade(b) - grade(a))[0];
+  const c = passer || pool.sort((a, b) => grade(b) - grade(a))[0] || null;
+  let rank, pass, line;
+  const gd = c ? grade(c) : 0;
+  if (!c) { rank = '門前払い'; pass = false; line = '「キメラの一匹もいないのかね」査定官は鼻で笑って帰っていった。'; }
+  else if (c.talk && gd >= 200) { rank = '国家錬金術師・合格'; pass = true; line = `${c.name}が「ワタシ……カシコイ……」と喋った。査定官は青ざめながらも、合格の判を押した。`; }
+  else if (gd >= 180) { rank = '惜しくも不合格'; pass = false; line = '見事なキメラだ。だが人語を解すほどの知恵には届いていない、と言われた。'; }
+  else if (gd >= 120) { rank = '見習い錬金術師'; pass = false; line = 'まずまずの出来。来年また来たまえ、と肩を叩かれた。'; }
+  else { rank = '不合格'; pass = false; line = '「これは……ただの毛玉では？」'; }
+  const score = gd + (pass ? 300 : 0);
+  const isBest = !window.tgAuto && score > best;
+  if (isBest) { best = score; try { localStorage.setItem(SAVE_KEY, String(best)); } catch (e) {} }
+  UI.screen = 'judge'; UI.result = { c, rank, pass, line, gd, score, isBest };
+  snd(pass ? 'win' : 'lose'); render();
+}
+
+/* ================= 絵 ================= */
+function mulberry(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function partInfo(p) {
+  if (!p) return null;
+  if (p.startsWith('human')) { const v = VILLAGERS.find(x => 'human:' + x.id === p); return { human: true, v, col: v.cloth, skin: '#f0c9a0', hair: v.hair }; }
+  return { ...ANIMALS[p], k: p };
+}
+function drawCreature(x, c, t = 0) {
+  const W = x.canvas.width, H = x.canvas.height, s = Math.min(W / 200, H / 150);
+  x.clearRect(0, 0, W, H);
+  x.save(); x.translate(W / 2, H * .78); x.scale(s, s);
+  const head = partInfo(c.head), body = partInfo(c.body), legs = partInfo(c.legs), tail = partInfo(c.tail), wings = c.wings ? partInfo(c.wings) : null;
+  const bob = Math.sin(t * 2 + c.seed % 9) * 2;
+  const bcol = body.col, dark = '#00000055';
+  const humanBody = body.human;
+  // 影
+  x.fillStyle = 'rgba(0,0,0,.35)'; x.beginPath(); x.ellipse(0, 4, 56, 7, 0, 0, Math.PI * 2); x.fill();
+  // 翼（体の後ろ）
+  if (wings) {
+    x.fillStyle = wings.k === 'koumori' ? '#3a2f3a' : wings.col === '#26232b' ? '#1a181e' : '#e9e2d4';
+    if (wings.k === 'washi') x.fillStyle = '#5a3c20';
+    const f = Math.sin(t * 6) * .25;
+    for (const sg of [-1, 1]) {
+      x.save(); x.translate(-6, -52 + bob); x.rotate(sg * .2 - .6 + f * sg);
+      x.beginPath(); x.moveTo(0, 0);
+      if (wings.k === 'koumori') { x.lineTo(-50, -30); x.lineTo(-40, -6); x.lineTo(-30, -14); x.lineTo(-22, 4); x.lineTo(-12, -6); }
+      else { x.quadraticCurveTo(-46, -40, -58, -10); x.quadraticCurveTo(-30, -6, 0, 6); }
+      x.closePath(); x.fill(); x.restore();
+    }
+  }
+  // 尾
+  if (tail) {
+    x.strokeStyle = tail.col; x.lineCap = 'round';
+    const tt = tail.tail, sw = Math.sin(t * 3) * 6;
+    x.lineWidth = tt === 'fluffy' ? 12 : tt === 'snake' ? 14 : tt === 'feather' ? 9 : 4;
+    x.beginPath(); x.moveTo(-34, -40 + bob);
+    if (tt === 'snake') x.bezierCurveTo(-60, -40, -70, -10 + sw, -90, -16);
+    else if (tt === 'feather') { x.moveTo(-34, -46 + bob); x.lineTo(-62, -70 + sw); x.moveTo(-34, -44 + bob); x.lineTo(-66, -56 + sw); }
+    else x.quadraticCurveTo(-60, -50 + sw, -66, -76 + sw);
+    x.stroke();
+  }
+  // 脚
+  x.strokeStyle = legs.human ? '#3a3040' : legs.legs === 2 && legs.wings ? '#d9a24a' : shadeHex(legs.col, -.25);
+  x.lineWidth = legs.legs === 2 && legs.wings ? 4 : 9; x.lineCap = 'round';
+  const n = legs.human ? 2 : legs.legs;
+  if (n === 4) for (const lx of [-24, -10, 12, 26]) { x.beginPath(); x.moveTo(lx, -30); x.lineTo(lx + Math.sin(t * 5 + lx) * 2, 0); x.stroke(); }
+  else if (n === 2) for (const lx of [-8, 10]) { x.beginPath(); x.moveTo(lx, -30); x.lineTo(lx, 0); x.stroke(); if (legs.wings) { x.beginPath(); x.moveTo(lx, 0); x.lineTo(lx + 8, 0); x.stroke(); } }
+  // 体
+  x.fillStyle = bcol; x.strokeStyle = dark; x.lineWidth = 2;
+  x.beginPath();
+  if (body.k === 'hebi' && n === 0) x.ellipse(0, -16 + bob, 46, 14, 0, 0, Math.PI * 2);
+  else if (humanBody) { x.roundRect ? x.roundRect(-24, -76 + bob, 48, 50, 10) : x.rect(-24, -76 + bob, 48, 50); }
+  else x.ellipse(0, -46 + bob, 40, 24, 0, 0, Math.PI * 2);
+  x.fill(); x.stroke();
+  if (body.shell) { x.fillStyle = '#6f5a3a'; x.beginPath(); x.ellipse(0, -54 + bob, 40, 20, 0, Math.PI, 0); x.fill(); x.strokeStyle = '#3a2a1a'; x.stroke(); }
+  if (humanBody) { x.fillStyle = '#00000022'; x.fillRect(-2, -76 + bob, 4, 50); }
+  // 継ぎ目（キメラらしさ）
+  if (c.kind === 'chimera') { x.strokeStyle = '#d8d0e4aa'; x.lineWidth = 1.5; x.setLineDash([3, 3]); x.beginPath(); x.moveTo(26, -64 + bob); x.lineTo(30, -28 + bob); x.stroke(); x.setLineDash([]); }
+  // 頭
+  const hx = humanBody ? 0 : 40, hy = humanBody ? -92 + bob : -66 + bob;
+  drawHead(x, head, hx, hy, t, c);
+  if (c.fail) { x.fillStyle = 'rgba(120,200,80,.35)'; x.beginPath(); x.arc(0, -46, 50, 0, Math.PI * 2); x.fill(); }
+  x.restore();
+}
+function shadeHex(hex, f) {
+  const n = parseInt(hex.slice(1, 7), 16), r = n >> 16, g = n >> 8 & 255, b = n & 255;
+  const m = v => Math.max(0, Math.min(255, Math.round(f < 0 ? v * (1 + f) : v + (255 - v) * f)));
+  return `rgb(${m(r)},${m(g)},${m(b)})`;
+}
+function drawHead(x, h, hx, hy, t, c) {
+  x.save(); x.translate(hx, hy);
+  const eyes = (ex, ey, r = 3, col = '#120e14') => { x.fillStyle = col; x.beginPath(); x.arc(ex, ey, r, 0, Math.PI * 2); x.arc(ex + 9, ey, r, 0, Math.PI * 2); x.fill(); };
+  if (h.human) {
+    x.fillStyle = h.skin; x.beginPath(); x.arc(0, 0, 18, 0, Math.PI * 2); x.fill();
+    x.fillStyle = h.hair; x.beginPath(); x.arc(0, -4, 19, Math.PI * 1.05, Math.PI * 1.95); x.fill();
+    eyes(-5, 0, 2.4);
+    x.strokeStyle = '#5a2a2a'; x.lineWidth = 2; x.beginPath(); x.arc(0, 8, 5, .15 * Math.PI, .85 * Math.PI); x.stroke();
+    if (c && c.kind === 'chimera') { x.fillStyle = '#ffffffcc'; x.font = '900 10px sans-serif'; x.fillText(c.talk ? '…ヤア' : '…', 14, -18); }
+    x.restore(); return;
+  }
+  const col = h.col;
+  x.fillStyle = col; x.strokeStyle = '#00000055'; x.lineWidth = 2;
+  switch (h.head) {
+    case 'dog': case 'bear': case 'mouse': case 'cat': case 'monkey': {
+      const r = h.head === 'bear' ? 20 : h.head === 'mouse' ? 13 : 16;
+      x.beginPath(); x.arc(0, 0, r, 0, Math.PI * 2); x.fill(); x.stroke();
+      if (h.head === 'cat') { x.beginPath(); x.moveTo(-12, -10); x.lineTo(-8, -26); x.lineTo(-2, -12); x.moveTo(12, -10); x.lineTo(8, -26); x.lineTo(2, -12); x.fill(); }
+      else if (h.head === 'dog') { x.beginPath(); x.ellipse(-12, -8, 6, 12, .5, 0, Math.PI * 2); x.ellipse(12, -8, 6, 12, -.5, 0, Math.PI * 2); x.fill(); x.fillStyle = shadeHex(col, .3); x.beginPath(); x.ellipse(8, 6, 10, 7, 0, 0, Math.PI * 2); x.fill(); }
+      else if (h.head === 'bear' || h.head === 'mouse') { const er = h.head === 'mouse' ? 9 : 7; x.beginPath(); x.arc(-r * .7, -r * .75, er, 0, Math.PI * 2); x.arc(r * .7, -r * .75, er, 0, Math.PI * 2); x.fill(); }
+      else if (h.head === 'monkey') { x.fillStyle = '#e8c49a'; x.beginPath(); x.ellipse(2, 3, 11, 9, 0, 0, Math.PI * 2); x.fill(); }
+      eyes(-3, -2);
+      x.fillStyle = '#120e14'; x.beginPath(); x.arc(10, 4, 2.5, 0, Math.PI * 2); x.fill();
+      break;
+    }
+    case 'bird': case 'eagle': {
+      x.beginPath(); x.arc(0, 0, 13, 0, Math.PI * 2); x.fill(); x.stroke();
+      x.fillStyle = h.head === 'eagle' ? '#e8c040' : '#e8a030'; x.beginPath(); x.moveTo(10, -3); x.lineTo(24, 2); x.lineTo(10, 6); x.fill();
+      if (h.comb) { x.fillStyle = '#d8342a'; x.beginPath(); x.arc(-2, -14, 5, 0, Math.PI * 2); x.arc(5, -15, 4, 0, Math.PI * 2); x.fill(); }
+      if (h.head === 'eagle') { x.fillStyle = '#f2efe6'; x.beginPath(); x.arc(0, -2, 12, Math.PI, 0); x.fill(); }
+      eyes(0, -3, 2.4, h.col === '#26232b' ? '#c040ff' : '#120e14');
+      break;
+    }
+    case 'frog': x.beginPath(); x.ellipse(0, 0, 18, 12, 0, 0, Math.PI * 2); x.fill(); x.stroke(); x.fillStyle = '#f2f2e0'; x.beginPath(); x.arc(-6, -10, 6, 0, Math.PI * 2); x.arc(8, -10, 6, 0, Math.PI * 2); x.fill(); eyes(-6, -10, 2.6); break;
+    case 'snake': x.beginPath(); x.ellipse(4, 0, 16, 10, 0, 0, Math.PI * 2); x.fill(); x.stroke(); eyes(0, -4, 2.2, '#e8d040'); x.strokeStyle = '#d8342a'; x.lineWidth = 2; x.beginPath(); x.moveTo(20, 2); x.lineTo(28, 2 + Math.sin(t * 12) * 3); x.stroke(); break;
+    case 'bat': x.beginPath(); x.arc(0, 0, 12, 0, Math.PI * 2); x.fill(); x.beginPath(); x.moveTo(-10, -6); x.lineTo(-12, -22); x.lineTo(-2, -10); x.moveTo(10, -6); x.lineTo(12, -22); x.lineTo(2, -10); x.fill(); eyes(-4, -2, 2.4, '#ff4040'); break;
+    case 'goat': x.beginPath(); x.ellipse(4, 0, 15, 12, .2, 0, Math.PI * 2); x.fill(); x.stroke(); x.strokeStyle = '#8a7a5a'; x.lineWidth = 4; x.beginPath(); x.arc(-6, -10, 9, Math.PI, Math.PI * 1.8); x.stroke(); x.fillStyle = col; x.beginPath(); x.moveTo(8, 10); x.lineTo(12, 22); x.lineTo(14, 10); x.fill(); eyes(-2, -2, 2.2); break;
+    case 'turtle': x.beginPath(); x.ellipse(4, 0, 13, 10, 0, 0, Math.PI * 2); x.fill(); x.stroke(); eyes(0, -3, 2.2); break;
+  }
+  x.restore();
+}
+function drawKid(x, t = 0, mood = 0) {
+  const W = x.canvas.width, s = W / 100;
+  x.clearRect(0, 0, W, W);
+  x.save(); x.scale(s, s);
+  x.fillStyle = '#2a2631'; x.beginPath(); x.arc(50, 50, 48, 0, Math.PI * 2); x.fill();
+  x.fillStyle = '#4a6aa8'; x.beginPath(); x.roundRect ? x.roundRect(28, 66, 44, 34, 10) : x.rect(28, 66, 44, 34); x.fill();
+  x.fillStyle = '#f0c9a0'; x.beginPath(); x.arc(50, 46, 22, 0, Math.PI * 2); x.fill();
+  x.fillStyle = '#2a1a10'; x.beginPath(); x.arc(50, 40, 23, Math.PI, 2 * Math.PI); x.fill();
+  // じとっとした目
+  x.fillStyle = '#1a1214';
+  const look = Math.sin(t * 1.3) * 1.5;
+  x.fillRect(38 + look, 46, 7, mood > .5 ? 3 : 5); x.fillRect(55 + look, 46, 7, mood > .5 ? 3 : 5);
+  x.strokeStyle = '#1a1214'; x.lineWidth = 2; x.beginPath(); x.moveTo(36, mood > .5 ? 40 : 42); x.lineTo(46, 43); x.moveTo(54, 43); x.lineTo(64, mood > .5 ? 40 : 42); x.stroke();
+  x.beginPath(); x.moveTo(45, 58); x.lineTo(55, 58); x.stroke();
+  x.restore();
+}
+
+/* ================= 描画（DOM） ================= */
+const app = document.getElementById('app'), modalRoot = document.getElementById('modal-root');
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function toast(m) { const d = document.createElement('div'); d.className = 'toast'; d.textContent = m; document.body.appendChild(d); setTimeout(() => d.remove(), 2200); }
+const TITLE_C = { id: 0, kind: 'chimera', head: 'karasu', body: 'kuma', legs: 'washi', tail: 'hebi', wings: 'koumori', humans: [], gen: 2, seed: 5, sp: [] };
+
+function vTitle() {
+  return `<section class="title"><canvas id="tcv" width="440" height="330" aria-hidden="true"></canvas>
+<h1><small>勘のいい子供にご用心</small>錬成キメラ研究所</h1>
+<p>生き物と生き物を掛け合わせ、より賢く、より強いキメラを生み出せ。三十日後の国家錬金術師の査定で合格するには、<b>人語を解するキメラ</b>が要る。</p>
+<p class="warn">人間も混ぜられる。ただし、やりすぎると近所の子供がやってくる。</p>
+<div class="row" style="justify-content:center"><button class="btn main" data-a="start">研究を始める</button></div>
+${best ? `<p class="small muted">これまでの最高 ${best}点</p>` : ''}</section>`;
+}
+function vTop() {
+  return `<section class="top">
+<div class="day">${G.day}日目<small>査定まであと${DAYS - G.day}日</small></div>
+<div class="ap">行動${Array.from({ length: AP_PER_DAY }, (_, i) => `<i class="${i < G.ap ? '' : 'used'}"></i>`).join('')}</div>
+<div class="meta"><span class="g">所持金 <b>${G.gold}</b>G</span><span>檻 <b>${G.cages.length}</b>/${G.cap}</span><span>行方不明 <b>${G.missing.length}</b>人</span></div>
+<div class="meter"><span>村の疑惑</span><div class="bar sus"><i style="width:${G.sus}%"></i></div><span class="v">${Math.round(G.sus)}</span>
+<span>${KID}の確信</span><div class="bar kid"><i style="width:${G.kid}%"></i></div><span class="v">${Math.round(G.kid)}</span></div>
+</section>`;
+}
+function vTabs() {
+  const tabs = [['out', '外出'], ['lab', '錬成'], ['cage', '檻'], ['shop', '店']];
+  return `<nav class="tabs" role="tablist">${tabs.map(([k, l]) => `<button role="tab" aria-selected="${UI.tab === k}" data-a="tab:${k}">${l}</button>`).join('')}</nav>`;
+}
+function vOut() {
+  const left = VILLAGERS.filter(v => !G.used.includes(v.id)).length;
+  return `<div class="acts">
+<div class="act"><span class="ico" aria-hidden="true">🌲</span><div><b>${FORESTS[G.forest].n}で捕まえる</b><small>生き物を2匹捕まえる。出るのは ${FORESTS[G.forest].pool.map(k => ANIMALS[k].n).join('・')}</small></div><button class="btn main sm" data-a="hunt" ${G.ap > 0 ? '' : 'disabled'}>行動1</button></div>
+<div class="act"><span class="ico" aria-hidden="true">🫖</span><div><b>村の人を招く</b><small>だれかがお茶に来る。帰すか、それとも……。人はとても賢いが、使えば疑惑が大きく上がる（残り${left}人）</small></div><button class="btn sm" data-a="invite" ${G.ap > 0 && left ? '' : 'disabled'}>行動1</button></div>
+${FORESTS.map((f, i) => i > G.forest ? `<div class="act"><span class="ico" aria-hidden="true">🗝️</span><div><b>${f.n}へ通う</b><small>${f.pool.filter(k => !FORESTS[i - 1].pool.includes(k)).map(k => ANIMALS[k].n).join('・')}が棲む</small></div><button class="btn gold sm" data-a="forest:${i}" ${G.gold >= f.cost && G.forest === i - 1 ? '' : 'disabled'}>${f.cost}G</button></div>` : '').join('')}
+</div>
+<div class="row" style="margin-top:12px"><span class="grow small muted">${G.ap ? '' : 'きょうはもう動けない。'}夜になると、檻の数だけ餌代（1匹1G）がかかる。</span><button class="btn ${G.ap ? '' : 'main'}" data-a="sleep">寝る（${G.day >= DAYS ? '査定の日へ' : '次の日へ'}）</button></div>
+<section class="sec" style="margin-top:12px"><h2>研究日誌</h2><p class="log">${G.log.slice(0, 5).map(esc).join('<br>')}</p></section>`;
+}
+function cageCard(c, selectable) {
+  const sel = UI.sel.includes(c.id);
+  return `<button class="cage" ${selectable ? `data-a="sel:${c.id}" aria-pressed="${sel}"` : 'data-a="noop"'} aria-label="${esc(c.name)}">
+${c.humans.length ? `<span class="tag">人${c.kind === 'human' ? '' : '入り'}</span>` : ''}${c.gen ? `<span class="tag gen">${c.gen}代</span>` : ''}
+<canvas data-c="${c.id}" width="280" height="210" aria-hidden="true"></canvas>
+<span class="nm">${esc(c.name)}${c.kind === 'human' ? ` <small class="muted">${VILLAGERS.find(v => v.id === c.hid).job}</small>` : ''}</span>
+<span class="st">力${c.pow} 速${c.spd} 硬${c.def} 知${c.int}・格${grade(c)}</span></button>`;
+}
+function vLab() {
+  const [a, b] = UI.sel.map(id => G.cages.find(c => c.id === id));
+  const pv = a && b ? fusePreview(a, b) : null;
+  return `<section class="sec"><h2>掛け合わせる</h2><p>檻から2匹選ぶと、生まれるキメラの見込みが出る。代を重ねるほど強くなるが、失敗しやすくなる。</p>
+<div class="fuse"><div class="slot">${a ? `<canvas data-c="${a.id}" width="200" height="150"></canvas>${esc(a.name)}` : '1匹目'}</div><span class="plus">＋</span><div class="slot">${b ? `<canvas data-c="${b.id}" width="200" height="150"></canvas>${esc(b.name)}` : '2匹目'}</div></div>
+${pv ? `<div class="pred">見込み：力${pv.pow} 速${pv.spd} 硬${pv.def} 知<b>${pv.int}</b>・${pv.gen}代目・成功率 <b>${Math.round(pv.ok * 100)}%</b>${pv.int >= TALK_INT && (a.humans.length || b.humans.length) ? '<br>人語を解するかもしれない' : ''}</div>` : ''}
+<div class="row" style="margin-top:10px"><button class="btn sm" data-a="clearSel" ${UI.sel.length ? '' : 'disabled'}>選び直す</button><span class="grow"></span><button class="btn main" data-a="fuse" ${pv && G.ap > 0 ? '' : 'disabled'}>錬成する（行動1）</button></div></section>
+<div class="cages">${G.cages.map(c => cageCard(c, true)).join('')}</div>`;
+}
+function vCage() {
+  return `<p class="small muted" style="margin:0 0 8px">売れば見世物小屋が買い取ってくれる。人入りのキメラは高く売れるが、噂になる。</p><div class="cages">${G.cages.map(c => `<div>${cageCard(c, false)}<div class="row" style="margin-top:4px">${c.kind === 'human' ? '<span class="small muted">売れない</span>' : `<button class="btn sm" data-a="sell:${c.id}">${sellPrice(c)}Gで売る</button>`}</div></div>`).join('')}${Array.from({ length: Math.max(0, G.cap - G.cages.length) }, () => '<div class="cage empty">空の檻</div>').join('')}</div>`;
+}
+function vShop() {
+  return `<div class="acts shop">${SHOP.map(s => `<div class="act"><span class="ico" aria-hidden="true">${s.id === 'cage' ? '🔒' : s.id === 'cloth' ? '🧺' : '🪔'}</span><div><b>${s.n}</b><small>${s.d}${s.max < 99 ? `（${G.owned[s.id]}/${s.max}）` : ''}</small></div><button class="btn gold sm" data-a="buy:${s.id}" ${G.gold >= s.cost && G.owned[s.id] < s.max ? '' : 'disabled'}>${s.cost}G</button></div>`).join('')}</div>`;
+}
+function vOver() {
+  return `<section class="over"><canvas id="kidc" width="360" height="360" aria-hidden="true"></canvas>
+<p class="muted">${KID}は、もう何を言っても信じてくれなかった。<br>翌朝、研究所には役人がやってきた。</p>
+<p class="line"><small>捨て台詞</small>君のように勘のいいガキは<br>嫌いだよ</p>
+<p class="small muted">${G.day}日目・行方不明 ${G.missing.length}人・錬成 ${G.stats.fused}回</p>
+<div class="row" style="justify-content:center"><button class="btn main" data-a="start">もう一度研究する</button><button class="btn" data-a="title">タイトルへ</button></div></section>`;
+}
+function vJudge() {
+  const r = UI.result;
+  return `<section class="result"><p class="muted">三十日目、国家錬金術師の査定</p><h2 style="color:${r.pass ? 'var(--gold)' : 'var(--ink)'}">${r.rank}</h2>
+${r.c ? `<canvas id="jc" width="520" height="390" aria-label="${esc(r.c.name)}"></canvas><p><b>${esc(r.c.name)}</b>（格 ${r.gd}・知恵 ${r.c.int}）</p>` : ''}
+<p>${esc(r.line)}</p>
+<p class="small muted">得点 ${r.score}${r.isBest ? '（これまでで最高）' : ''}・行方不明 ${G.missing.length}人・言い訳 ${G.stats.excuses}回</p>
+<div class="row" style="justify-content:center"><button class="btn main" data-a="start">もう一度研究する</button><button class="btn" data-a="title">タイトルへ</button></div></section>`;
+}
+function vModal() {
+  const m = UI.modal; if (!m) return '';
+  if (m.type === 'visitor') {
+    const v = m.v;
+    return `<div class="modal"><div class="sheet" role="dialog" aria-label="来客"><h2>来客</h2><canvas id="vc" width="520" height="390" aria-hidden="true"></canvas>
+<p>${v.job}の<b>${v.n}</b>がお茶を飲みに来た。「いやあ、立派なお屋敷ですなあ。地下には何が？」</p>
+<div class="choices"><button data-a="tea">にこやかにお茶を出して帰す<small>疑惑が少し下がる</small></button><button data-a="keep" ${G.cages.length < G.cap ? '' : 'disabled'}>「ちょっと研究に協力してもらえますか」<small>人が檻に入る。とても賢い。疑惑が大きく上がる${G.cages.length < G.cap ? '' : '（檻がいっぱい）'}</small></button></div></div></div>`;
+  }
+  if (m.type === 'born') {
+    const c = m.c;
+    return `<div class="modal"><div class="sheet" role="dialog" aria-label="錬成の結果"><h2>${c.fail ? '失敗作が生まれた' : 'キメラ誕生'}</h2><canvas id="bc" width="520" height="390" aria-hidden="true"></canvas>
+<p style="text-align:center"><b>${esc(c.name)}</b>（${c.gen}代目）<br>力${c.pow} 速${c.spd} 硬${c.def} 知${c.int}・格${grade(c)}</p>
+${c.talk ? `<p style="text-align:center;color:var(--gold);font-weight:900">「……ハラ……ヘッタ」<br>このキメラは人の言葉を話す。</p>` : ''}
+${c.fail ? '<p style="text-align:center">うまく混ざらず、ぐずぐずの毛玉のようなものができた。強いほうの片割れだけは、なんとか元の姿で残った。</p>' : ''}
+<div class="row" style="justify-content:center"><button class="btn main" data-a="close">檻に入れる</button></div></div></div>`;
+  }
+  if (m.type === 'kid') {
+    return `<div class="modal"><div class="sheet" role="dialog" aria-label="${KID}がやってきた"><h2>${KID}がやってきた</h2>
+<div class="kid"><canvas id="kc" width="200" height="200" aria-hidden="true"></canvas><div class="bubble">${esc(m.q)}</div></div>
+${m.result ? `<div class="verdict ${m.result.ok ? 'ok' : 'ng'}">${m.result.ok ? 'ごまかせた' : 'ごまかせなかった'}</div><p>${esc(m.result.line)}</p><p class="small muted">${KID}の確信 ${Math.round(G.kid)} / 100</p><div class="row" style="justify-content:center"><button class="btn main" data-a="kidClose">${G.kid >= 100 ? '……' : '扉を閉める'}</button></div>`
+      : `<p class="small muted">なんと言ってごまかそう。</p><div class="choices">${m.choices.map((c, i) => `<button data-a="ans:${i}">${esc(c.t)}</button>`).join('')}</div>`}
+</div></div>`;
+  }
+  return '';
+}
+function render() {
+  if (UI.screen === 'title') app.innerHTML = vTitle();
+  else if (UI.screen === 'over') app.innerHTML = vOver();
+  else if (UI.screen === 'judge') app.innerHTML = vJudge();
+  else app.innerHTML = vTop() + vTabs() + { out: vOut, lab: vLab, cage: vCage, shop: vShop }[UI.tab]();
+  modalRoot.innerHTML = vModal();
+  paint(0);
+}
+function paint(t) {
+  document.querySelectorAll('canvas[data-c]').forEach(cv => { const c = G && G.cages.find(x => x.id === +cv.dataset.c); if (c) drawCreature(cv.getContext('2d'), c, t); });
+  const one = (id, c) => { const cv = document.getElementById(id); if (cv && c) drawCreature(cv.getContext('2d'), c, t); };
+  one('tcv', TITLE_C);
+  if (UI.modal && UI.modal.type === 'born') one('bc', UI.modal.c);
+  if (UI.modal && UI.modal.type === 'visitor') one('vc', makeHumanPreview(UI.modal.v));
+  if (UI.screen === 'judge' && UI.result.c) one('jc', UI.result.c);
+  const kc = document.getElementById('kc'); if (kc) drawKid(kc.getContext('2d'), t, G.kid / 100);
+  const kd = document.getElementById('kidc'); if (kd) drawKid(kd.getContext('2d'), t, 1);
+}
+const previewCache = {};
+function makeHumanPreview(v) { return previewCache[v.id] || (previewCache[v.id] = { id: -1, kind: 'human', head: 'human:' + v.id, body: 'human:' + v.id, legs: 'human:' + v.id, tail: null, wings: null, humans: [v.id], gen: 0, seed: 3 }); }
+
+/* ================= 操作 ================= */
+function act(a) {
+  const [k, x] = a.split(':');
+  if (k === 'start') { snd('start'); newGame(); window.scrollTo(0, 0); }
+  else if (k === 'title') { UI = { screen: 'title', tab: 'out', modal: null, sel: [] }; render(); }
+  else if (k === 'tab') { UI.tab = x; snd('click'); render(); }
+  else if (k === 'hunt') hunt();
+  else if (k === 'invite') invite();
+  else if (k === 'tea') teaHuman(UI.modal.v);
+  else if (k === 'keep') keepHuman(UI.modal.v);
+  else if (k === 'forest') goDeeper(+x);
+  else if (k === 'sleep') sleep();
+  else if (k === 'sel') { const id = +x; if (UI.sel.includes(id)) UI.sel = UI.sel.filter(s => s !== id); else if (UI.sel.length < 2) UI.sel.push(id); else UI.sel = [UI.sel[1], id]; snd('click'); render(); }
+  else if (k === 'clearSel') { UI.sel = []; render(); }
+  else if (k === 'fuse') { const [p, q] = UI.sel.map(id => G.cages.find(c => c.id === id)); if (p && q && G.ap > 0) fuse(p, q); }
+  else if (k === 'sell') sell(+x);
+  else if (k === 'buy') buy(x);
+  else if (k === 'close') { UI.modal = null; render(); }
+  else if (k === 'ans') answer(+x);
+  else if (k === 'kidClose') closeKid();
+}
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-a]');
+  if (!el || el.disabled) return;
+  act(el.dataset.a);
+});
+
+/* ================= オート ================= */
+const AI = { next: 0, resAt: 0 };
+const worth = c => grade(c) + (c.talk ? 120 : 0) + (c.kind === 'human' ? 40 : 0);
+function bestPair() {
+  let best = null;
+  const cs = G.cages.filter(c => !c.fail);
+  for (let i = 0; i < cs.length; i++) for (let j = i + 1; j < cs.length; j++) {
+    const pv = fusePreview(cs[i], cs[j]);
+    const hasH = cs[i].humans.length || cs[j].humans.length;
+    const v = (pv.pow + pv.spd + pv.def + pv.int * 1.6 + (hasH && pv.int >= TALK_INT + 4 ? 120 : 0)) * pv.ok;
+    const cur = Math.max(worth(cs[i]), worth(cs[j]));
+    if (v > cur * 1.03 && (!best || v - cur > best.gain)) best = { v, gain: v - cur, a: cs[i], b: cs[j], pv };
+  }
+  return best;
+}
+function autoStep() {
+  const m = UI.modal;
+  if (UI.screen === 'title') { act('start'); return; }
+  if (UI.screen === 'over' || UI.screen === 'judge') { if (!AI.resAt) AI.resAt = Date.now(); else if (Date.now() - AI.resAt > 6000) { AI.resAt = 0; act('start'); } return; }
+  if (m) {
+    if (m.type === 'kid') {
+      if (m.result) { closeKid(); return; }
+      // 職業に合った言い訳を選ぶ
+      let bi = 0, bv = -1; m.choices.forEach((c, i) => { if (c.base > bv) { bv = c.base; bi = i; } });
+      answer(bi); return;
+    }
+    if (m.type === 'visitor') { const needBrain = G.day >= 6 && G.sus < 30 && G.kid < 45 && G.stats.humans < 3 && G.cages.length < G.cap; (needBrain ? keepHuman : teaHuman)(m.v); return; }
+    UI.modal = null; render(); return;
+  }
+  // 買い物
+  if (G.forest < 2 && G.gold >= FORESTS[G.forest + 1].cost + 40) { UI.tab = 'out'; goDeeper(G.forest + 1); return; }
+  if (G.sus >= 45 && G.gold >= 60) { UI.tab = 'shop'; buy('incense'); return; }
+  if (!G.owned.cloth && G.stats.humans && G.gold >= 190) { UI.tab = 'shop'; buy('cloth'); return; }
+  if (G.owned.cage < 2 && G.cages.length >= G.cap - 1 && G.gold >= 160) { UI.tab = 'shop'; buy('cage'); return; }
+  // 弱い生き物は売って餌代と資金に
+  const weak = G.cages.filter(c => c.kind !== 'human' && !c.talk && !c.humans.length).sort((a, b) => (a.fail ? -999 : grade(a)) - (b.fail ? -999 : grade(b)));
+  const failed = G.cages.find(c => c.fail);
+  if (failed) { UI.tab = 'cage'; sell(failed.id); return; }
+  if (G.cages.length >= G.cap - 1 && weak.length > 3) { UI.tab = 'cage'; sell(weak[0].id); return; }
+  if (G.ap <= 0) { UI.tab = 'out'; sleep(); return; }
+  // 錬成：2匹以上いれば良い組み合わせを
+  const bp = G.cages.length >= 4 || G.day > 20 ? bestPair() : null;
+  if (bp) { UI.tab = 'lab'; UI.sel = [bp.a.id, bp.b.id]; fuse(bp.a, bp.b); return; }
+  if (G.day >= 6 && G.sus < 30 && G.kid < 45 && G.stats.humans < 3 && Math.random() < .4) { UI.tab = 'out'; invite(); return; }
+  UI.tab = 'out'; hunt();
+  if (G.ap > 0 && G.cages.length >= G.cap) { const w = G.cages.filter(c => c.kind !== 'human' && !c.humans.length).sort((a, b) => grade(a) - grade(b))[0]; if (w) sell(w.id); }
+}
+let last = performance.now(), paintT = 0;
+function frame(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  if (window.tgAuto) { AI.next -= dt; if (AI.next <= 0) { AI.next = .8; autoStep(); } }
+  paintT += dt; if (paintT > .07) { paintT = 0; paint(now / 1000); }
+  requestAnimationFrame(frame);
+}
+render();
+requestAnimationFrame(frame);
+</script>
+<a class="tg-back" href="index.html" aria-label="ゲーム一覧にもどる">← 一覧</a>
+<style>
+.tg-back{position:fixed;z-index:2147483647;top:calc(8px + env(safe-area-inset-top,0px));left:calc(8px + env(safe-area-inset-left,0px));
+  display:inline-block;margin:0;padding:6px 12px;border-radius:999px;background:rgba(12,14,24,.72);color:#fff;
+  font:700 13px/1.2 "Hiragino Sans","Yu Gothic",sans-serif;letter-spacing:0;text-decoration:none;border:1px solid rgba(255,255,255,.35);
+  -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);-webkit-tap-highlight-color:transparent}
+.tg-back:hover{background:rgba(12,14,24,.9)}
+.tg-back:focus-visible{outline:2px solid #fff;outline-offset:2px}
+</style>
+<button class="tg-auto" type="button" aria-pressed="false" aria-label="オートプレイ">AUTO</button>
+<style>
+.tg-auto{position:fixed;z-index:2147483647;top:calc(8px + env(safe-area-inset-top,0px));left:calc(88px + env(safe-area-inset-left,0px));
+  display:inline-block;margin:0;padding:6px 12px;border-radius:999px;background:rgba(12,14,24,.72);color:#fff;cursor:pointer;
+  font:700 13px/1.2 "Hiragino Sans","Yu Gothic",sans-serif;letter-spacing:.06em;border:1px solid rgba(255,255,255,.35);box-shadow:none;
+  -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);-webkit-tap-highlight-color:transparent;transform:none}
+.tg-auto.tg-inline{position:static;flex:none}
+.tg-auto[aria-pressed="true"]{background:#f5c518;color:#1a1400;border-color:#f5c518;animation:tg-auto-pulse 1.2s ease-in-out infinite alternate}
+.tg-auto:focus-visible{outline:2px solid #fff;outline-offset:2px}
+@keyframes tg-auto-pulse{to{box-shadow:0 0 12px rgba(245,197,24,.8)}}
+@media (prefers-reduced-motion:reduce){.tg-auto[aria-pressed="true"]{animation:none}}
+</style>
+<script>
+(function(){
+  window.tgAuto = false;
+  var b = document.querySelector('.tg-auto');
+  if (!b) return;
+  var stop = function(e){ e.stopPropagation(); };
+  ['pointerdown','pointerup','mousedown','touchstart','keydown'].forEach(function(t){ b.addEventListener(t, stop); });
+  b.addEventListener('click', function(e){
+    e.stopPropagation();
+    window.tgAuto = !window.tgAuto;
+    b.setAttribute('aria-pressed', String(window.tgAuto));
+    b.textContent = window.tgAuto ? 'AUTO ON' : 'AUTO';
+    b.blur();
+    window.dispatchEvent(new Event('tgauto'));
+  });
+})();
+</script>
+<button class="tg-snd" type="button" aria-pressed="true" aria-label="音のオンオフ">音：ON</button>
+<style>
+.tg-snd{position:fixed;z-index:2147483647;top:calc(8px + env(safe-area-inset-top,0px));left:calc(186px + env(safe-area-inset-left,0px));
+  display:inline-block;margin:0;padding:6px 12px;border-radius:999px;background:rgba(12,14,24,.72);color:#fff;cursor:pointer;
+  font:700 13px/1.2 "Hiragino Sans","Yu Gothic",sans-serif;letter-spacing:0;border:1px solid rgba(255,255,255,.35);box-shadow:none;
+  -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);-webkit-tap-highlight-color:transparent;transform:none}
+.tg-snd[aria-pressed="false"]{color:rgba(255,255,255,.6)}
+.tg-snd:focus-visible{outline:2px solid #fff;outline-offset:2px}
+</style>
+<script>
+/* ---------- 共通の効果音（Web Audioで合成） ---------- */
+window.tgSound = (function(){
+  var AC = null, noiseBuf = null, on = true, last = {};
+  try { on = localStorage.getItem('tg_sound') !== '0'; } catch (e) {}
+  function ctx(){
+    if (!AC) {
+      try {
+        AC = new (window.AudioContext || window.webkitAudioContext)();
+        noiseBuf = AC.createBuffer(1, AC.sampleRate, AC.sampleRate);
+        var d = noiseBuf.getChannelData(0); for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      } catch (e) { AC = null; }
+    }
+    if (AC && AC.state === 'suspended') AC.resume();
+    return AC;
+  }
+  function tone(f, dur, type, vol, slide, delay){
+    var t = AC.currentTime + (delay || 0), o = AC.createOscillator(), g = AC.createGain();
+    o.type = type || 'triangle'; o.frequency.setValueAtTime(f, t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, f * slide), t + dur);
+    g.gain.setValueAtTime(vol || .08, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + dur + .03);
+  }
+  function noise(dur, vol, freq, delay, kind){
+    var t = AC.currentTime + (delay || 0), s = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain();
+    s.buffer = noiseBuf; f.type = kind || 'bandpass'; f.frequency.value = freq || 1000; f.Q.value = 1;
+    g.gain.setValueAtTime(vol || .1, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    s.connect(f); f.connect(g); g.connect(AC.destination); s.start(t); s.stop(t + dur + .03);
+  }
+  function arp(fs, step, type, vol, dur){ fs.forEach(function(f, i){ tone(f, dur || .22, type, vol, 0, i * step); }); }
+  var LIB = {
+    click:  function(){ tone(900, .05, 'square', .03); },
+    pick:   function(){ tone(660, .06, 'triangle', .07); tone(990, .08, 'triangle', .06, 0, .05); },
+    unpick: function(){ tone(520, .08, 'triangle', .06, .7); },
+    tick:   function(){ tone(1500 + Math.random() * 300, .025, 'square', .025); },
+    land:   function(){ tone(784, .09, 'square', .05); tone(1175, .18, 'square', .05, 0, .07); },
+    start:  function(){ arp([392, 523, 659], .09, 'square', .05, .18); },
+    shot:   function(){ tone(1200, .07, 'square', .025, .45); },
+    shotFoe:function(){ tone(700, .08, 'square', .02, .5); },
+    slash:  function(){ noise(.12, .12, 2600, 0, 'highpass'); tone(500, .1, 'sawtooth', .03, .5); },
+    dash:   function(){ noise(.2, .1, 800, 0, 'bandpass'); tone(200, .2, 'sine', .06, 2.2); },
+    charge: function(){ tone(200, .7, 'sawtooth', .05, 4); },
+    beam:   function(){ noise(.5, .2, 500, 0, 'lowpass'); tone(90, .5, 'sawtooth', .08, .5); },
+    hit:    function(){ noise(.09, .14, 900, 0, 'lowpass'); tone(160, .08, 'square', .04, .6); },
+    big:    function(){ noise(.3, .22, 400, 0, 'lowpass'); tone(110, .3, 'sawtooth', .07, .5); },
+    heal:   function(){ arp([784, 988, 1319], .06, 'sine', .06, .2); },
+    miss:   function(){ noise(.15, .06, 3000, 0, 'highpass'); },
+    good:   function(){ arp([659, 784, 1047], .08, 'triangle', .07, .25); },
+    bad:    function(){ tone(330, .25, 'triangle', .07, .75); tone(247, .35, 'triangle', .06, .8, .18); },
+    win:    function(){ arp([523, 659, 784, 1047, 1319], .1, 'square', .045, .28); },
+    lose:   function(){ arp([392, 330, 262, 196], .22, 'triangle', .08, .4); },
+    splash: function(){ noise(.35, .18, 700, 0, 'lowpass'); noise(.2, .08, 2400, .05, 'bandpass'); },
+    bubble: function(){ tone(250 + Math.random() * 250, .07, 'sine', .04, 1.8); },
+    slurp:  function(){ noise(.5, .12, 1400, 0, 'bandpass'); noise(.3, .08, 900, .55, 'bandpass'); },
+    coin:   function(){ tone(988, .06, 'square', .04); tone(1319, .14, 'square', .04, 0, .06); },
+    summon: function(){ tone(130, 1, 'sawtooth', .05, 3); arp([523, 784, 1047, 1568], .12, 'sine', .07, .5); },
+    evolve: function(){ arp([523, 659, 784, 1047, 784, 1047, 1319, 1568], .07, 'triangle', .06, .3); },
+    fuse:   function(){ tone(110, 1.1, 'sawtooth', .06, 2.5); noise(.9, .1, 300, .2, 'lowpass'); arp([659, 880, 1319], .12, 'sine', .07, .4); }
+  };
+  function play(name){
+    if (!on || !LIB[name]) return;
+    var now = performance.now();
+    if (last[name] && now - last[name] < 55) return;
+    last[name] = now;
+    if (!ctx()) return;
+    try { LIB[name](); } catch (e) {}
+  }
+  var btn = document.querySelector('.tg-snd');
+  function sync(){ if (btn) { btn.textContent = on ? '音：ON' : '音：OFF'; btn.setAttribute('aria-pressed', String(on)); } }
+  if (btn) {
+    ['pointerdown','pointerup','mousedown','touchstart','keydown'].forEach(function(t){ btn.addEventListener(t, function(e){ e.stopPropagation(); }); });
+    btn.addEventListener('click', function(e){
+      e.stopPropagation(); on = !on; sync(); btn.blur();
+      try { localStorage.setItem('tg_sound', on ? '1' : '0'); } catch (err) {}
+      if (on) { ctx(); play('pick'); }
+    });
+  }
+  sync();
+  // ブラウザは最初の操作まで音を出せないので、最初のタップで準備する
+  window.addEventListener('pointerdown', function(){ if (on) ctx(); }, { once: true, capture: true });
+  return { play: play };
+})();
+</script>
+<style>
+.tg-bar{position:fixed;z-index:2147483647;top:calc(8px + env(safe-area-inset-top,0px));left:calc(8px + env(safe-area-inset-left,0px));display:flex;gap:8px;align-items:center;pointer-events:none}
+.tg-bar>*{position:static!important;pointer-events:auto}
+</style>
+<script>
+(function(){
+  var bar=document.createElement('div'); bar.className='tg-bar'; document.body.appendChild(bar);
+  document.querySelectorAll('.tg-back:not(.tg-inline),.tg-auto:not(.tg-inline),.tg-snd').forEach(function(el){ bar.appendChild(el); });
+})();
+</script>
+</body>
+</html>
