@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>木滅の斧</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+/* Layout: 上に戦いの絵（木と木こり）、その下にタイミングの帯と大きな「斧を振る」。村では帳面のような縦並びの札 */
+:root{
+  --night:#121410; --panel:#1d211a; --panel2:#262c22; --ink:#efe9da; --muted:#9aa08e; --line:#343b2e;
+  --leaf:#5fa45a; --gold:#e8b84a; --red:#d9483b; --blue:#4a8fd9; --wood:#b07a45;
+  --disp:"Dela Gothic One","Hiragino Kaku Gothic StdN",sans-serif;
+  --body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--night);color:var(--ink);font-family:var(--body);-webkit-tap-highlight-color:transparent;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+[hidden]{display:none!important}
+#app{max-width:640px;margin:0 auto;padding:52px 14px 32px}
+
+/* タイトル */
+.title{min-height:calc(100dvh - 90px);display:flex;flex-direction:column;justify-content:center;align-items:center;gap:18px;text-align:center}
+.title .logo{font-family:var(--disp);font-size:clamp(56px,17vw,96px);line-height:1;letter-spacing:.04em;color:var(--ink);text-shadow:0 0 30px rgba(95,164,90,.35)}
+.title .logo span{color:var(--leaf)}
+.title .sub{margin:0;color:var(--gold);font-weight:900;letter-spacing:.3em;font-size:13px}
+.title p{margin:0;line-height:1.9;color:#cfd3c3;max-width:30em;text-wrap:balance}
+.title .row{justify-content:center}
+
+/* 共通 */
+.btn{border:1.5px solid var(--ink);background:transparent;border-radius:999px;padding:9px 20px;font-weight:900;font-size:15px}
+.btn.main{background:var(--leaf);border-color:var(--leaf);color:#0d1a0b}
+.btn.gold{background:var(--gold);border-color:var(--gold);color:#1d1404}
+.btn.red{background:var(--red);border-color:var(--red);color:#fff}
+.btn:disabled{opacity:.35;cursor:default}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.grow{flex:1}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+
+/* 村 */
+.hero{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:grid;grid-template-columns:auto 1fr;gap:4px 14px;align-items:center}
+.hero canvas{grid-row:span 3;width:64px;height:64px}
+.hero .nm{font-family:var(--disp);font-size:20px}
+.hero .nm small{font-family:var(--body);font-weight:700;font-size:12px;color:var(--muted);margin-left:8px}
+.hero .st{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px;color:var(--muted);font-weight:700}
+.hero .st b{color:var(--ink);font-size:15px}
+.hero .st .g b{color:var(--gold)}
+.xp{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.xp i{display:block;height:100%;background:var(--gold)}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:12px 0 10px}
+.tabs button{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:10px 2px;font-weight:900;font-size:14px}
+.tabs button[aria-selected="true"]{background:var(--leaf);color:#0d1a0b;border-color:var(--leaf)}
+.tabs button .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--red);margin-left:4px;vertical-align:middle}
+.cards{display:grid;gap:8px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.card h3{margin:0 0 4px;font-size:17px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.card h3 small{font-size:12px;color:var(--muted);font-weight:700}
+.card p{margin:0 0 8px;font-size:13px;line-height:1.7;color:#cfd3c3}
+.card.locked{opacity:.45}
+.card.boss{border-color:#6b2a24;background:linear-gradient(180deg,#2a1714,var(--panel))}
+.card.boss h3{color:#ff8f7a}
+.prog{display:flex;gap:4px;margin:4px 0 10px}
+.prog i{flex:1;height:6px;border-radius:3px;background:var(--line)}
+.prog i.on{background:var(--leaf)}
+.kind{display:inline-block;font-size:11px;font-weight:900;padding:2px 8px;border-radius:999px;background:var(--line);color:var(--ink)}
+.kind.kokyu{background:#24486b}.kind.waza{background:#6b4a24}.kind.ougi{background:#6b2430}
+.own{color:var(--leaf);font-weight:900;font-size:13px}
+.log{font-size:13px;line-height:1.8;color:#cfd3c3}
+
+/* 戦い */
+.battle{display:grid;gap:10px}
+.bhead{display:flex;align-items:center;gap:10px}
+.bhead .nm{font-family:var(--disp);font-size:18px}
+.bhead .tm{margin-left:auto;font-family:var(--disp);font-size:22px;font-variant-numeric:tabular-nums}
+.bhead .tm.low{color:var(--red)}
+.bars{display:grid;grid-template-columns:auto 1fr auto;gap:4px 8px;align-items:center;font-size:12px;font-weight:900;color:var(--muted)}
+.bar{height:10px;background:var(--line);border-radius:5px;overflow:hidden;position:relative}
+.bar i{position:absolute;inset:0 auto 0 0;border-radius:5px}
+.bar.tree i{background:var(--wood)}
+.bar.hp i{background:var(--red)}
+.bar.st i{background:var(--blue)}
+.bar.ki i{background:var(--gold)}
+.bars span.v{font-variant-numeric:tabular-nums;color:var(--ink);min-width:4.5em;text-align:right}
+#cv{display:block;width:100%;aspect-ratio:16/10;border-radius:12px;background:#000;touch-action:none}
+.timing{position:relative;height:34px;border-radius:17px;background:#2a3024;overflow:hidden;border:1px solid var(--line)}
+.timing .good{position:absolute;top:0;bottom:0;background:rgba(95,164,90,.55)}
+.timing .perf{position:absolute;top:0;bottom:0;background:var(--gold)}
+.timing .mark{position:absolute;top:-2px;bottom:-2px;width:4px;margin-left:-2px;background:#fff;box-shadow:0 0 8px #fff;border-radius:2px}
+.timing.fog .good,.timing.fog .perf{opacity:.18}
+.acts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.acts .swing{grid-column:1/-1;padding:18px 0;font-size:22px;font-family:var(--disp);border-radius:16px;background:var(--leaf);border:none;color:#0d1a0b;box-shadow:0 4px 0 #2f5a2c}
+.acts .swing:active{transform:translateY(3px);box-shadow:none}
+.acts .swing.tired{background:#55604f;box-shadow:0 4px 0 #333}
+.acts .sk{position:relative;overflow:hidden;border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:8px 2px;font-size:12px;font-weight:900;line-height:1.3;min-height:52px}
+.acts .sk small{display:block;font-size:10px;color:var(--muted);font-weight:700}
+.acts .sk .cd{position:absolute;inset:auto 0 0 0;background:rgba(0,0,0,.55)}
+.acts .sk.dodge{background:#24486b;border-color:#24486b}
+.acts .sk.dodge.warn{background:var(--red);border-color:var(--red);animation:blink .25s infinite alternate}
+.acts .sk.ougi{background:#4a1c22;border-color:#6b2430}
+.acts .sk.ougi.ready{background:var(--gold);color:#1d1404;animation:blink .5s infinite alternate}
+.acts .sk:disabled{opacity:.4}
+@keyframes blink{to{filter:brightness(1.35)}}
+@media (prefers-reduced-motion:reduce){.acts .sk.dodge.warn,.acts .sk.ougi.ready{animation:none}}
+.keys{font-size:11px;color:var(--muted);text-align:center;margin:0}
+
+/* 結果の札 */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px}
+.sheet{width:min(100%,440px);background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;text-align:center;max-height:calc(100dvh - 32px);overflow:auto}
+.sheet h2{margin:0 0 8px;font-family:var(--disp);font-size:30px}
+.sheet h2.win{color:var(--gold)} .sheet h2.lose{color:#ff8f7a}
+.sheet p{margin:0 0 10px;line-height:1.8;color:#cfd3c3}
+.sheet .gain{display:flex;justify-content:center;gap:18px;font-weight:900;font-size:18px;margin:6px 0 14px}
+.sheet .gain .g{color:var(--gold)} .sheet .gain .x{color:#9fd9a0}
+.sheet .lvup{color:var(--gold);font-weight:900}
+.ending{text-align:center;display:grid;gap:14px;padding-top:8px}
+.ending h2{margin:0;font-family:var(--disp);font-size:clamp(30px,9vw,44px);color:var(--gold)}
+.ending p{margin:0;line-height:2;color:#cfd3c3}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--night);padding:10px 18px;border-radius:999px;font-weight:900;font-size:14px;z-index:200;pointer-events:none;animation:toast 1.8s ease forwards;white-space:nowrap}
+@keyframes toast{0%{opacity:0}12%,80%{opacity:1}100%{opacity:0}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="modal-root"></div>
+<script>
+'use strict';
+/* ================= データ ================= */
+const TREES = {
+  sugi:   { n: '杉',       hp: 120,   h: 0,   gold: 20,   exp: 10,   time: 30, spd: 1.0, shape: 'cone',   col: '#2f6b3a' },
+  hinoki: { n: '檜',       hp: 170,   h: .1,  gold: 28,   exp: 14,   time: 30, spd: 1.1, shape: 'cone',   col: '#3d7a44' },
+  take:   { n: '竹',       hp: 110,   h: 0,   gold: 24,   exp: 12,   time: 25, spd: 1.6, shape: 'bamboo', col: '#7cb85a' },
+  boss1:  { n: '大杉の主', hp: 700,   h: .1,  gold: 180,  exp: 90,   time: 70, spd: 1.2, shape: 'cone',   col: '#24572e', boss: true, atk: 12, atkEvery: [5, 7], big: 1.3, face: true },
+
+  mtake:  { n: '霧竹',     hp: 380,   h: .05, gold: 60,   exp: 34,   time: 35, spd: 2.0, shape: 'bamboo', col: '#8fc27a', fog: true },
+  matsu:  { n: '松',       hp: 480,   h: .2,  gold: 72,   exp: 40,   time: 40, spd: 1.2, shape: 'pine',   col: '#2e5e48', sticky: true },
+  boss2:  { n: '下弦の樹・絡蔓', hp: 2600, h: .2, gold: 520, exp: 260, time: 90, spd: 1.6, shape: 'vine', col: '#3b5e2a', boss: true, atk: 22, atkEvery: [3.5, 5.5], big: 1.3, face: true },
+
+  kashi:  { n: '樫',       hp: 1000,  h: .45, gold: 100,  exp: 80,   time: 40, spd: 1.3, shape: 'round',  col: '#3e6a35' },
+  tetsu:  { n: '鉄木',     hp: 1300,  h: .7,  gold: 140,  exp: 100,  time: 45, spd: 1.2, shape: 'round',  col: '#46524a', metal: true },
+  boss3:  { n: '上弦の樹・鋼樫', hp: 14000, h: .55, gold: 900,  exp: 650, time: 100, spd: 1.7, shape: 'round', col: '#4b5a4f', boss: true, atk: 40, atkEvery: [3.5, 5], big: 1.35, face: true, metal: true },
+
+  sakura: { n: '夜桜',     hp: 2400,  h: .3,  gold: 220,  exp: 170,  time: 45, spd: 1.5, shape: 'sakura', col: '#e6a2c0', petals: true },
+  maju:   { n: '魔樹',     hp: 2800,  h: .3,  gold: 260,  exp: 200,  time: 45, spd: 1.5, shape: 'evil',   col: '#4b2f5c', atk: 45, atkEvery: [4, 6], face: true },
+  boss4:  { n: '上弦の樹・夜桜', hp: 38000, h: .35, gold: 2000, exp: 1400, time: 110, spd: 2.0, shape: 'sakura', col: '#f08fb8', boss: true, atk: 70, atkEvery: [3, 4.5], big: 1.4, face: true, petals: true },
+
+  koju:   { n: '樹海の古樹', hp: 6000, h: .45, gold: 500,  exp: 420,  time: 50, spd: 1.7, shape: 'evil',   col: '#2c3b2c', atk: 80, atkEvery: [3.5, 5.5], face: true },
+  boss5:  { n: '木舞辻 散々', hp: 110000, h: .4, gold: 20000, exp: 5000, time: 150, spd: 2.2, shape: 'muzan', col: '#1a1416', boss: true, atk: 120, atkEvery: [2.6, 4], big: 1.5, face: true, regen: .004, final: true },
+};
+const AREAS = [
+  { id: 'urayama', n: '裏山の雑木林', desc: '木こり修行の始まりの山。杉・檜・竹が素直に伸びている。', trees: ['sugi', 'hinoki', 'take'], boss: 'boss1', need: 5, rec: 1, sky: ['#86b6d8', '#d7e7c4'], ground: '#4f6b34' },
+  { id: 'kiri',    n: '霧の竹林',     desc: '霧で狙いが見えにくい。松脂で腕が重くなる。', trees: ['mtake', 'matsu'], boss: 'boss2', need: 5, rec: 6, sky: ['#9fb0b4', '#d7ddd6'], ground: '#55634a' },
+  { id: 'iwayama', n: '岩山の樫林',   desc: '硬い木ばかり。会心で斬らねば刃が立たない。', trees: ['kashi', 'tetsu'], boss: 'boss3', need: 5, rec: 12, sky: ['#8a96a8', '#c9c3b2'], ground: '#5e5a4c' },
+  { id: 'yozakura', n: '夜桜の森',    desc: '花びらが舞い、魔樹が枝を振るってくる。', trees: ['sakura', 'maju'], boss: 'boss4', need: 5, rec: 18, sky: ['#1d1b3a', '#4a2f5c'], ground: '#2c2238' },
+  { id: 'jukai',   n: '無限樹海',     desc: '木舞辻 散々の根城。倒しても倒しても再生する。', trees: ['koju'], boss: 'boss5', need: 5, rec: 25, sky: ['#120c14', '#3a1420'], ground: '#1c141a' },
+];
+const AXES = [
+  { n: '錆びた手斧',   atk: 1.0, cost: 0 },
+  { n: '鉄の斧',       atk: 1.5, cost: 150 },
+  { n: '鋼の斧',       atk: 2.2, cost: 700 },
+  { n: '玉鋼の大斧',   atk: 3.2, cost: 3000 },
+  { n: '日輪斧',       atk: 4.5, cost: 12000, sun: true, req: 'boss4' },
+];
+const ARMORS = [
+  { n: '麻の羽織',   def: 0,   cost: 0 },
+  { n: '市松の羽織', def: .25, cost: 400 },
+  { n: '鱗紋の羽織', def: .45, cost: 2500 },
+];
+const GRIPS = [
+  { n: '素手',   sta: 10, cost: 0 },
+  { n: '握り革', sta: 8,  cost: 250 },
+  { n: '藤巻き', sta: 6,  cost: 1500 },
+];
+const SKILLS = [
+  { id: 'k1', kind: 'kokyu', n: '深い呼吸',            sp: 1, lv: 1,  d: 'スタミナの回復が四割速くなる' },
+  { id: 'k2', kind: 'kokyu', n: '樹の呼吸・常中',      sp: 2, lv: 5,  d: '会心の幅が六割広がる' },
+  { id: 'k3', kind: 'kokyu', n: '森羅の呼吸',          sp: 3, lv: 14, d: '最大スタミナ1.5倍、受ける傷が三割減る' },
+  { id: 'w1', kind: 'waza',  n: '壱ノ型 薪割り',       sp: 1, lv: 2,  d: '次の三振りが必ず会心になる', cd: 12 },
+  { id: 'w2', kind: 'waza',  n: '参ノ型 根切り',       sp: 2, lv: 8,  d: '六秒のあいだ木の硬さを無視する', cd: 20 },
+  { id: 'w3', kind: 'waza',  n: '伍ノ型 枝払い乱舞',   sp: 3, lv: 15, d: '一瞬で八連撃を叩き込む', cd: 22 },
+  { id: 'o1', kind: 'ougi',  n: '奥義・大樹倒し',      sp: 3, lv: 10, d: '気が満ちたとき、会心十二発ぶんの一撃' },
+  { id: 'o2', kind: 'ougi',  n: '終ノ型・陽光伐採',    sp: 5, lv: 24, d: '会心三十発ぶん。再生する木の根を断つ', req: 'boss4' },
+];
+const SK = Object.fromEntries(SKILLS.map(s => [s.id, s]));
+const SAVE_KEY = 'kimetsu_save_v1';
+const expNeed = lv => Math.round(14 * Math.pow(lv, 1.7));
+
+/* ================= セーブ ================= */
+let S = null;
+function fresh() {
+  return { lv: 1, exp: 0, sp: 1, gold: 0, axe: 0, armor: 0, grip: 0, skills: {}, felled: {}, boss: {}, cleared: false,
+    stats: { felled: 0, swings: 0, perfects: 0, retreats: 0, start: Date.now(), clearAt: 0 }, log: ['師匠に斧をもらった。今日から木こりだ。'] };
+}
+function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {} }
+function load() { try { const t = localStorage.getItem(SAVE_KEY); return t ? JSON.parse(t) : null; } catch (e) { return null; } }
+const str = () => 5 + 1.2 * (S.lv - 1);
+const maxHp = () => 100 + 12 * (S.lv - 1);
+const maxSta = () => (100 + 4 * (S.lv - 1)) * (S.skills.k3 ? 1.5 : 1);
+const areaOpen = i => i === 0 || !!S.boss[AREAS[i - 1].boss];
+const snd = n => { if (window.tgSound) window.tgSound.play(n); };
+
+/* ================= 画面状態 ================= */
+let UI = { screen: 'title', tab: 'forest', modal: null };
+let B = null;   // 戦いの状態
+
+/* ================= 戦い ================= */
+function startBattle(treeId, areaIdx) {
+  const T = TREES[treeId];
+  B = {
+    id: treeId, T, area: areaIdx, hp: T.hp, max: T.hp, t: 0, limit: T.time,
+    php: maxHp(), sta: maxSta(), ki: 0, combo: 0, best: 0,
+    x: 0, dir: 1, c: .5, cd: {}, sure: 0, ignore: 0, rush: 0, rushT: 0,
+    atkT: T.atk ? rnd(T.atkEvery[0], T.atkEvery[1]) + 1.5 : Infinity, warn: 0, dodgeT: 0, dodged: false,
+    swingAnim: 0, fall: 0, over: null, shake: 0, flash: 0, banner: null, parts: [], texts: [], revived: false,
+    perfW: .07 * (S.skills.k2 ? 1.6 : 1), goodW: .24,
+  };
+  relocate();
+  UI.screen = 'battle'; UI.modal = null;
+  snd('start');
+  render();
+}
+function rnd(a, b) { return a + Math.random() * (b - a); }
+function relocate() { B.c = rnd(.18, .82); }
+function zoneOf() {
+  const d = Math.abs(B.x - B.c);
+  if (B.sure > 0 || d < B.perfW / 2) return 'perfect';
+  if (d < B.goodW / 2) return 'good';
+  return 'miss';
+}
+function hitDamage(kind) {
+  const T = B.T, axe = AXES[S.axe];
+  let dmg = str() * axe.atk * (kind === 'perfect' ? 2 : kind === 'good' ? 1 : .25);
+  const hard = B.ignore > 0 ? 0 : T.h * (kind === 'perfect' ? .4 : 1);
+  dmg *= 1 - hard;
+  dmg *= 1 + Math.min(B.combo, 20) * .015;
+  return dmg * rnd(.92, 1.08);
+}
+function dealDamage(dmg, kind, label) {
+  B.hp -= dmg;
+  B.shake = Math.min(12, 3 + dmg / B.max * 60);
+  const px = 400 + rnd(-30, 30), py = 250 + rnd(-30, 20);
+  B.texts.push({ x: px, y: py - 40, s: Math.round(dmg).toLocaleString(), c: kind === 'perfect' ? '#ffd76a' : kind === 'miss' ? '#9aa08e' : '#fff', size: kind === 'perfect' ? 30 : 22, life: 1 });
+  if (label) B.texts.push({ x: px, y: py - 74, s: label, c: '#ffd76a', size: 18, life: 1 });
+  for (let i = 0; i < (kind === 'perfect' ? 14 : 7); i++) B.parts.push({ x: 392, y: 296, vx: rnd(-260, 40), vy: rnd(-260, -40), life: rnd(.4, .8), c: Math.random() < .5 ? '#e0b77a' : '#c48d55', s: rnd(2, 5) });
+  if (B.hp <= 0) treeDown();
+}
+function swing() {
+  if (!B || B.over || B.fall) return;
+  const cost = GRIPS[S.grip].sta + (B.T.sticky ? 4 : 0);
+  if (B.sta < cost) { B.texts.push({ x: 250, y: 150, s: '息切れ…', c: '#9ab8ff', size: 18, life: .8 }); snd('miss'); return; }
+  B.sta -= cost;
+  B.swingAnim = .18;
+  S.stats.swings++;
+  const kind = zoneOf();
+  if (B.sure > 0) B.sure--;
+  if (kind === 'miss') { B.combo = 0; snd('miss'); }
+  else { B.combo++; B.best = Math.max(B.best, B.combo); if (kind === 'perfect') S.stats.perfects++; snd(kind === 'perfect' ? 'big' : 'hit'); }
+  B.ki = Math.min(100, B.ki + (kind === 'perfect' ? 12 : kind === 'good' ? 6 : 1));
+  // 鉄木と鋼樫は会心でないと刃が欠ける
+  let dmg = hitDamage(kind);
+  if (B.T.metal && kind !== 'perfect' && B.ignore <= 0) { dmg *= .35; }
+  dealDamage(dmg, kind, kind === 'perfect' ? '会心' : null);
+  relocate();
+}
+function useSkill(id) {
+  if (!B || B.over || B.fall || !S.skills[id]) return;
+  const s = SK[id];
+  if (s.kind === 'waza') {
+    if ((B.cd[id] || 0) > 0) return;
+    B.cd[id] = s.cd;
+    B.banner = { s: s.n, life: 1.1, c: '#ffd76a' };
+    snd('slash');
+    if (id === 'w1') B.sure = 3;
+    if (id === 'w2') B.ignore = 6;
+    if (id === 'w3') { B.rush = 8; B.rushT = 0; }
+  } else if (s.kind === 'ougi') {
+    if (B.ki < 100) return;
+    const both = S.skills.o2 && (B.T.final || id === 'o2');
+    const use = both ? 'o2' : id;
+    B.ki = 0;
+    const mul = use === 'o2' ? 30 : 12;
+    const dmg = str() * AXES[S.axe].atk * 2 * mul * (1 - (B.ignore > 0 ? 0 : B.T.h * .4));
+    B.banner = { s: SK[use].n, life: 1.6, c: use === 'o2' ? '#ff9b5a' : '#ffd76a' };
+    B.flash = 1; snd('beam');
+    if (use === 'o2') B.sunCut = true;
+    B.pending = { t: .35, dmg };
+  }
+}
+function dodge() {
+  if (!B || B.over || B.fall || B.dodgeT > 0) return;
+  B.dodgeT = .45;
+  if (B.warn > 0) { B.dodged = true; snd('dash'); B.texts.push({ x: 250, y: 150, s: '見切った', c: '#9fd9ff', size: 20, life: .8 }); }
+  else { B.sta = Math.max(0, B.sta - 5); snd('miss'); }
+}
+function treeDown() {
+  const T = B.T;
+  if (T.final && !(AXES[S.axe].sun && B.sunCut) && !(AXES[S.axe].sun && B.revived)) {
+    // 日輪斧と陽光伐採でなければ、何度でも再生する
+    B.hp = B.max * (B.revived ? .35 : .5);
+    B.revived = true;
+    B.banner = { s: AXES[S.axe].sun ? '再生した…陽光で根を断て' : '再生した…日輪斧でなければ', life: 2, c: '#ff6b6b' };
+    snd('bad');
+    return;
+  }
+  B.hp = 0; B.fall = .001; snd('win');
+}
+function endBattle(win) {
+  if (!B || B.over) return;
+  B.over = win ? 'win' : 'lose';
+  const T = B.T;
+  if (win) {
+    S.gold += T.gold;
+    const before = S.lv;
+    gainExp(T.exp);
+    S.stats.felled++;
+    const a = AREAS[B.area];
+    if (T.boss) { S.boss[B.id] = true; S.log.unshift(`${T.n}を切り倒した。${a.n}の主が倒れた。`); }
+    else S.felled[a.id] = (S.felled[a.id] || 0) + 1;
+    if (T.final) { S.cleared = true; S.stats.clearAt = Date.now(); }
+    UI.modal = { type: 'win', gold: T.gold, exp: T.exp, lvup: S.lv - before, final: !!T.final, boss: !!T.boss, name: T.n };
+  } else {
+    S.stats.retreats++;
+    UI.modal = { type: 'lose', why: B.why || '日が暮れた' };
+  }
+  save();
+  render();
+}
+function gainExp(x) {
+  S.exp += x;
+  while (S.exp >= expNeed(S.lv)) { S.exp -= expNeed(S.lv); S.lv++; S.sp++; }
+}
+
+function update(dt) {
+  if (!B || UI.screen !== 'battle') return;
+  const T = B.T;
+  // 帯の印は左右に往復する
+  const spd = .9 * T.spd * (B.T.sticky ? .85 : 1);
+  B.x += B.dir * spd * dt;
+  if (B.x > 1) { B.x = 2 - B.x; B.dir = -1; }
+  if (B.x < 0) { B.x = -B.x; B.dir = 1; }
+  for (const k in B.cd) if (B.cd[k] > 0) B.cd[k] -= dt;
+  if (B.ignore > 0) B.ignore -= dt;
+  if (B.dodgeT > 0) B.dodgeT -= dt;
+  if (B.shake > 0) B.shake = Math.max(0, B.shake - dt * 40);
+  if (B.flash > 0) B.flash -= dt * 2;
+  if (B.swingAnim > 0) B.swingAnim -= dt;
+  if (B.banner) { B.banner.life -= dt; if (B.banner.life <= 0) B.banner = null; }
+  for (const p of B.parts) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 600 * dt; p.life -= dt; }
+  B.parts = B.parts.filter(p => p.life > 0);
+  for (const t of B.texts) { t.y -= 40 * dt; t.life -= dt; }
+  B.texts = B.texts.filter(t => t.life > 0);
+  if (B.over) return;
+  if (B.fall) { B.fall += dt; if (B.fall > 1.4) endBattle(true); return; }
+  if (B.pending) { B.pending.t -= dt; if (B.pending.t <= 0) { const d = B.pending.dmg; B.pending = null; dealDamage(d, 'perfect', '奥義'); if (B.fall || B.over) return; } }
+  B.t += dt;
+  B.sta = Math.min(maxSta(), B.sta + 16 * (S.skills.k1 ? 1.4 : 1) * dt);
+  if (T.regen && B.hp > 0) B.hp = Math.min(B.max, B.hp + B.max * T.regen * dt * (B.sunCut ? 0 : 1));
+  // 乱舞
+  if (B.rush > 0) {
+    B.rushT -= dt;
+    if (B.rushT <= 0) { B.rushT = .07; B.rush--; B.swingAnim = .07; B.combo++; dealDamage(hitDamage('good'), 'good'); if (B.fall || B.over) return; }
+  }
+  // 木の反撃
+  if (T.atk) {
+    if (B.warn > 0) {
+      B.warn -= dt;
+      if (B.warn <= 0) {
+        if (!B.dodged) {
+          const dmg = T.atk * (1 - ARMORS[S.armor].def) * (S.skills.k3 ? .7 : 1);
+          B.php -= dmg; B.combo = 0; B.shake = 10; snd('big');
+          B.texts.push({ x: 250, y: 170, s: '-' + Math.round(dmg), c: '#ff6b6b', size: 24, life: 1 });
+          if (B.php <= 0) { B.php = 0; B.why = '枝に打ち倒された'; endBattle(false); return; }
+        }
+        B.dodged = false;
+        B.atkT = rnd(T.atkEvery[0], T.atkEvery[1]);
+      }
+    } else {
+      B.atkT -= dt;
+      if (B.atkT <= 0) { B.warn = .95; B.dodged = false; snd('charge'); }
+    }
+  }
+  if (B.t >= B.limit) { B.why = '日が暮れて、木は根を張り直した'; endBattle(false); }
+}
+
+/* ================= 描画（戦い） ================= */
+let cv = null, ctx = null;
+const CW = 640, CH = 400, GY = 330, TX = 420;
+function drawBattle(now) {
+  if (!ctx || !B) return;
+  const a = AREAS[B.area], T = B.T, t = now / 1000;
+  ctx.save();
+  if (B.shake > 0) ctx.translate(rnd(-B.shake, B.shake), rnd(-B.shake, B.shake) * .5);
+  const g = ctx.createLinearGradient(0, 0, 0, GY);
+  g.addColorStop(0, a.sky[0]); g.addColorStop(1, a.sky[1]);
+  ctx.fillStyle = g; ctx.fillRect(-20, -20, CW + 40, CH + 40);
+  // 遠景の木々
+  ctx.fillStyle = 'rgba(0,0,0,.18)';
+  for (let i = 0; i < 12; i++) { const x = (i * 61 + 13) % CW, h = 60 + (i * 37) % 70; ctx.beginPath(); ctx.moveTo(x - 22, GY); ctx.lineTo(x, GY - h); ctx.lineTo(x + 22, GY); ctx.fill(); }
+  ctx.fillStyle = a.ground; ctx.fillRect(-20, GY, CW + 40, CH - GY + 20);
+  // 霧
+  if (T.fog) { ctx.fillStyle = `rgba(230,236,232,${.25 + .1 * Math.sin(t)})`; ctx.fillRect(0, 0, CW, CH); }
+  drawTree(T, t);
+  drawCutter(t);
+  // 花びら
+  if (T.petals) {
+    ctx.fillStyle = 'rgba(255,190,215,.85)';
+    for (let i = 0; i < 26; i++) { const x = (i * 97 + t * 40 * (1 + i % 3)) % (CW + 40) - 20, y = (i * 53 + t * 60) % CH; ctx.beginPath(); ctx.ellipse(x, y, 4, 2.4, t + i, 0, Math.PI * 2); ctx.fill(); }
+  }
+  for (const p of B.parts) { ctx.fillStyle = p.c; ctx.globalAlpha = Math.min(1, p.life * 2); ctx.fillRect(p.x, p.y, p.s, p.s); }
+  ctx.globalAlpha = 1;
+  // 反撃の予兆
+  if (B.warn > 0) {
+    ctx.fillStyle = `rgba(217,72,59,${.25 + .2 * Math.sin(t * 30)})`; ctx.fillRect(0, 0, CW, CH);
+    txt('！ 枝が来る ─ 避けろ', CW / 2, 60, 26, '#fff', '#7a1a12');
+  }
+  ctx.textAlign = 'center';
+  for (const x of B.texts) { ctx.globalAlpha = Math.min(1, x.life * 2); txt(x.s, x.x, x.y, x.size, x.c, 'rgba(0,0,0,.7)'); }
+  ctx.globalAlpha = 1;
+  if (B.combo >= 3) txt(B.combo + ' 連', 70, 50, 26, '#ffd76a', 'rgba(0,0,0,.6)');
+  if (B.banner) { ctx.globalAlpha = Math.min(1, B.banner.life * 2); ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(0, CH / 2 - 44, CW, 76); txt(B.banner.s, CW / 2, CH / 2 + 8, 34, B.banner.c, '#000'); ctx.globalAlpha = 1; }
+  if (B.flash > 0) { ctx.fillStyle = `rgba(255,240,200,${B.flash * .8})`; ctx.fillRect(0, 0, CW, CH); }
+  ctx.restore();
+}
+function txt(s, x, y, size, c, stroke) {
+  ctx.font = `${size}px "Dela Gothic One","Hiragino Kaku Gothic StdN",sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  if (stroke) { ctx.lineWidth = 5; ctx.strokeStyle = stroke; ctx.strokeText(s, x, y); }
+  ctx.fillStyle = c; ctx.fillText(s, x, y);
+}
+function drawTree(T, t) {
+  const k = T.big || 1, tw = (T.shape === 'bamboo' ? 26 : 44) * k, th = T.shape === 'muzan' ? 190 : k > 1.2 ? 225 : 250;
+  const hpR = Math.max(0, B.hp / B.max);
+  ctx.save();
+  ctx.translate(TX, GY);
+  if (B.fall) { const f = Math.min(1, B.fall / 1.1); ctx.rotate(f * f * 1.45); }
+  const sway = Math.sin(t * 1.3) * .02 + (B.warn > 0 ? Math.sin(t * 40) * .03 : 0);
+  ctx.rotate(sway);
+  // 幹
+  const bark = T.shape === 'muzan' ? '#e8e0da' : T.metal ? '#6d7470' : T.shape === 'sakura' ? '#4a3438' : T.shape === 'bamboo' ? '#8fbf62' : '#6b4a2e';
+  if (T.shape === 'bamboo') {
+    for (const dx of [-tw * 1.2, 0, tw * 1.2]) {
+      ctx.fillStyle = bark; ctx.fillRect(dx - tw / 2, -th - 40, tw, th + 40);
+      ctx.fillStyle = 'rgba(0,0,0,.18)'; for (let y = -30; y > -th - 40; y -= 46) ctx.fillRect(dx - tw / 2, y, tw, 4);
+    }
+  } else {
+    ctx.fillStyle = bark;
+    ctx.beginPath(); ctx.moveTo(-tw / 2 - 8, 0); ctx.lineTo(-tw / 2, -th); ctx.lineTo(tw / 2, -th); ctx.lineTo(tw / 2 + 8, 0); ctx.fill();
+    ctx.fillStyle = 'rgba(0,0,0,.15)'; for (let i = 0; i < 5; i++) ctx.fillRect(-tw / 2 + 6 + i * tw / 5, -th, 3, th);
+  }
+  // 切り口（減った分だけ深くなる）
+  const depth = (1 - hpR) * tw * .95;
+  if (depth > 1) {
+    ctx.fillStyle = '#e9c48f';
+    ctx.beginPath(); ctx.moveTo(-tw / 2 - 6, -46); ctx.lineTo(-tw / 2 - 6 + depth, -32); ctx.lineTo(-tw / 2 - 6, -18); ctx.fill();
+    ctx.strokeStyle = '#a77b44'; ctx.lineWidth = 1.5; ctx.stroke();
+  }
+  // 枝葉
+  ctx.translate(0, -th);
+  const c = T.col;
+  if (T.shape === 'cone') {
+    ctx.fillStyle = c;
+    for (let i = 0; i < 4; i++) { const w = (70 + i * 26) * k, y = i * 46 * k; ctx.beginPath(); ctx.moveTo(0, y - 70 * k); ctx.lineTo(-w, y + 30 * k); ctx.lineTo(w, y + 30 * k); ctx.fill(); }
+  } else if (T.shape === 'bamboo') {
+    ctx.fillStyle = c;
+    for (let i = 0; i < 9; i++) { ctx.save(); ctx.translate((i - 4) * 18, -40 + (i % 3) * 20); ctx.rotate((i - 4) * .3); ctx.beginPath(); ctx.ellipse(0, 0, 36, 8, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }
+  } else if (T.shape === 'pine') {
+    ctx.fillStyle = c;
+    for (const [x, y, w] of [[-60, 10, 70], [50, -20, 80], [-20, -60, 70], [70, 40, 50]]) { ctx.beginPath(); ctx.ellipse(x, y, w, 20, 0, 0, Math.PI * 2); ctx.fill(); }
+  } else if (T.shape === 'round' || T.shape === 'vine') {
+    ctx.fillStyle = c;
+    for (const [x, y, r] of [[-50, 0, 60], [40, -10, 64], [0, -60, 64], [-10, 30, 50], [60, 40, 46]]) { ctx.beginPath(); ctx.arc(x * k, y * k, r * k, 0, Math.PI * 2); ctx.fill(); }
+    if (T.shape === 'vine') { ctx.strokeStyle = '#2a4a1c'; ctx.lineWidth = 5; for (let i = 0; i < 6; i++) { ctx.beginPath(); ctx.moveTo((i - 3) * 30, 30); ctx.quadraticCurveTo((i - 3) * 40 + Math.sin(t * 2 + i) * 20, 140, (i - 3) * 30, 240); ctx.stroke(); } }
+  } else if (T.shape === 'sakura') {
+    for (const [x, y, r] of [[-60, 0, 62], [50, -10, 66], [0, -60, 66], [-20, 34, 52], [70, 40, 48]]) { ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x * k, y * k, r * k, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.beginPath(); ctx.arc(x * k - 14, y * k - 14, r * k * .5, 0, Math.PI * 2); ctx.fill(); }
+  } else if (T.shape === 'evil') {
+    ctx.fillStyle = c;
+    for (const [x, y, r] of [[-60, 10, 58], [50, -10, 62], [0, -56, 60], [10, 34, 52]]) { ctx.beginPath(); ctx.arc(x * k, y * k, r * k, 0, Math.PI * 2); ctx.fill(); }
+    ctx.strokeStyle = '#2a1c30'; ctx.lineWidth = 9; ctx.lineCap = 'round';
+    const arm = B.warn > 0 ? -1.2 : Math.sin(t * 2) * .2;
+    ctx.beginPath(); ctx.moveTo(-20, 90); ctx.quadraticCurveTo(-110, 60 + arm * 60, -150, 20 + arm * 90); ctx.stroke();
+  } else if (T.shape === 'muzan') {
+    // 帽子のような黒い樹冠と、白い幹に赤い目
+    ctx.fillStyle = '#121012';
+    ctx.beginPath(); ctx.ellipse(0, 40, 150, 26, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillRect(-80, -70, 160, 112);
+    ctx.fillStyle = '#5a1020'; ctx.fillRect(-80, 14, 160, 14);
+    ctx.strokeStyle = '#121012'; ctx.lineWidth = 7;
+    for (let i = 0; i < 7; i++) { ctx.beginPath(); ctx.moveTo((i - 3) * 30, 60); ctx.quadraticCurveTo((i - 3) * 50 + Math.sin(t * 1.6 + i) * 30, 170, (i - 3) * 60, 230 + Math.sin(t + i) * 10); ctx.stroke(); }
+  }
+  ctx.restore();
+  // 顔
+  if (T.face && !B.fall) {
+    const fy = GY - th * .55, glow = T.shape === 'muzan' ? '#ff2b4a' : B.warn > 0 ? '#ff5a3a' : '#ffd14a';
+    ctx.fillStyle = glow; ctx.shadowColor = glow; ctx.shadowBlur = 12;
+    for (const s of [-1, 1]) { ctx.beginPath(); ctx.ellipse(TX + s * tw * .22, fy, 5 * (T.big || 1), 3 * (T.big || 1), s * .3, 0, Math.PI * 2); ctx.fill(); }
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = '#1a0f0a'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(TX, fy + 22, 10, .2 * Math.PI, .8 * Math.PI, true); ctx.stroke();
+  }
+}
+function drawCutter(t) {
+  const x = 250, y = GY;
+  ctx.save(); ctx.translate(x, y);
+  const breath = Math.sin(t * 3) * 2;
+  // 脚
+  ctx.strokeStyle = '#2b2b2b'; ctx.lineWidth = 9; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(-8, -50); ctx.lineTo(-16, 0); ctx.moveTo(8, -50); ctx.lineTo(18, 0); ctx.stroke();
+  // 羽織（市松）
+  const hw = 46, hh = 64, top = -112 + breath;
+  ctx.save(); ctx.beginPath(); ctx.rect(-hw / 2, top, hw, hh); ctx.clip();
+  const c1 = S.armor === 2 ? '#d6c6e8' : '#2f7a4a', c2 = '#121212';
+  for (let i = 0; i < 6; i++) for (let j = 0; j < 8; j++) { ctx.fillStyle = (i + j) % 2 ? c1 : c2; ctx.fillRect(-hw / 2 + i * 8, top + j * 8, 8, 8); }
+  ctx.restore();
+  // 頭
+  ctx.fillStyle = '#f0c9a0'; ctx.beginPath(); ctx.arc(0, top - 16, 15, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#5a1e14'; ctx.beginPath(); ctx.arc(0, top - 20, 15, Math.PI, 2 * Math.PI); ctx.fill();
+  ctx.fillStyle = '#c8402e'; ctx.fillRect(-15, top - 22, 30, 4);   // 鉢巻
+  // 斧
+  const k = B.swingAnim > 0 ? 1 - B.swingAnim / .18 : 0;
+  const ang = B.swingAnim > 0 ? -2.0 + k * 2.6 : -2.0 + Math.sin(t * 2) * .05;
+  ctx.translate(14, top + 20); ctx.rotate(ang);
+  ctx.strokeStyle = '#8a5a2e'; ctx.lineWidth = 7; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -86); ctx.stroke();
+  const ax = AXES[S.axe];
+  ctx.fillStyle = ax.sun ? '#ff8a3a' : S.axe >= 3 ? '#cfd6dc' : S.axe >= 1 ? '#aab2b8' : '#8a6f5a';
+  if (ax.sun) { ctx.shadowColor = '#ffb85a'; ctx.shadowBlur = 16; }
+  ctx.beginPath(); ctx.moveTo(0, -86); ctx.lineTo(30, -98); ctx.quadraticCurveTo(40, -76, 30, -56); ctx.lineTo(0, -66); ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.restore();
+  // 呼吸の気配
+  if (B.ignore > 0 || B.sure > 0) { ctx.strokeStyle = `rgba(120,200,255,${.4 + .2 * Math.sin(t * 8)})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(x, y - 70, 50, 80, 0, 0, Math.PI * 2); ctx.stroke(); }
+}
+
+/* ================= 描画（DOM） ================= */
+const app = document.getElementById('app'), modalRoot = document.getElementById('modal-root');
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function toast(m) { const d = document.createElement('div'); d.className = 'toast'; d.textContent = m; document.body.appendChild(d); setTimeout(() => d.remove(), 1800); }
+
+function vTitle() {
+  const has = !!load();
+  return `<section class="title">
+<p class="sub">若手木こり 伐採録</p>
+<div class="logo">木<span>滅</span>の斧</div>
+<p>若手の木こり・斧次郎。硬い木、速い木、襲ってくる木を切り倒し、銭と経験を積んで斧と呼吸と技を磨く。目指すは無限樹海の奥、すべての木の始祖 <b>木舞辻 散々</b>。</p>
+<div class="row">${has ? '<button class="btn main" data-a="continue">続きから</button><button class="btn" data-a="newgame">はじめから</button>' : '<button class="btn main" data-a="newgame">修行を始める</button>'}</div>
+</section>`;
+}
+function vHero() {
+  const need = expNeed(S.lv);
+  return `<section class="hero">
+<canvas id="face" width="128" height="128" aria-hidden="true"></canvas>
+<div class="nm">斧次郎<small>Lv ${S.lv}${S.cleared ? '・散々討伐済' : ''}</small></div>
+<div class="st"><span class="g">銭 <b>${S.gold.toLocaleString()}</b>両</span><span>腕力 <b>${Math.round(str())}</b></span><span>体力 <b>${maxHp()}</b></span><span>修行点 <b>${S.sp}</b></span></div>
+<div><div class="xp"><i style="width:${(S.exp / need * 100).toFixed(1)}%"></i></div><div class="small muted" style="margin-top:3px">次のLvまで ${need - S.exp}</div></div>
+</section>`;
+}
+function vTabs() {
+  const canLearn = SKILLS.some(s => !S.skills[s.id] && S.sp >= s.sp && S.lv >= s.lv && (!s.req || S.boss[s.req]));
+  const canBuy = [AXES[S.axe + 1], ARMORS[S.armor + 1], GRIPS[S.grip + 1]].some(x => x && S.gold >= x.cost && (!x.req || S.boss[x.req]));
+  const tabs = [['forest', '森へ', false], ['smith', '鍛冶屋', canBuy], ['dojo', '修行', canLearn], ['log', '記録', false]];
+  return `<nav class="tabs" role="tablist">${tabs.map(([k, l, dot]) => `<button role="tab" aria-selected="${UI.tab === k}" data-a="tab:${k}">${l}${dot ? '<span class="dot" aria-label="新しくできることがある"></span>' : ''}</button>`).join('')}</nav>`;
+}
+function vForest() {
+  return `<div class="cards">${AREAS.map((a, i) => {
+    const open = areaOpen(i), n = S.felled[a.id] || 0, bossOk = n >= a.need, down = !!S.boss[a.boss], B5 = TREES[a.boss];
+    if (!open) return `<div class="card locked"><h3>${a.n}<small>推奨Lv ${a.rec}</small></h3><p>前の森の主を倒すと道が開ける。</p></div>`;
+    return `<div class="card"><h3>${a.n}<small>推奨Lv ${a.rec}</small></h3><p>${esc(a.desc)}<br>出る木：${a.trees.map(t => TREES[t].n).join('・')}</p>
+<div class="prog" aria-label="主への道 ${Math.min(n, a.need)}/${a.need}">${Array.from({ length: a.need }, (_, k) => `<i class="${k < n ? 'on' : ''}"></i>`).join('')}</div>
+<div class="row"><button class="btn main" data-a="fell:${i}">木を切りに行く</button><span class="grow"></span>
+${down && !B5.final ? '<span class="own">主を討伐済</span>' : ''}
+${bossOk && (!down || B5.final) ? `<button class="btn red" data-a="boss:${i}">${down ? '再戦' : '主に挑む'}：${B5.n}</button>` : (!down ? `<span class="small muted">あと${a.need - n}本で主が現れる</span>` : '')}
+</div></div>`;
+  }).join('')}</div>`;
+}
+function shopRow(label, list, cur, key, field, fmt) {
+  const nx = list[cur + 1];
+  const locked = nx && nx.req && !S.boss[nx.req];
+  return `<div class="card"><h3>${label}<small>いま：${list[cur].n}（${fmt(list[cur])}）</small></h3>
+${nx ? `<p>次：<b>${nx.n}</b>（${fmt(nx)}）${locked ? '<br>夜桜を倒した者にしか打てない、陽の光を宿す斧。' : ''}</p><div class="row"><span class="grow"></span><button class="btn gold" data-a="buy:${key}" ${S.gold >= nx.cost && !locked ? '' : 'disabled'}>${nx.cost.toLocaleString()}両で買う</button></div>` : '<p class="own">これ以上の品はない。</p>'}</div>`;
+}
+function vSmith() {
+  return `<div class="cards">
+${shopRow('斧', AXES, S.axe, 'axe', 'atk', x => `攻撃×${x.atk}${x.sun ? '・陽光' : ''}`)}
+${shopRow('羽織', ARMORS, S.armor, 'armor', 'def', x => `受ける傷−${Math.round(x.def * 100)}%`)}
+${shopRow('握り', GRIPS, S.grip, 'grip', 'sta', x => `一振りのスタミナ ${x.sta}`)}
+</div>`;
+}
+function vDojo() {
+  const kinds = { kokyu: '呼吸法', waza: '技', ougi: '奥義' };
+  return `<p class="small muted" style="margin:0 0 8px">修行点はレベルが上がるたびに1つ増える。いまの修行点：<b style="color:var(--gold)">${S.sp}</b></p><div class="cards">${SKILLS.map(s => {
+    const own = S.skills[s.id], lock = S.lv < s.lv || (s.req && !S.boss[s.req]);
+    return `<div class="card ${lock && !own ? 'locked' : ''}"><h3><span class="kind ${s.kind}">${kinds[s.kind]}</span>${s.n}<small>修行点${s.sp}・Lv${s.lv}〜${s.req ? '・夜桜討伐後' : ''}</small></h3><p>${s.d}${s.cd ? `（再使用まで${s.cd}秒）` : ''}</p>
+<div class="row"><span class="grow"></span>${own ? '<span class="own">習得済み</span>' : `<button class="btn gold" data-a="learn:${s.id}" ${!lock && S.sp >= s.sp ? '' : 'disabled'}>習得する</button>`}</div></div>`;
+  }).join('')}</div>`;
+}
+function vLog() {
+  const st = S.stats;
+  return `<div class="card"><h3>伐採の記録</h3><p class="log">切り倒した木 ${st.felled}本<br>振った回数 ${st.swings}回（会心 ${st.perfects}回）<br>撤退 ${st.retreats}回</p></div>
+<div class="card" style="margin-top:8px"><h3>覚え書き</h3><p class="log">${S.log.slice(0, 10).map(esc).join('<br>')}</p></div>
+<div class="card" style="margin-top:8px"><h3>遊び方</h3><p class="log">帯の白い印が金色の部分に重なった瞬間に「斧を振る」と会心。緑の部分なら普通に当たる。赤く光ったら「避ける」。技と奥義は戦いの下のボタンから。<br>キーボード：スペース＝振る／↓＝避ける／1〜3＝技／4＝奥義</p></div>
+<div class="row" style="margin-top:12px"><span class="grow"></span><button class="btn" data-a="wipe">記録を消して最初から</button></div>`;
+}
+function vVillage() {
+  const body = { forest: vForest, smith: vSmith, dojo: vDojo, log: vLog }[UI.tab]();
+  return vHero() + vTabs() + body;
+}
+function vBattle() {
+  const T = B.T;
+  const waza = SKILLS.filter(s => s.kind === 'waza');
+  const ougi = S.skills.o2 ? SK.o2 : S.skills.o1 ? SK.o1 : null;
+  return `<section class="battle">
+<div class="bhead"><span class="nm">${T.n}</span><span class="small muted">${AREAS[B.area].n}</span><span class="tm" id="tm"></span></div>
+<div class="bars">
+<span>木</span><div class="bar tree"><i id="b-tree"></i></div><span class="v" id="v-tree"></span>
+<span>体力</span><div class="bar hp"><i id="b-hp"></i></div><span class="v" id="v-hp"></span>
+<span>息</span><div class="bar st"><i id="b-st"></i></div><span class="v" id="v-st"></span>
+<span>気</span><div class="bar ki"><i id="b-ki"></i></div><span class="v" id="v-ki"></span>
+</div>
+<canvas id="cv" width="1280" height="800" aria-label="${T.n}と斧次郎"></canvas>
+<div class="timing ${T.fog ? 'fog' : ''}" id="timing"><div class="good" id="z-good"></div><div class="perf" id="z-perf"></div><div class="mark" id="mark"></div></div>
+<div class="acts">
+<button class="swing" id="swing" data-a="swing">斧を振る</button>
+<button class="sk dodge" id="dodge" data-a="dodge">避ける<small>↓</small></button>
+${waza.map((s, i) => `<button class="sk" id="sk-${s.id}" data-a="skill:${s.id}" ${S.skills[s.id] ? '' : 'disabled'}>${S.skills[s.id] ? s.n.split(' ')[0] : '未修得'}<small>${S.skills[s.id] ? s.n.split(' ')[1] : '修行で覚える'}</small><span class="cd"></span></button>`).join('')}
+</div>
+<div class="acts" style="grid-template-columns:1fr auto">
+<button class="sk ougi" id="ougi" data-a="skill:${ougi ? ougi.id : ''}" ${ougi ? '' : 'disabled'}>${ougi ? ougi.n : '奥義（未修得）'}<small>気が満ちたら放てる</small></button>
+<button class="sk" data-a="retreat" style="padding:8px 14px">撤退</button>
+</div>
+<p class="keys">スペース：振る　↓：避ける　1〜3：技　4：奥義</p>
+</section>`;
+}
+function syncBattleUI() {
+  if (!B || UI.screen !== 'battle') return;
+  const $ = id => document.getElementById(id);
+  const set = (id, r) => { const e = $(id); if (e) e.style.width = (Math.max(0, Math.min(1, r)) * 100).toFixed(1) + '%'; };
+  set('b-tree', B.hp / B.max); set('b-hp', B.php / maxHp()); set('b-st', B.sta / maxSta()); set('b-ki', B.ki / 100);
+  const v = (id, s) => { const e = $(id); if (e && e.textContent !== s) e.textContent = s; };
+  v('v-tree', Math.max(0, Math.ceil(B.hp)).toLocaleString()); v('v-hp', Math.ceil(B.php) + ''); v('v-st', Math.floor(B.sta) + ''); v('v-ki', Math.floor(B.ki) + '%');
+  const left = Math.max(0, B.limit - B.t), tm = $('tm');
+  if (tm) { v('tm', Math.ceil(left) + '秒'); tm.classList.toggle('low', left < 10); }
+  const gz = $('z-good'), pz = $('z-perf'), mk = $('mark');
+  if (gz) { gz.style.left = ((B.c - B.goodW / 2) * 100) + '%'; gz.style.width = (B.goodW * 100) + '%'; }
+  if (pz) { const w = B.sure > 0 ? 1 : B.perfW; pz.style.left = ((B.sure > 0 ? 0 : B.c - w / 2) * 100) + '%'; pz.style.width = (w * 100) + '%'; }
+  if (mk) mk.style.left = (B.x * 100) + '%';
+  const sw = $('swing'); if (sw) sw.classList.toggle('tired', B.sta < GRIPS[S.grip].sta + (B.T.sticky ? 4 : 0));
+  const dg = $('dodge'); if (dg) dg.classList.toggle('warn', B.warn > 0);
+  for (const s of SKILLS.filter(s => s.kind === 'waza')) {
+    const e = $('sk-' + s.id); if (!e || !S.skills[s.id]) continue;
+    const cd = Math.max(0, B.cd[s.id] || 0);
+    e.querySelector('.cd').style.height = (cd / s.cd * 100) + '%';
+  }
+  const og = $('ougi'); if (og) og.classList.toggle('ready', B.ki >= 100);
+}
+function vModal() {
+  const m = UI.modal; if (!m) return '';
+  if (m.type === 'win') {
+    if (m.final) return `<div class="modal"><div class="sheet"><h2 class="win">木舞辻 散々、倒る</h2><p>陽の光を宿した斧が、千年の根を断ち切った。無限樹海に朝日が差し込む。</p><div class="gain"><span class="g">+${m.gold.toLocaleString()}両</span><span class="x">+${m.exp.toLocaleString()}経験</span></div><button class="btn gold" data-a="ending">見届ける</button></div></div>`;
+    return `<div class="modal"><div class="sheet"><h2 class="win">${m.boss ? '主を討ち取った' : '倒木'}</h2><p>${esc(m.name)}を切り倒した。</p><div class="gain"><span class="g">+${m.gold.toLocaleString()}両</span><span class="x">+${m.exp}経験</span></div>${m.lvup ? `<p class="lvup">Lv ${S.lv} に上がった（修行点 +${m.lvup}）</p>` : ''}<div class="row" style="justify-content:center"><button class="btn main" data-a="again">もう一本</button><button class="btn" data-a="village">村へ戻る</button></div></div></div>`;
+  }
+  if (m.type === 'lose') return `<div class="modal"><div class="sheet"><h2 class="lose">撤退</h2><p>${esc(m.why)}。鍛え直してまた来よう。</p><div class="row" style="justify-content:center"><button class="btn main" data-a="again">もう一度</button><button class="btn" data-a="village">村へ戻る</button></div></div></div>`;
+  if (m.type === 'confirm') return `<div class="modal"><div class="sheet"><h2>最初から？</h2><p>レベルも斧も技も、すべて消える。</p><div class="row" style="justify-content:center"><button class="btn red" data-a="doWipe">消して始める</button><button class="btn" data-a="close">やめる</button></div></div></div>`;
+  return '';
+}
+function vEnding() {
+  const mins = Math.max(1, Math.round((S.stats.clearAt - S.stats.start) / 60000));
+  return `<section class="ending"><h2>無限樹海に朝が来た</h2>
+<p>若手の木こりだった斧次郎は、木舞辻 散々を切り倒し、<br>森を人の手に取り戻した。</p>
+<div class="card" style="text-align:left"><p class="log">Lv ${S.lv}・切り倒した木 ${S.stats.felled}本<br>振った回数 ${S.stats.swings}回（会心 ${S.stats.perfects}回）<br>修行の日々 およそ${mins}分</p></div>
+<p class="small muted">この先も、無限樹海で散々との再戦や伐採を続けられる。</p>
+<div class="row" style="justify-content:center"><button class="btn main" data-a="village">村へ戻る</button></div></section>`;
+}
+function drawFace() {
+  const c = document.getElementById('face'); if (!c) return;
+  const x = c.getContext('2d'); x.clearRect(0, 0, 128, 128);
+  x.fillStyle = '#2a3024'; x.beginPath(); x.arc(64, 64, 62, 0, Math.PI * 2); x.fill();
+  x.save(); x.beginPath(); x.rect(24, 80, 80, 48); x.clip();
+  for (let i = 0; i < 10; i++) for (let j = 0; j < 6; j++) { x.fillStyle = (i + j) % 2 ? '#2f7a4a' : '#121212'; x.fillRect(24 + i * 8, 80 + j * 8, 8, 8); }
+  x.restore();
+  x.fillStyle = '#f0c9a0'; x.beginPath(); x.arc(64, 56, 26, 0, Math.PI * 2); x.fill();
+  x.fillStyle = '#5a1e14'; x.beginPath(); x.arc(64, 50, 27, Math.PI, 2 * Math.PI); x.fill();
+  x.fillStyle = '#c8402e'; x.fillRect(37, 44, 54, 6);
+  x.fillStyle = '#2a1a14'; x.fillRect(53, 58, 5, 5); x.fillRect(70, 58, 5, 5);
+}
+function render() {
+  if (UI.screen === 'title') app.innerHTML = vTitle();
+  else if (UI.screen === 'village') { app.innerHTML = vVillage(); drawFace(); }
+  else if (UI.screen === 'ending') app.innerHTML = vEnding();
+  else if (UI.screen === 'battle') {
+    app.innerHTML = vBattle();
+    cv = document.getElementById('cv'); ctx = cv.getContext('2d'); ctx.setTransform(2, 0, 0, 2, 0, 0);
+    syncBattleUI();
+  }
+  modalRoot.innerHTML = vModal();
+}
+
+/* ================= 操作 ================= */
+function act(a) {
+  const [k, x] = a.split(':');
+  if (k === 'newgame') { S = fresh(); save(); UI = { screen: 'village', tab: 'forest', modal: null }; snd('start'); render(); }
+  else if (k === 'continue') { S = load() || fresh(); UI = { screen: 'village', tab: 'forest', modal: null }; render(); }
+  else if (k === 'tab') { UI.tab = x; snd('click'); render(); }
+  else if (k === 'fell') { const a = AREAS[+x]; startBattle(a.trees[Math.floor(Math.random() * a.trees.length)], +x); }
+  else if (k === 'boss') startBattle(AREAS[+x].boss, +x);
+  else if (k === 'swing') swing();
+  else if (k === 'dodge') dodge();
+  else if (k === 'skill') { if (x) useSkill(x); }
+  else if (k === 'retreat') { if (B && !B.over) { B.why = '自ら退いた'; endBattle(false); } }
+  else if (k === 'again') { const id = B.id, ar = B.area; const a = AREAS[ar]; UI.modal = null; startBattle(TREES[id].boss ? id : a.trees[Math.floor(Math.random() * a.trees.length)], ar); }
+  else if (k === 'village') { B = null; UI = { screen: 'village', tab: 'forest', modal: null }; render(); }
+  else if (k === 'ending') { UI = { screen: 'ending', tab: 'forest', modal: null }; snd('evolve'); render(); }
+  else if (k === 'buy') {
+    const list = { axe: AXES, armor: ARMORS, grip: GRIPS }[x], nx = list[S[x] + 1];
+    if (nx && S.gold >= nx.cost && (!nx.req || S.boss[nx.req])) { S.gold -= nx.cost; S[x]++; S.log.unshift(`${nx.n}を手に入れた。`); save(); snd('coin'); toast(`${nx.n}を手に入れた`); render(); }
+  }
+  else if (k === 'learn') {
+    const s = SK[x];
+    if (s && !S.skills[x] && S.sp >= s.sp && S.lv >= s.lv && (!s.req || S.boss[s.req])) { S.sp -= s.sp; S.skills[x] = true; S.log.unshift(`${s.n}を会得した。`); save(); snd('evolve'); toast(`${s.n}を会得した`); render(); }
+  }
+  else if (k === 'wipe') { UI.modal = { type: 'confirm' }; render(); }
+  else if (k === 'doWipe') { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} S = fresh(); save(); UI = { screen: 'village', tab: 'forest', modal: null }; render(); }
+  else if (k === 'close') { UI.modal = null; render(); }
+}
+document.addEventListener('pointerdown', e => {
+  // 戦闘ボタンは押した瞬間に反応させる
+  const el = e.target.closest('[data-a]');
+  if (!el || el.disabled || UI.screen !== 'battle' || UI.modal) return;
+  const a = el.dataset.a;
+  if (a === 'swing' || a === 'dodge' || a.startsWith('skill:')) { e.preventDefault(); act(a); el.dataset.fired = '1'; }
+});
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-a]');
+  if (!el || el.disabled) return;
+  if (el.dataset.fired) { delete el.dataset.fired; return; }
+  act(el.dataset.a);
+});
+document.addEventListener('keydown', e => {
+  if (UI.screen !== 'battle' || UI.modal || e.repeat) return;
+  if (e.code === 'Space') { e.preventDefault(); swing(); }
+  else if (e.code === 'ArrowDown' || e.code === 'ShiftLeft') { e.preventDefault(); dodge(); }
+  else if (e.key === '1') useSkill('w1');
+  else if (e.key === '2') useSkill('w2');
+  else if (e.key === '3') useSkill('w3');
+  else if (e.key === '4') useSkill(S.skills.o2 ? 'o2' : 'o1');
+});
+
+/* ================= オート ================= */
+const AI = { next: 0, think: 0, bossFails: {}, endAt: 0 };
+function autoVillage() {
+  // 1. 買えるものを買う（斧 → 握り → 羽織）
+  for (const key of ['axe', 'grip', 'armor']) {
+    const list = { axe: AXES, armor: ARMORS, grip: GRIPS }[key], nx = list[S[key] + 1];
+    if (nx && S.gold >= nx.cost && (!nx.req || S.boss[nx.req])) { UI.tab = 'smith'; act('buy:' + key); return; }
+  }
+  // 2. 覚えられる技を覚える（奥義と呼吸を優先）
+  const order = ['o2', 'w1', 'k2', 'o1', 'k1', 'w2', 'k3', 'w3'];
+  for (const id of order) {
+    const s = SK[id];
+    if (!S.skills[id] && S.sp >= s.sp && S.lv >= s.lv && (!s.req || S.boss[s.req])) { UI.tab = 'dojo'; act('learn:' + id); return; }
+  }
+  // 3. 森へ。主に挑めるなら挑む
+  let ai = 0; for (let i = AREAS.length - 1; i >= 0; i--) if (areaOpen(i)) { ai = i; break; }
+  const a = AREAS[ai];
+  const n = S.felled[a.id] || 0, fails = AI.bossFails[a.boss] || 0;
+  UI.tab = 'forest';
+  if (n >= a.need && !S.boss[a.boss] && S.lv >= a.rec + fails * 2 && (!TREES[a.boss].final || AXES[S.axe].sun)) { act('boss:' + ai); return; }
+  // 推奨Lvに届かないうちは一つ前の森で稼ぐ
+  if (S.lv < a.rec - 1 && ai > 0) { act('fell:' + (ai - 1)); return; }
+  act('fell:' + ai);
+}
+function autoBattle(dt) {
+  if (B.over || B.fall) return;
+  if (B.warn > 0 && !B.dodged && B.warn < .7 && B.dodgeT <= 0) { if (B.aiDodge === undefined) B.aiDodge = Math.random() < .85; if (B.aiDodge) { dodge(); return; } }
+  if (B.warn <= 0) B.aiDodge = undefined;
+  const ougi = S.skills.o2 ? 'o2' : S.skills.o1 ? 'o1' : null;
+  if (ougi && B.ki >= 100 && B.warn <= 0) { useSkill(ougi); return; }
+  for (const id of ['w2', 'w1', 'w3']) {
+    if (S.skills[id] && (B.cd[id] || 0) <= 0 && B.warn <= 0 && !(id === 'w2' && B.T.h < .2)) { useSkill(id); return; }
+  }
+  const cost = GRIPS[S.grip].sta + (B.T.sticky ? 4 : 0);
+  if (B.sta < cost) return;
+  const z = zoneOf();
+  AI.think -= dt;
+  // 人間らしく：会心を狙い、たまに外す。息が余っていれば普通の当たりでも振る
+  if (z === 'perfect' && AI.think <= 0) { AI.think = .08; if (Math.random() < .7) swing(); else AI.think = .25; }
+  else if (z === 'good' && B.sta > maxSta() * .85 && Math.random() < .3) swing();
+}
+function autoTick(dt) {
+  if (!window.tgAuto) return;
+  if (UI.screen === 'battle' && B && !UI.modal) { autoBattle(dt); return; }
+  AI.next -= dt;
+  if (AI.next > 0) return;
+  AI.next = .7;
+  if (UI.screen === 'title') { act(load() ? 'continue' : 'newgame'); return; }
+  if (UI.screen === 'ending') { act('village'); return; }
+  if (UI.modal) {
+    if (UI.modal.type === 'win' && UI.modal.final) { act('ending'); AI.next = 4; return; }
+    if (UI.modal.type === 'lose' && B && TREES[B.id].boss) AI.bossFails[B.id] = (AI.bossFails[B.id] || 0) + 1;
+    if (UI.modal.type === 'win' && B && TREES[B.id].boss) AI.bossFails[B.id] = 0;
+    act('village'); return;
+  }
+  if (UI.screen === 'village') autoVillage();
+}
+
+/* ================= ループ ================= */
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  autoTick(dt);
+  update(dt);
+  if (UI.screen === 'battle') { drawBattle(now); syncBattleUI(); }
+  requestAnimationFrame(frame);
+}
+render();
+requestAnimationFrame(frame);
+</script>
+<a class="tg-back" href="index.html" aria-label="ゲーム一覧にもどる">← 一覧</a>
+<style>
+.tg-back{position:fixed;z-index:2147483647;top:calc(8px + env(safe-area-inset-top,0px));left:calc(8px + env(safe-area-inset-left,0px));
+  display:inline-block;margin:0;padding:6px 12px;border-radius:999px;background:rgba(12,14,24,.72);color:#fff;
+  font:700 13px/1.2 "Hiragino Sans","Yu Gothic",sans-serif;letter-spacing:0;text-decoration:none;border:1px solid rgba(255,255,255,.35);
+  -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);-webkit-tap-highlight-color:transparent}
+.tg-back:hover{background:rgba(12,14,24,.9)}
+.tg-back:focus-visible{outline:2px solid #fff;outline-offset:2px}
+</style>
+<button class="tg-auto" type="button" aria-pressed="false" aria-label="オートプレイ">AUTO</button>
+<style>
+.tg-auto{position:fixed;z-index:2147483647;top:calc(8px + env(safe-area-inset-top,0px));left:calc(88px + env(safe-area-inset-left,0px));
+  display:inline-block;margin:0;padding:6px 12px;border-radius:999px;background:rgba(12,14,24,.72);color:#fff;cursor:pointer;
+  font:700 13px/1.2 "Hiragino Sans","Yu Gothic",sans-serif;letter-spacing:.06em;border:1px solid rgba(255,255,255,.35);box-shadow:none;
+  -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);-webkit-tap-highlight-color:transparent;transform:none}
+.tg-auto.tg-inline{position:static;flex:none}
+.tg-auto[aria-pressed="true"]{background:#f5c518;color:#1a1400;border-color:#f5c518;animation:tg-auto-pulse 1.2s ease-in-out infinite alternate}
+.tg-auto:focus-visible{outline:2px solid #fff;outline-offset:2px}
+@keyframes tg-auto-pulse{to{box-shadow:0 0 12px rgba(245,197,24,.8)}}
+@media (prefers-reduced-motion:reduce){.tg-auto[aria-pressed="true"]{animation:none}}
+</style>
+<script>
+(function(){
+  window.tgAuto = false;
+  var b = document.querySelector('.tg-auto');
+  if (!b) return;
+  var stop = function(e){ e.stopPropagation(); };
+  ['pointerdown','pointerup','mousedown','touchstart','keydown'].forEach(function(t){ b.addEventListener(t, stop); });
+  b.addEventListener('click', function(e){
+    e.stopPropagation();
+    window.tgAuto = !window.tgAuto;
+    b.setAttribute('aria-pressed', String(window.tgAuto));
+    b.textContent = window.tgAuto ? 'AUTO ON' : 'AUTO';
+    b.blur();
+    window.dispatchEvent(new Event('tgauto'));
+  });
+})();
+</script>
+<button class="tg-snd" type="button" aria-pressed="true" aria-label="音のオンオフ">音：ON</button>
+<style>
+.tg-snd{position:fixed;z-index:2147483647;top:calc(8px + env(safe-area-inset-top,0px));left:calc(186px + env(safe-area-inset-left,0px));
+  display:inline-block;margin:0;padding:6px 12px;border-radius:999px;background:rgba(12,14,24,.72);color:#fff;cursor:pointer;
+  font:700 13px/1.2 "Hiragino Sans","Yu Gothic",sans-serif;letter-spacing:0;border:1px solid rgba(255,255,255,.35);box-shadow:none;
+  -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);-webkit-tap-highlight-color:transparent;transform:none}
+.tg-snd[aria-pressed="false"]{color:rgba(255,255,255,.6)}
+.tg-snd:focus-visible{outline:2px solid #fff;outline-offset:2px}
+</style>
+<script>
+/* ---------- 共通の効果音（Web Audioで合成） ---------- */
+window.tgSound = (function(){
+  var AC = null, noiseBuf = null, on = true, last = {};
+  try { on = localStorage.getItem('tg_sound') !== '0'; } catch (e) {}
+  function ctx(){
+    if (!AC) {
+      try {
+        AC = new (window.AudioContext || window.webkitAudioContext)();
+        noiseBuf = AC.createBuffer(1, AC.sampleRate, AC.sampleRate);
+        var d = noiseBuf.getChannelData(0); for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      } catch (e) { AC = null; }
+    }
+    if (AC && AC.state === 'suspended') AC.resume();
+    return AC;
+  }
+  function tone(f, dur, type, vol, slide, delay){
+    var t = AC.currentTime + (delay || 0), o = AC.createOscillator(), g = AC.createGain();
+    o.type = type || 'triangle'; o.frequency.setValueAtTime(f, t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, f * slide), t + dur);
+    g.gain.setValueAtTime(vol || .08, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + dur + .03);
+  }
+  function noise(dur, vol, freq, delay, kind){
+    var t = AC.currentTime + (delay || 0), s = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain();
+    s.buffer = noiseBuf; f.type = kind || 'bandpass'; f.frequency.value = freq || 1000; f.Q.value = 1;
+    g.gain.setValueAtTime(vol || .1, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    s.connect(f); f.connect(g); g.connect(AC.destination); s.start(t); s.stop(t + dur + .03);
+  }
+  function arp(fs, step, type, vol, dur){ fs.forEach(function(f, i){ tone(f, dur || .22, type, vol, 0, i * step); }); }
+  var LIB = {
+    click:  function(){ tone(900, .05, 'square', .03); },
+    pick:   function(){ tone(660, .06, 'triangle', .07); tone(990, .08, 'triangle', .06, 0, .05); },
+    unpick: function(){ tone(520, .08, 'triangle', .06, .7); },
+    tick:   function(){ tone(1500 + Math.random() * 300, .025, 'square', .025); },
+    land:   function(){ tone(784, .09, 'square', .05); tone(1175, .18, 'square', .05, 0, .07); },
+    start:  function(){ arp([392, 523, 659], .09, 'square', .05, .18); },
+    shot:   function(){ tone(1200, .07, 'square', .025, .45); },
+    shotFoe:function(){ tone(700, .08, 'square', .02, .5); },
+    slash:  function(){ noise(.12, .12, 2600, 0, 'highpass'); tone(500, .1, 'sawtooth', .03, .5); },
+    dash:   function(){ noise(.2, .1, 800, 0, 'bandpass'); tone(200, .2, 'sine', .06, 2.2); },
+    charge: function(){ tone(200, .7, 'sawtooth', .05, 4); },
+    beam:   function(){ noise(.5, .2, 500, 0, 'lowpass'); tone(90, .5, 'sawtooth', .08, .5); },
+    hit:    function(){ noise(.09, .14, 900, 0, 'lowpass'); tone(160, .08, 'square', .04, .6); },
+    big:    function(){ noise(.3, .22, 400, 0, 'lowpass'); tone(110, .3, 'sawtooth', .07, .5); },
+    heal:   function(){ arp([784, 988, 1319], .06, 'sine', .06, .2); },
+    miss:   function(){ noise(.15, .06, 3000, 0, 'highpass'); },
+    good:   function(){ arp([659, 784, 1047], .08, 'triangle', .07, .25); },
+    bad:    function(){ tone(330, .25, 'triangle', .07, .75); tone(247, .35, 'triangle', .06, .8, .18); },
+    win:    function(){ arp([523, 659, 784, 1047, 1319], .1, 'square', .045, .28); },
+    lose:   function(){ arp([392, 330, 262, 196], .22, 'triangle', .08, .4); },
+    splash: function(){ noise(.35, .18, 700, 0, 'lowpass'); noise(.2, .08, 2400, .05, 'bandpass'); },
+    bubble: function(){ tone(250 + Math.random() * 250, .07, 'sine', .04, 1.8); },
+    slurp:  function(){ noise(.5, .12, 1400, 0, 'bandpass'); noise(.3, .08, 900, .55, 'bandpass'); },
+    coin:   function(){ tone(988, .06, 'square', .04); tone(1319, .14, 'square', .04, 0, .06); },
+    summon: function(){ tone(130, 1, 'sawtooth', .05, 3); arp([523, 784, 1047, 1568], .12, 'sine', .07, .5); },
+    evolve: function(){ arp([523, 659, 784, 1047, 784, 1047, 1319, 1568], .07, 'triangle', .06, .3); },
+    fuse:   function(){ tone(110, 1.1, 'sawtooth', .06, 2.5); noise(.9, .1, 300, .2, 'lowpass'); arp([659, 880, 1319], .12, 'sine', .07, .4); }
+  };
+  function play(name){
+    if (!on || !LIB[name]) return;
+    var now = performance.now();
+    if (last[name] && now - last[name] < 55) return;
+    last[name] = now;
+    if (!ctx()) return;
+    try { LIB[name](); } catch (e) {}
+  }
+  var btn = document.querySelector('.tg-snd');
+  function sync(){ if (btn) { btn.textContent = on ? '音：ON' : '音：OFF'; btn.setAttribute('aria-pressed', String(on)); } }
+  if (btn) {
+    ['pointerdown','pointerup','mousedown','touchstart','keydown'].forEach(function(t){ btn.addEventListener(t, function(e){ e.stopPropagation(); }); });
+    btn.addEventListener('click', function(e){
+      e.stopPropagation(); on = !on; sync(); btn.blur();
+      try { localStorage.setItem('tg_sound', on ? '1' : '0'); } catch (err) {}
+      if (on) { ctx(); play('pick'); }
+    });
+  }
+  sync();
+  // ブラウザは最初の操作まで音を出せないので、最初のタップで準備する
+  window.addEventListener('pointerdown', function(){ if (on) ctx(); }, { once: true, capture: true });
+  return { play: play };
+})();
+</script>
+<style>
+.tg-bar{position:fixed;z-index:2147483647;top:calc(8px + env(safe-area-inset-top,0px));left:calc(8px + env(safe-area-inset-left,0px));display:flex;gap:8px;align-items:center;pointer-events:none}
+.tg-bar>*{position:static!important;pointer-events:auto}
+</style>
+<script>
+(function(){
+  var bar=document.createElement('div'); bar.className='tg-bar'; document.body.appendChild(bar);
+  document.querySelectorAll('.tg-back:not(.tg-inline),.tg-auto:not(.tg-inline),.tg-snd').forEach(function(el){ bar.appendChild(el); });
+})();
+</script>
+</body>
+</html>
