@@ -26,10 +26,12 @@
   }
   header p.presents { margin: 0; color: #f2f2f2; font-size: 14px; letter-spacing: 6px; }
   header p { color: #9aa0aa; margin-top: 8px; font-size: 14px; }
+  main { max-width: 640px; margin: 0 auto; padding: 4px 12px 12px; }
+  .grp { margin-top: 14px; }
+  .gh { display: flex; align-items: center; gap: 6px; margin: 0 2px 8px; font-size: 15px; color: #f2f2f2; letter-spacing: 1px; }
+  .gh small { margin-left: auto; font-size: 11px; color: #8a909c; font-weight: normal; letter-spacing: 0; }
+  .gh small::after { content: '作品'; }
   .list {
-    max-width: 640px;
-    margin: 0 auto;
-    padding: 12px;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px;
@@ -70,89 +72,88 @@
     <p>遊びたいゲームを選んでね</p>
   </header>
 
-  <main class="list">
+  <main>
+  <section class="grp">
+    <h3 class="gh"><span>⚡</span>アクション<small>5</small></h3>
+    <div class="list">
     <a class="card play" href="hyperman.html">
-      <span class="genre">アクション</span>
       <h2>三色！ハイパーマン</h2>
       <p>赤・青・黄にカラーチェンジして怪獣や宇宙人と戦え。</p>
     </a>
-
     <a class="card play" href="hyperman2.html">
-      <span class="genre">アクション</span>
       <h2>三色！ハイパーマン2</h2>
       <p>全5ステージに強化。光線技、後ろ入力のガード、色ごとに違う大ジャンプで戦え。</p>
     </a>
-
     <a class="card play" href="zaemon.html">
-      <span class="genre">アクション</span>
       <h2>てやんでえ！ザエモン</h2>
       <p>小判を投げて千両箱をいただく、歌舞伎者の泥棒アクション。</p>
     </a>
-
-    <a class="card play" href="armor.html">
-      <span class="genre">ロボバトル</span>
-      <h2>アーマーを、ほら</h2>
-      <p>ルーレットでパーツを引いてロボを組み立て、全3ステージで戦う。</p>
-    </a>
-
-    <a class="card play" href="ramen.html">
-      <span class="genre">料理・経営</span>
-      <h2>俺のラーメン道</h2>
-      <p>夜の屋台に来る五人の客に一杯ずつ。注文を聞いて、スープ・麺・茹で加減・具を決めろ。</p>
-    </a>
-
-    <a class="card play" href="ikai.html">
-      <span class="genre">RPG</span>
-      <h2>異界契約録</h2>
-      <p>妖怪・悪魔・幻獣と契約し、育て、戦わせ、合体させるRPG。</p>
-    </a>
-
-    <a class="card play" href="okaeri.html">
-      <span class="genre">ホラー・ゲームブック</span>
-      <h2>おかえりさま</h2>
-      <p>名前を呼ばれても振り返るな。サイコロで進むホラーゲームブック。</p>
-    </a>
-
-    <a class="card play" href="kingyo.html">
-      <span class="genre">縁日アクション</span>
-      <h2>ぽいっと金魚すくい</h2>
-      <p>紙が破れる前にすくい上げろ。90秒・ポイ3本の縁日アクション。</p>
-    </a>
-
-    <a class="card play" href="gahaku.html">
-      <span class="genre">お絵描き</span>
-      <h2>うろおぼえ画伯</h2>
-      <p>一瞬だけ見えたお手本を、記憶だけで描き写す。全5問のお絵描き採点。</p>
-    </a>
-
-    <a class="card play" href="akindo.html">
-      <span class="genre">商売シミュレーション</span>
-      <h2>あきんど道中記</h2>
-      <p>安く買って高く売れ。六十日で町を渡り歩き、天下の大商人を目指す行商シミュレーション。</p>
-    </a>
-
     <a class="card play" href="kimetsu.html">
-      <span class="genre">伐採アクション</span>
       <h2>木滅の刃</h2>
       <p>若手木こりが斧と呼吸と奥義を磨き、木の始祖・木舞辻 散々を切り倒す伐採アクション。</p>
     </a>
-
-    <a class="card play" href="golem.html">
-      <span class="genre">クラフト・育成</span>
-      <h2>ゴーレム工房</h2>
-      <p>土を掘り、素材を練り込み、魂を込めてゴーレムを作る。闘技場の頂・原初のゴーレムを倒せ。</p>
+    <a class="card play" href="kingyo.html">
+      <h2>ぽいっと金魚すくい</h2>
+      <p>紙が破れる前にすくい上げろ。90秒・ポイ3本の縁日アクション。</p>
     </a>
-
-    <a class="card play" href="chimera.html">
-      <span class="genre">育成シミュレーション</span>
-      <h2>錬成キメラ研究所</h2>
-      <p>生き物を掛け合わせて人語を解すキメラを作れ。人も混ぜられるが、勘のいい子供にご用心。</p>
-    </a>
+    </div>
+  </section>
+  <section class="grp">
+    <h3 class="gh"><span>⚔️</span>RPG・バトル<small>3</small></h3>
+    <div class="list">
     <a class="card play" href="jouka.html">
-      <span class="genre">RPG</span>
       <h2>浄化！不良シティー</h2>
       <p>荒れた町の不良校4校に、説教と勉強で立ち向かえ。更生させた不良を仲間にして番長を倒すRPG。</p>
     </a>
+    <a class="card play" href="ikai.html">
+      <h2>異界契約録</h2>
+      <p>妖怪・悪魔・幻獣と契約し、育て、戦わせ、合体させるRPG。</p>
+    </a>
+    <a class="card play" href="armor.html">
+      <h2>アーマーを、ほら</h2>
+      <p>ルーレットでパーツを引いてロボを組み立て、全3ステージで戦う。</p>
+    </a>
+    </div>
+  </section>
+  <section class="grp">
+    <h3 class="gh"><span>🧪</span>育成・クラフト<small>2</small></h3>
+    <div class="list">
+    <a class="card play" href="golem.html">
+      <h2>ゴーレム工房</h2>
+      <p>土を掘り、素材を練り込み、魂を込めてゴーレムを作る。闘技場の頂・原初のゴーレムを倒せ。</p>
+    </a>
+    <a class="card play" href="chimera.html">
+      <h2>錬成キメラ研究所</h2>
+      <p>生き物を掛け合わせて人語を解すキメラを作れ。人も混ぜられるが、勘のいい子供にご用心。</p>
+    </a>
+    </div>
+  </section>
+  <section class="grp">
+    <h3 class="gh"><span>💰</span>シミュレーション・経営<small>2</small></h3>
+    <div class="list">
+    <a class="card play" href="akindo.html">
+      <h2>あきんど道中記</h2>
+      <p>安く買って高く売れ。六十日で町を渡り歩き、天下の大商人を目指す行商シミュレーション。</p>
+    </a>
+    <a class="card play" href="ramen.html">
+      <h2>俺のラーメン道</h2>
+      <p>夜の屋台に来る五人の客に一杯ずつ。注文を聞いて、スープ・麺・茹で加減・具を決めろ。</p>
+    </a>
+    </div>
+  </section>
+  <section class="grp">
+    <h3 class="gh"><span>🎨</span>ホラー・お絵描き<small>2</small></h3>
+    <div class="list">
+    <a class="card play" href="okaeri.html">
+      <h2>おかえりさま</h2>
+      <p>名前を呼ばれても振り返るな。サイコロで進むホラーゲームブック。</p>
+    </a>
+    <a class="card play" href="gahaku.html">
+      <h2>うろおぼえ画伯</h2>
+      <p>一瞬だけ見えたお手本を、記憶だけで描き写す。全5問のお絵描き採点。</p>
+    </a>
+    </div>
+  </section>
   </main>
 
   <footer>© chankuwai</footer>
