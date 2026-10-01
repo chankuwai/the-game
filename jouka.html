@@ -213,7 +213,7 @@ const CH={
   line:'口だけって言われてきたけどよ…口がうまいなら放送委員でもやるか。番田だ。'},
  mika:{n:'ミカ',en:'ツッパリ見習い',title:'学級委員',s:0,look:L('f','long','#e8c34a','sera_long','#1f2a44',['mask']),st:[22,12,8,4,8],gr:[6,4,2.0,1.2,1.4],sk:['bansho'],acts:['menchi','saboru'],
   line:'ツッパってたけど、ほんとは勉強がわかんなくて…。教えてくれる？ あたし、ミカ。'},
- gonta:{n:'ゴンタ',en:'弱気な番長ゴンタ',title:'体育委員',s:0,boss:true,bhp:3.6,bact:0,look:L('m','regent','#222','longran','#111',['hachimaki'],{big:true}),st:[40,6,9,8,4],gr:[10,2,2.2,2.2,0.9],sk:['kabau'],acts:['menchi','taiatari','bikubiku'],
+ gonta:{n:'ゴンタ',en:'弱気な番長ゴンタ',title:'体育委員',s:0,boss:true,bhp:3.6,bact:0,look:L('m','regent','#222','longran','#111',['hachimaki'],{big:true}),st:[40,6,9,8,4],gr:[10,2,2.2,2.2,0.9],sk:['kabau','gontadive'],acts:['menchi','taiatari','bikubiku'],
   line:'オレも変わりてえ！ これからは体育委員として、みんなを守るぜ、正！'},
  tetsuo:{n:'鉄男',en:'リーゼント',title:'美化委員',s:1,look:L('m','regent','#111','longran','#1a1a1a',['bat']),st:[26,6,10,5,6],gr:[7,2,2.5,1.5,1.2],sk:['houki'],acts:['bike','menchi','bakuon'],
   line:'リーゼントって手入れが大変なんだよな…。これからは校舎の手入れをするぜ。鉄男だ。'},
@@ -221,7 +221,7 @@ const CH={
   line:'ヘルメット、ちゃんとかぶるよ…。オレ、シンジ。交通ルール、教えてくれ。'},
  akemi:{n:'アケミ',en:'爆音レディース',title:'合唱部',s:1,look:L('f','long','#d25a9a','tokko','#f4f4f4',['sun']),st:[22,14,7,4,8],gr:[6,4,1.9,1.2,1.5],sk:['harmony'],acts:['bakuon','menchi'],
   line:'爆音より、歌のほうが気持ちいいかもね。アケミよ、よろしく。'},
- jin:{n:'ジン',en:'総長 轟ジン',title:'生徒会書記',s:1,boss:true,bhp:4.4,bact:.25,look:L('m','regent','#6b3b12','tokko','#fafafa',['sun']),st:[34,10,11,7,9],gr:[9,3,2.6,1.8,1.6],sk:['bakusoku'],acts:['bike','bakuon','zenkai'],
+ jin:{n:'ジン',en:'総長 轟ジン',title:'生徒会書記',s:1,boss:true,bhp:4.4,bact:.25,look:L('m','regent','#6b3b12','tokko','#fafafa',['sun']),st:[34,10,11,7,9],gr:[9,3,2.6,1.8,1.6],sk:['bakusoku','bakusou'],acts:['bike','bakuon','zenkai'],
   line:'これからは安全運転で、真っすぐ生きてやるよ。書記の仕事も爆速でこなすぜ。'},
  yuri:{n:'ユリ',en:'スケバン',title:'茶道部',s:2,look:L('f','long','#7a3b1f','sera_long','#1b1b2d',['chain']),st:[22,14,8,4,8],gr:[6,4,2.0,1.3,1.5],sk:['ocha'],acts:['yoyo','menchi','saboru'],
   line:'鉄のヨーヨーより、湯呑みのほうが手になじむのよね…。ユリよ。'},
@@ -229,7 +229,7 @@ const CH={
   line:'マスク…外してもいい？ サキ。ケガしたら私に言って。'},
  kenji:{n:'ケンジ',en:'舎弟',title:'書道部',s:2,look:L('m','bald','#555','longran','#2a2a2a',['sun']),st:[26,8,10,5,6],gr:[7,3,2.6,1.4,1.1],sk:['shodo'],acts:['menchi','katsuage'],
   line:'アネさんたちの舎弟やってたけど…オレ、字がうまいって言われたことあるんスよ。ケンジっス。'},
- ocho:{n:'お蝶',en:'大スケバン 紅お蝶',title:'生徒会副会長',s:2,boss:true,bhp:4.4,bact:.3,look:L('f','long','#7b2a86','sera_long','#231028',['shinai']),st:[32,16,11,6,9],gr:[8,4,2.6,1.6,1.6],sk:['midare'],acts:['shinai','midareuchi','saboru'],
+ ocho:{n:'お蝶',en:'大スケバン 紅お蝶',title:'生徒会副会長',s:2,boss:true,bhp:4.4,bact:.3,look:L('f','long','#7b2a86','sera_long','#231028',['shinai']),st:[32,16,11,6,9],gr:[8,4,2.6,1.6,1.6],sk:['midare','men'],acts:['shinai','midareuchi','saboru'],
   line:'いいわ、手を貸してあげる。この町、きれいにしましょ。'},
  gou:{n:'ゴウ',en:'覇王の門番',title:'風紀委員',s:3,look:L('m','bald','#333','longran','#3a0d0d',['hachimaki'],{big:true}),st:[34,6,10,8,4],gr:[10,2,2.3,2.2,0.9],sk:['fukuso'],acts:['tekken','menchi'],
   line:'服装の乱れは心の乱れ…か。一番乱れていたのはオレだったな。ゴウだ。'},
@@ -237,7 +237,7 @@ const CH={
   line:'作戦を立てるのは得意よ。今度は正しいことのためにね。レイコ。'},
  kiba:{n:'キバ',en:'狂犬',title:'飼育委員',s:3,look:L('m','mohawk','#2a8a3a','longran','#2b0e0e',['chain']),st:[26,6,11,5,11],gr:[7,2,2.6,1.3,2.0],sk:['aisatsu'],acts:['menchi','tekken'],
   line:'ワン…じゃなくて、キバだ！ 動物は好きだぜ！'},
- tenma:{n:'テンマ',en:'総番長 覇王寺テンマ',title:'生徒会長',s:3,boss:true,bhp:4.0,bact:.2,look:L('m','long','#e8c34a','longran','#5a0a0a',[],{big:true}),st:[40,20,13,8,10],gr:[10,5,2.9,2.0,1.7],sk:['chorei'],acts:['haou','tekken','iatsu','zenkai'],
+ tenma:{n:'テンマ',en:'総番長 覇王寺テンマ',title:'生徒会長',s:3,boss:true,bhp:4.0,bact:.2,look:L('m','long','#e8c34a','longran','#5a0a0a',[],{big:true}),st:[40,20,13,8,10],gr:[10,5,2.9,2.0,1.7],sk:['chorei','haou'],acts:['haou','tekken','iatsu','zenkai'],
   line:'生徒会、やってみるか。この町の、全員で。'},
 };
 const RECRUITS=['hachi','aoi','komori','banda','mika','gonta','tetsuo','shinji','akemi','jin','yuri','saki','kenji','ocho','gou','reiko','kiba','tenma'];
@@ -249,19 +249,19 @@ const LEARN={
  komori:[[4,'ocha'],[8,'hon'],[13,'bansho']],
  banda:[[5,'ouen'],[10,'dj'],[15,'seiron']],
  mika:[[5,'kobai'],[9,'seiron'],[14,'midare']],
- gonta:[[7,'taisou'],[10,'ouen'],[15,'tackle']],
+ gonta:[[6,'taisou'],[9,'tackle'],[13,'ouen']],
  tetsuo:[[9,'zoukin'],[13,'kabau'],[18,'oosouji']],
  shinji:[[9,'aisatsu'],[13,'ouen'],[18,'yuujou']],
  akemi:[[10,'bento'],[14,'ouen'],[19,'gasshou']],
- jin:[[12,'anzen'],[16,'seiron'],[21,'hr']],
+ jin:[[11,'anzen'],[14,'seiron'],[18,'hr']],
  yuri:[[12,'harmony'],[16,'hoken'],[20,'chakai']],
  saki:[[13,'bento'],[17,'harmony'],[21,'chakai']],
  kenji:[[13,'aisatsu'],[17,'fukuso'],[22,'shomei']],
- ocho:[[17,'men'],[21,'ouen'],[25,'yuujou']],
+ ocho:[[16,'ouen'],[19,'hyakka'],[23,'yuujou']],
  gou:[[16,'kabau'],[20,'tackle'],[25,'chorei']],
  reiko:[[16,'study'],[20,'housou'],[25,'hr']],
  kiba:[[16,'tooboe'],[21,'renda'],[26,'yuujou']],
- tenma:[[23,'ouen'],[27,'yuujou'],[32,'haou']],
+ tenma:[[22,'ouen'],[25,'yuujou'],[28,'tenka']],
 };
 const SK={
  study:{name:'勉強を教える',mp:3,tg:'enemies',ef:'dmg',pw:0.7,d:'敵全体のグレ度を下げる',say:'{a}は勉強を教えた！ わかりやすい！'},
@@ -301,6 +301,10 @@ const SK={
  gasshou:{name:'大合唱',mp:11,tg:'enemies',ef:'dmg',pw:1.5,d:'敵全体に大ダメージ',say:'{a}の指揮で大合唱！ 歌声が胸に響く！'},
  chakai:{name:'茶会のおもてなし',mp:12,tg:'allies',ef:'heal',h:[35,6],d:'味方全員のやる気を大回復',say:'{a}は野点の茶会を開いた！'},
  men:{name:'面打ち一本',mp:8,tg:'enemy',ef:'dmg',pw:2.5,d:'敵1人に大ダメージ',say:'{a}「メェェン！」 見事な一本！'},
+ gontadive:{name:'番長ダイブ',mp:8,tg:'enemies',ef:'dmg',pw:1.35,d:'敵全体に大ダメージ',say:'{a}の番長ダイブ！「全部まとめて受け止めてやらァ！」'},
+ bakusou:{name:'爆走送迎',mp:8,tg:'enemy',ef:'multi',pw:1.0,n:3,d:'敵1人に3回攻撃',say:'{a}は不良を後ろに乗せて爆走した！ もちろん安全運転だ！'},
+ hyakka:{name:'百花繚乱',mp:14,tg:'enemies',ef:'dmg',pw:1.9,d:'敵全体に特大ダメージ',say:'{a}の竹刀が舞う！ 百花繚乱！'},
+ tenka:{name:'天下泰平',mp:22,tg:'enemies',ef:'dmg',pw:2.5,d:'敵全体に超特大ダメージ',say:'{a}「この町に、もう争いは要らん」 天下泰平！'},
  haou:{name:'覇王の改心',mp:16,tg:'enemies',ef:'dmg',pw:2.0,d:'敵全体に特大ダメージ',say:'{a}は覇王の名にかけて頭を下げた！ 誰もが息をのむ！'},
 };
 const AC={
@@ -355,7 +359,7 @@ function newState(){
  return st;
 }
 function baseStat(id,lv){const c=CH[id];return c.st.map((b,i)=>Math.round(b+c.gr[i]*(lv-1)));}
-function mStats(m){const [hp,mp,atk,def,spd]=baseStat(m.id,m.lv);const r={hp,mp,atk,def,spd};for(const k of ['w','b','a']){const e=m.eq[k];if(e){const q=EQ[e].st;for(const s in q)r[s]+=q[s];}}return r;}
+function mStats(m){let [hp,mp,atk,def,spd]=baseStat(m.id,m.lv);if(CH[m.id].boss){hp=Math.round(hp*1.3);mp=Math.round(mp*1.2);atk=Math.round(atk*1.25);def=Math.round(def*1.25);spd=Math.round(spd*1.15);}const r={hp,mp,atk,def,spd};for(const k of ['w','b','a']){const e=m.eq[k];if(e){const q=EQ[e].st;for(const s in q)r[s]+=q[s];}}return r;}
 function nextExp(lv){return Math.round(8*Math.pow(lv,1.7)+6);}
 function skillsOf(m){if(m.id==='hero')return HERO_LEARN.filter(l=>l[0]<=m.lv).map(l=>l[1]);return [...(CH[m.id].sk||[]),...(LEARN[m.id]||[]).filter(l=>l[0]<=m.lv).map(l=>l[1])];}
 function gainExp(m,amt){const out=[];m.exp+=amt;const n=CH[m.id].n;while(m.exp>=nextExp(m.lv)&&m.lv<60){m.exp-=nextExp(m.lv);const b=mStats(m);m.lv++;const a=mStats(m);m.hp+=a.hp-b.hp;m.mp+=a.mp-b.mp;out.push(`${n}はレベル${m.lv}に上がった！`);{const l=(m.id==='hero'?HERO_LEARN:(LEARN[m.id]||[])).find(x=>x[0]===m.lv);if(l)out.push(`${n}は「${SK[l[1]].name}」を覚えた！`);}}return out;}
