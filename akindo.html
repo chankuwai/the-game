@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>あきんど道中記</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;800&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+/* Layout: 帳場の机。上に「いまの町・日付・財布・荷」の札、下に市場／旅／相場帳／店の四枚の帳面 */
+:root{
+  --washi:#f4ecdc; --paper:#fbf6ea; --ink:#2a2420; --sumi:#4a4038; --shu:#c8402e; --ai:#2c4f7c; --kin:#b8892b;
+  --muted:#8a7e6e; --line:#ddd0b8; --up:#c8402e; --down:#2c6f5c;
+  --mincho:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
+  --body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--washi);color:var(--ink);font-family:var(--body);-webkit-tap-highlight-color:transparent;font-feature-settings:"palt"}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--ai);outline-offset:2px}
+[hidden]{display:none!important}
+#app{max-width:640px;margin:0 auto;padding:52px 16px 40px}
+
+/* タイトル */
+.title{min-height:calc(100dvh - 92px);display:flex;flex-direction:column;justify-content:center;gap:22px;text-align:center}
+.title h1{margin:0;font-family:var(--mincho);font-weight:800;font-size:clamp(44px,13vw,72px);line-height:1.05;letter-spacing:.06em}
+.title h1 small{display:block;font-size:.32em;letter-spacing:.4em;color:var(--shu);margin-bottom:10px}
+.title .lede{margin:0;line-height:1.9;color:var(--sumi);text-wrap:balance}
+.title .rules{margin:0 auto;max-width:420px;text-align:left;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:14px 18px;line-height:1.9;font-size:14px}
+.title .best{color:var(--muted);font-weight:700;font-size:14px;margin:0}
+
+/* 札（ヘッダー） */
+.board{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:end;box-shadow:0 2px 0 var(--line)}
+.board .town{font-family:var(--mincho);font-weight:800;font-size:30px;line-height:1}
+.board .town small{font-family:var(--body);font-size:12px;color:var(--muted);font-weight:700;margin-left:8px;letter-spacing:.05em}
+.board .day{text-align:right;font-weight:700;font-size:14px;color:var(--sumi)}
+.board .day b{font-family:var(--mincho);font-size:22px;color:var(--ink)}
+.stats{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px 16px;font-size:14px;color:var(--muted);font-weight:700}
+.stats b{color:var(--ink);font-size:17px;font-variant-numeric:tabular-nums}
+.stats .money b{color:var(--kin)}
+.stats .debt b{color:var(--shu)}
+.daybar{grid-column:1/-1;height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.daybar i{display:block;height:100%;background:var(--shu)}
+.news{margin:10px 0 0;font-size:13px;line-height:1.6;color:var(--sumi);background:#efe4cc;border-radius:8px;padding:8px 12px}
+.news b{color:var(--shu);margin-right:6px}
+
+/* 帳面タブ */
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:14px 0 10px}
+.tabs button{border:1px solid var(--line);background:var(--paper);border-radius:10px;padding:10px 4px;font-weight:700;font-size:14px}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+
+/* 市場 */
+.goods{display:grid;gap:8px}
+.good{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:grid;grid-template-columns:auto 1fr auto;gap:4px 10px;align-items:center}
+.good .ico{font-size:26px;grid-row:span 2}
+.good .nm{font-weight:900;font-size:16px}
+.good .nm small{font-weight:700;color:var(--muted);font-size:11px;margin-left:6px}
+.good .px{font-size:13px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.good .px b{color:var(--ink);font-size:16px;font-variant-numeric:tabular-nums}
+.good .tr{font-weight:900;font-size:12px}
+.good .tr.up{color:var(--up)} .good .tr.down{color:var(--down)}
+.good .own{grid-column:2/3;font-size:12px;color:var(--sumi)}
+.good .own .pl{font-weight:900}
+.good .own .pl.plus{color:var(--up)} .good .own .pl.minus{color:var(--down)}
+.good .btns{grid-row:1/3;grid-column:3;display:flex;flex-direction:column;gap:6px}
+.btn{border:1.5px solid var(--ink);background:var(--paper);border-radius:999px;padding:7px 16px;font-weight:900;font-size:14px;box-shadow:0 2px 0 var(--ink)}
+.btn:active{transform:translateY(2px);box-shadow:none}
+.btn.buy{background:var(--ai);color:#fff;border-color:var(--ai);box-shadow:0 2px 0 #1a3150}
+.btn.sell{background:var(--shu);color:#fff;border-color:var(--shu);box-shadow:0 2px 0 #8c2a1e}
+.btn.main{background:var(--ink);color:var(--paper)}
+.btn:disabled{opacity:.35;box-shadow:none;cursor:default}
+.spark{display:block}
+.hint{font-size:12px;color:var(--muted);margin:8px 2px 0;line-height:1.6}
+
+/* 旅 */
+.map{background:var(--paper);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.map svg{display:block;width:100%;height:auto}
+.map .sea{fill:#dfe6e4}
+.map .land{fill:#efe2c6;stroke:#d2bf98;stroke-width:1.5}
+.map .route{stroke:#b9a684;stroke-width:2.5;stroke-dasharray:5 5;fill:none}
+.map .route.lit{stroke:var(--shu);stroke-width:3.5;stroke-dasharray:none}
+.map .dlabel{font:700 11px var(--body);fill:var(--sumi)}
+.map .node{cursor:pointer}
+.map .node circle{fill:var(--paper);stroke:var(--ink);stroke-width:2.5}
+.map .node.here circle{fill:var(--shu);stroke:var(--shu)}
+.map .node.sel circle{stroke:var(--ai);stroke-width:5}
+.map .node text{font:800 14px var(--mincho);fill:var(--ink)}
+.dest{margin-top:10px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.dest h3{margin:0 0 4px;font-family:var(--mincho);font-size:22px}
+.dest p{margin:0 0 8px;font-size:13px;color:var(--sumi);line-height:1.7}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.row .grow{flex:1}
+
+/* 相場帳 */
+.ledger{width:100%;border-collapse:collapse;background:var(--paper);border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:13px}
+.ledger th,.ledger td{padding:7px 4px;text-align:center;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+.ledger thead th{background:#efe4cc;font-family:var(--mincho);font-size:14px}
+.ledger thead th small{display:block;font-family:var(--body);font-size:10px;color:var(--muted);font-weight:700}
+.ledger tbody th{text-align:left;padding-left:10px;white-space:nowrap}
+.ledger td.lo{color:var(--ai);font-weight:900}
+.ledger td.hi{color:var(--shu);font-weight:900}
+.ledger td.here{background:#f6ead0}
+.wrapx{overflow-x:auto;border-radius:12px}
+
+/* 店 */
+.shop{display:grid;gap:8px}
+.item{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;gap:12px;align-items:center}
+.item .ico{font-size:28px}
+.item .tx{flex:1;font-size:13px;color:var(--sumi);line-height:1.6}
+.item .tx b{display:block;color:var(--ink);font-size:15px}
+
+/* 取引の札（モーダル） */
+.modal{position:fixed;inset:0;background:rgba(42,36,32,.55);display:flex;align-items:flex-end;justify-content:center;z-index:100;padding:16px}
+.sheet{width:min(100%,480px);background:var(--paper);border-radius:16px;padding:18px 18px 20px;box-shadow:0 10px 40px rgba(0,0,0,.3);max-height:calc(100dvh - 32px);overflow:auto}
+.sheet h3{margin:0 0 6px;font-family:var(--mincho);font-size:22px}
+.sheet p{margin:0 0 10px;font-size:14px;line-height:1.7;color:var(--sumi)}
+.qty{display:flex;align-items:center;gap:10px;margin:10px 0}
+.qty input{flex:1;accent-color:var(--shu)}
+.qty output{min-width:3.5em;text-align:right;font-weight:900;font-size:22px;font-variant-numeric:tabular-nums}
+.quick{display:flex;gap:6px;margin-bottom:12px}
+.quick button{flex:1;border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 0;font-weight:700;font-size:13px}
+.sum{display:grid;grid-template-columns:1fr auto;gap:4px 10px;font-size:14px;margin-bottom:14px;background:#f3ead6;border-radius:10px;padding:10px 12px}
+.sum b{font-variant-numeric:tabular-nums;text-align:right}
+.journey{list-style:none;margin:0 0 14px;padding:0;display:grid;gap:6px;font-size:14px;line-height:1.6}
+.journey li{background:#f3ead6;border-radius:8px;padding:6px 10px}
+.journey li.bad{background:#f6dcd5}
+.journey li.good{background:#dde9e2}
+
+/* 結果 */
+.result{text-align:center;display:grid;gap:12px;padding-top:10px}
+.result .big{font-family:var(--mincho);font-weight:800;font-size:clamp(44px,13vw,64px);line-height:1;color:var(--kin)}
+.result .rank{font-family:var(--mincho);font-weight:800;font-size:28px;margin:0}
+.result p{margin:0;color:var(--sumi);line-height:1.8}
+.result .detail{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px 16px;display:grid;grid-template-columns:1fr auto;gap:6px 12px;text-align:left;font-size:14px}
+.result .detail b{text-align:right;font-variant-numeric:tabular-nums}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 18px;border-radius:999px;font-weight:700;font-size:14px;z-index:200;pointer-events:none;animation:toast 1.8s ease forwards}
+@keyframes toast{0%{opacity:0;transform:translate(-50%,8px)}12%,80%{opacity:1;transform:translate(-50%,0)}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.toast{animation:none}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="modal-root"></div>
+<script>
+'use strict';
+/* ========== データ ========== */
+const GOODS = [
+  { id: 'kome',   n: '米',   e: '🌾', base: 12,  vol: 2, unit: '俵' },
+  { id: 'shio',   n: '塩',   e: '🧂', base: 8,   vol: 2, unit: '俵' },
+  { id: 'sake',   n: '酒',   e: '🍶', base: 30,  vol: 2, unit: '樽' },
+  { id: 'cha',    n: '茶',   e: '🍵', base: 45,  vol: 1, unit: '箱' },
+  { id: 'kinu',   n: '絹',   e: '🧵', base: 140, vol: 1, unit: '反' },
+  { id: 'sato',   n: '砂糖', e: '🍬', base: 90,  vol: 1, unit: '斤' },
+  { id: 'konbu',  n: '昆布', e: '🌿', base: 25,  vol: 1, unit: '束' },
+  { id: 'toki',   n: '陶器', e: '🏺', base: 60,  vol: 2, unit: '箱' },
+];
+const TOWNS = [
+  { id: 'nagasaki', n: '長崎', x: 46,  y: 262, note: '南蛮船の港。砂糖と焼き物が安い', mul: { sato: .45, toki: .6, konbu: 1.6, kinu: 1.2, cha: 1.1 } },
+  { id: 'ako',      n: '赤穂', x: 150, y: 218, note: '塩田の町。塩が驚くほど安い', mul: { shio: .4, kome: 1.1, sake: 1.2, toki: 1.1 } },
+  { id: 'osaka',    n: '大坂', x: 205, y: 222, note: '天下の台所。米と灘の酒が安い', mul: { kome: .7, sake: .65, konbu: 1.3, shio: 1.1 } },
+  { id: 'kyo',      n: '京',   x: 222, y: 178, note: '西陣織と宇治茶の都', mul: { kinu: .55, cha: .55, shio: 1.3, konbu: 1.25, sato: 1.15 } },
+  { id: 'kanazawa', n: '金沢', x: 238, y: 104, note: '北前船の寄港地。昆布が安い', mul: { konbu: .45, toki: .7, sato: 1.6, cha: 1.2, kome: .9 } },
+  { id: 'edo',      n: '江戸', x: 330, y: 188, note: '百万の町。何でも高く売れる', mul: { kome: 1.35, sake: 1.6, cha: 1.35, kinu: 1.4, sato: 1.35, shio: 1.3, toki: 1.15 } },
+  { id: 'sendai',   n: '仙台', x: 360, y: 86,  note: 'みちのくの城下。米は安く、上方の品は高い', mul: { kome: .6, shio: 1.4, kinu: 1.6, sato: 1.5, toki: 1.3, sake: 1.2 } },
+];
+const EDGES = [['nagasaki', 'ako', 4], ['ako', 'osaka', 1], ['osaka', 'kyo', 1], ['kyo', 'kanazawa', 3], ['kyo', 'edo', 5], ['kanazawa', 'edo', 4], ['kanazawa', 'sendai', 5], ['edo', 'sendai', 4]];
+const CARTS = [
+  { n: '背負子', cap: 30, cost: 0 },
+  { n: '大八車', cap: 60, cost: 300 },
+  { n: '馬借',   cap: 120, cost: 1200 },
+  { n: '千石船', cap: 240, cost: 4000 },
+];
+const MAX_DAY = 60, START_MONEY = 200, LODGING = 2, GUARD_COST = 25, GUARD_DAYS = 10, NEWS_COST = 15;
+const IMP_BUY = .005, IMP_SELL = .006, INTEREST = .01, LOAN_STEP = 100, LOAN_MAX = 1000;
+const BEST_KEY = 'akindo_best';
+const G_BY = Object.fromEntries(GOODS.map(g => [g.id, g]));
+const T_BY = Object.fromEntries(TOWNS.map(t => [t.id, t]));
+const KANJI = ['〇', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
+const kan = n => n <= 10 ? (n === 10 ? '十' : KANJI[n]) : n < 20 ? '十' + KANJI[n - 10] : KANJI[Math.floor(n / 10)] + '十' + (n % 10 ? KANJI[n % 10] : '');
+
+/* 最短の日数（ダイクストラ） */
+const DIST = {}, PATH = {};
+for (const a of TOWNS) {
+  const d = Object.fromEntries(TOWNS.map(t => [t.id, Infinity])), prev = {}, done = new Set();
+  d[a.id] = 0;
+  while (done.size < TOWNS.length) {
+    let u = null;
+    for (const t of TOWNS) if (!done.has(t.id) && (u === null || d[t.id] < d[u])) u = t.id;
+    done.add(u);
+    for (const [x, y, w] of EDGES) {
+      const v = x === u ? y : y === u ? x : null;
+      if (v && d[u] + w < d[v]) { d[v] = d[u] + w; prev[v] = u; }
+    }
+  }
+  DIST[a.id] = d;
+  PATH[a.id] = {};
+  for (const t of TOWNS) { const p = [t.id]; let c = t.id; while (prev[c]) { c = prev[c]; p.unshift(c); } PATH[a.id][t.id] = p; }
+}
+
+/* ========== 状態 ========== */
+let G = null, UI = { screen: 'title', tab: 'market', sel: null, modal: null };
+let best = 0;
+try { best = parseInt(localStorage.getItem(BEST_KEY) || '0', 10) || 0; } catch (e) { best = 0; }
+const R = Math.random;
+const gauss = () => { let u = 0, v = 0; while (!u) u = R(); while (!v) v = R(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
+const snd = n => { if (window.tgSound) window.tgSound.play(n); };
+
+function newGame() {
+  G = {
+    day: 1, money: START_MONEY, debt: 0, cart: 0, town: 'osaka', guard: 0,
+    hold: {}, mul: {}, ev: {}, price: {}, hist: {}, known: {},
+    news: [{ day: 1, text: '大坂の店を飛び出し、行商の旅が始まった。元手は二百両。' }],
+    stats: { trades: 0, bestProfit: 0, bestText: '', profit: 0, bandits: 0 },
+  };
+  for (const t of TOWNS) {
+    G.mul[t.id] = {}; G.ev[t.id] = {}; G.price[t.id] = {}; G.hist[t.id] = {}; G.known[t.id] = {};
+    for (const g of GOODS) {
+      const m = (t.mul[g.id] || 1) * (0.88 + R() * 0.24);
+      G.mul[t.id][g.id] = m; G.ev[t.id][g.id] = 1;
+      const p = g.base * m * (0.9 + R() * 0.2);
+      G.price[t.id][g.id] = p; G.hist[t.id][g.id] = [p];
+      G.known[t.id][g.id] = { p, day: 1 };   // 出発前に聞いた噂の相場
+    }
+  }
+  UI = { screen: 'game', tab: 'market', sel: null, modal: null };
+  render();
+}
+
+/* ========== 相場 ========== */
+const target = (t, g) => G_BY[g].base * G.mul[t][g] * G.ev[t][g];
+const buyPx = p => Math.max(1, Math.round(p * 1.04));
+const sellPx = p => Math.max(1, Math.round(p * 0.96));
+function quote(t, g, q, side) {
+  let p = G.price[t][g], tot = 0;
+  for (let i = 0; i < q; i++) {
+    if (side === 'buy') { tot += buyPx(p); p *= 1 + IMP_BUY; }
+    else { tot += sellPx(p); p *= 1 - IMP_SELL; }
+  }
+  return tot;
+}
+const used = () => Object.entries(G.hold).reduce((s, [g, h]) => s + h.n * G_BY[g].vol, 0);
+const cap = () => CARTS[G.cart].cap;
+const cargoValue = (t = G.town) => Object.entries(G.hold).reduce((s, [g, h]) => s + sellPx(G.price[t][g]) * h.n, 0);
+
+function dailyUpdate() {
+  for (const t of TOWNS) for (const g of GOODS) {
+    const ev = G.ev[t.id];
+    ev[g.id] += (1 - ev[g.id]) * 0.12;
+    let p = G.price[t.id][g.id];
+    p += (target(t.id, g.id) - p) * 0.18;
+    p *= Math.exp(gauss() * 0.045);
+    p = Math.max(1, p);
+    G.price[t.id][g.id] = p;
+    const h = G.hist[t.id][g.id]; h.push(p); if (h.length > 20) h.shift();
+  }
+  if (R() < 0.2) randomEvent();
+}
+
+const EVENTS = [
+  () => { const t = pick(TOWNS), g = pick(GOODS); G.ev[t.id][g.id] *= 1.7; return `${t.n}で祭り。${g.n}が飛ぶように売れているらしい。`; },
+  () => { const t = pick(TOWNS), g = pick(GOODS); G.ev[t.id][g.id] *= .55; return `${t.n}に${g.n}を積んだ船が着いた。値崩れしているそうな。`; },
+  () => { const g = pick(GOODS.filter(x => ['kome', 'cha', 'kinu', 'shio'].includes(x.id))); for (const t of TOWNS) G.ev[t.id][g.id] *= 1.3; return `${g.n}が不作。どこの町でも値上がりの気配。`; },
+  () => { for (const g of ['kome', 'toki', 'sake']) G.ev.edo[g] *= 1.45; return '江戸で大火。米・焼き物・酒が足りないと大騒ぎ。'; },
+  () => { G.ev.nagasaki.sato *= .6; G.ev.nagasaki.toki *= .8; return '長崎に南蛮船が入港。砂糖が山のように陸揚げされた。'; },
+  () => { G.ev.kanazawa.konbu *= .6; G.ev.osaka.konbu *= .8; return '北前船が金沢に着いた。昆布が安く出回っている。'; },
+  () => { G.ev.kyo.cha *= 1.5; G.ev.kyo.toki *= 1.3; return '京で大きな茶会が開かれる。茶と焼き物の注文が殺到。'; },
+  () => { const t = pick(TOWNS); for (const g of GOODS) G.ev[t.id][g.id] *= .85; return `${t.n}は不景気。どの品も買い叩かれている。`; },
+];
+function pick(a) { return a[Math.floor(R() * a.length)]; }
+function randomEvent() { const text = pick(EVENTS)(); G.news.unshift({ day: G.day, text }); if (G.news.length > 30) G.news.pop(); }
+function learnHere() { for (const g of GOODS) G.known[G.town][g.id] = { p: G.price[G.town][g.id], day: G.day }; }
+
+/* ========== 行動 ========== */
+function buy(g, q) {
+  if (q <= 0) return false;
+  const cost = quote(G.town, g, q, 'buy');
+  if (cost > G.money || used() + q * G_BY[g].vol > cap()) return false;
+  G.price[G.town][g] *= Math.pow(1 + IMP_BUY, q);
+  G.money -= cost;
+  const h = G.hold[g] || (G.hold[g] = { n: 0, cost: 0 });
+  h.n += q; h.cost += cost;
+  G.stats.trades++;
+  snd('pick');
+  toast(`${G_BY[g].n}を${q}${G_BY[g].unit}、${cost}両で仕入れた`);
+  learnHere();
+  return true;
+}
+function sell(g, q) {
+  const h = G.hold[g];
+  if (!h || q <= 0 || q > h.n) return false;
+  const rev = quote(G.town, g, q, 'sell');
+  const basis = h.cost * q / h.n, profit = Math.round(rev - basis);
+  G.price[G.town][g] *= Math.pow(1 - IMP_SELL, q);
+  G.money += rev; h.n -= q; h.cost -= basis;
+  if (h.n <= 0) delete G.hold[g];
+  G.stats.trades++; G.stats.profit += profit;
+  if (profit > G.stats.bestProfit) { G.stats.bestProfit = profit; G.stats.bestText = `${T_BY[G.town].n}で${G_BY[g].n}を売って`; }
+  snd(profit >= 0 ? 'coin' : 'bad');
+  toast(`${G_BY[g].n}を${rev}両で売った（${profit >= 0 ? '儲け' : '損'} ${Math.abs(profit)}両）`);
+  learnHere();
+  return true;
+}
+
+function passDay(log) {
+  dailyUpdate();
+  G.day++;
+  if (G.debt > 0) G.debt = Math.ceil(G.debt * (1 + INTEREST));
+  if (G.guard > 0) G.guard--;
+}
+
+function travel(dest) {
+  const d = DIST[G.town][dest];
+  if (!d || G.day + d > MAX_DAY) return false;
+  const log = [];
+  const path = PATH[G.town][dest];
+  log.push({ t: `${T_BY[G.town].n}を発ち、${path.slice(1).map(x => T_BY[x].n).join('→')}へ。${d}日の道のり。`, k: '' });
+  snd('start');
+  let days = d;
+  for (let i = 0; i < days; i++) {
+    const fee = Math.min(G.money, LODGING);
+    G.money -= fee;
+    const valuable = cargoValue() + G.money > 80;
+    if (G.guard <= 0 && valuable && R() < 0.065) {
+      G.stats.bandits++;
+      const held = Object.keys(G.hold);
+      if (held.length && R() < .7) {
+        const g = pick(held), h = G.hold[g], lost = Math.max(1, Math.ceil(h.n * (.25 + R() * .25)));
+        h.cost -= h.cost * lost / h.n; h.n -= lost; if (h.n <= 0) delete G.hold[g];
+        log.push({ t: `${kan(i + 1)}日目、峠で盗賊に襲われた。${G_BY[g].n}を${lost}${G_BY[g].unit}奪われた。`, k: 'bad' });
+      } else {
+        const lost = Math.floor(G.money * (.12 + R() * .1));
+        G.money -= lost;
+        log.push({ t: `${kan(i + 1)}日目、宿で巾着を切られた。${lost}両を失った。`, k: 'bad' });
+      }
+      snd('bad');
+    } else if (G.guard > 0 && valuable && R() < .065) {
+      log.push({ t: `${kan(i + 1)}日目、怪しい連中が付けてきたが、用心棒がにらみを利かせて事なきを得た。`, k: 'good' });
+    } else if (R() < .04 && G.day + days < MAX_DAY) {
+      days++;
+      log.push({ t: `${kan(i + 1)}日目、大雨で川止め。一日足止めをくった。`, k: 'bad' });
+    } else if (R() < .035) {
+      const g = pick(GOODS);
+      if (used() + 2 * g.vol <= cap()) {
+        const h = G.hold[g.id] || (G.hold[g.id] = { n: 0, cost: 0 });
+        h.n += 2;
+        log.push({ t: `${kan(i + 1)}日目、道端の茶屋で${g.n}を${2}${g.unit}、ただ同然で譲ってもらった。`, k: 'good' });
+        snd('good');
+      }
+    }
+    passDay(log);
+  }
+  G.town = dest;
+  learnHere();
+  const news = G.news.filter(n => n.day > G.day - days);
+  for (const n of news.reverse()) log.push({ t: '瓦版：' + n.text, k: '' });
+  log.push({ t: `${kan(G.day)}日目、${T_BY[dest].n}に着いた。宿賃 ${LODGING * d}両ほど。`, k: '' });
+  UI.tab = 'market'; UI.sel = null;
+  UI.modal = { type: 'journey', log };
+  render();
+  return true;
+}
+
+function rest() {
+  if (G.day >= MAX_DAY) return endGame();
+  G.money -= Math.min(G.money, 1);
+  passDay();
+  learnHere();
+  snd('click');
+  toast(`${T_BY[G.town].n}で一日、相場を眺めて過ごした`);
+  render();
+}
+
+function buyCart() {
+  const nx = CARTS[G.cart + 1];
+  if (!nx || G.money < nx.cost) return;
+  G.money -= nx.cost; G.cart++;
+  snd('good'); toast(`${nx.n}を手に入れた。荷が${nx.cap}まで積める`); render();
+}
+function hireGuard() {
+  if (G.money < GUARD_COST) return;
+  G.money -= GUARD_COST; G.guard += GUARD_DAYS;
+  snd('pick'); toast(`用心棒を雇った（残り${G.guard}日）`); render();
+}
+function buyNews() {
+  if (G.money < NEWS_COST) return;
+  G.money -= NEWS_COST;
+  for (const t of TOWNS) for (const g of GOODS) G.known[t.id][g.id] = { p: G.price[t.id][g.id], day: G.day };
+  snd('pick'); toast('飛脚の便りで、各地のきょうの相場がわかった'); UI.tab = 'ledger'; render();
+}
+function borrow() {
+  if (G.debt + LOAN_STEP > LOAN_MAX) return;
+  G.debt += LOAN_STEP; G.money += LOAN_STEP;
+  snd('coin'); toast(`両替商から${LOAN_STEP}両借りた（日に一分の利息）`); render();
+}
+function repay() {
+  const amt = Math.min(G.debt, G.money);
+  if (amt <= 0) return;
+  G.debt -= amt; G.money -= amt;
+  snd('coin'); toast(`${amt}両を返した`); render();
+}
+
+function finalAssets() {
+  const goods = Math.floor(cargoValue() * .5);
+  return { goods, total: G.money + goods - G.debt };
+}
+function rankOf(v) {
+  if (v >= 25000) return ['天下の大商人', '江戸・大坂に名をとどろかせる、日の本一のあきんど。'];
+  if (v >= 10000) return ['豪商', '蔵がいくつも建つほどの身代になった。'];
+  if (v >= 4000) return ['大店の旦那', '暖簾を掲げ、奉公人を抱える立派な商家の主。'];
+  if (v >= 1200) return ['小間物屋の主', '小さいながらも自分の店を持てるだけの稼ぎ。'];
+  if (v >= 400) return ['担ぎ商人', '元手は増えた。次はもっと大きく張ってみて。'];
+  return ['行商見習い', '安い町で買い、高い町で売る。相場帳を見比べるのがコツよ。'];
+}
+function endGame() {
+  const fa = finalAssets();
+  const isBest = !window.tgAuto && fa.total > best;
+  if (isBest) { best = fa.total; try { localStorage.setItem(BEST_KEY, String(best)); } catch (e) {} }
+  UI.screen = 'result'; UI.result = { ...fa, isBest };
+  UI.modal = null;
+  snd(fa.total >= START_MONEY ? 'win' : 'lose');
+  render();
+}
+
+/* ========== 描画 ========== */
+const app = document.getElementById('app'), modalRoot = document.getElementById('modal-root');
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function toast(msg) {
+  const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg;
+  document.body.appendChild(t); setTimeout(() => t.remove(), 1800);
+}
+function spark(arr, w = 64, h = 22) {
+  const mn = Math.min(...arr), mx = Math.max(...arr), r = mx - mn || 1;
+  const pts = arr.map((v, i) => `${(i / Math.max(1, arr.length - 1) * (w - 2) + 1).toFixed(1)},${(h - 2 - (v - mn) / r * (h - 4)).toFixed(1)}`).join(' ');
+  const up = arr[arr.length - 1] >= arr[0];
+  return `<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="${up ? 'var(--up)' : 'var(--down)'}" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
+}
+
+function vTitle() {
+  return `<section class="title">
+<h1><small>行商シミュレーション</small>あきんど<br>道中記</h1>
+<p class="lede">元手は二百両。六十日のあいだに町から町へ渡り歩き、安く仕入れて高く売る。目指すは天下の大商人。</p>
+<div class="rules">
+・町ごとに特産品は安く、品薄の品は高い<br>
+・相場は毎日動く。瓦版の噂を聞き逃すな<br>
+・たくさん買えば値が上がり、たくさん売れば値が下がる<br>
+・旅には日数と宿賃がかかる。盗賊には用心棒を<br>
+・六十日目の夕方、手元の金で身代が決まる
+</div>
+${best ? `<p class="best">これまでの最高の身代 ${best.toLocaleString()}両</p>` : ''}
+<div><button class="btn main" style="padding:12px 40px;font-size:18px" data-a="start">旅に出る</button></div>
+</section>`;
+}
+
+function vBoard() {
+  const left = MAX_DAY - G.day;
+  const latest = G.news[0];
+  return `<section class="board">
+<div class="town">${T_BY[G.town].n}<small>${esc(T_BY[G.town].note)}</small></div>
+<div class="day"><b>${kan(G.day)}</b>日目<br>残り${left}日</div>
+<div class="daybar"><i style="width:${(G.day / MAX_DAY * 100).toFixed(1)}%"></i></div>
+<div class="stats">
+<span class="money">所持金 <b>${G.money.toLocaleString()}</b>両</span>
+<span>荷 <b>${used()}</b>/${cap()}</span>
+${G.debt ? `<span class="debt">借金 <b>${G.debt.toLocaleString()}</b>両</span>` : ''}
+${G.guard ? `<span>用心棒 <b>${G.guard}</b>日</span>` : ''}
+</div>
+</section>
+${latest ? `<p class="news"><b>瓦版</b>${kan(latest.day)}日目　${esc(latest.text)}</p>` : ''}`;
+}
+
+function vTabs() {
+  const tabs = [['market', '市場'], ['travel', '旅に出る'], ['ledger', '相場帳'], ['shop', '店・両替']];
+  return `<nav class="tabs" role="tablist">${tabs.map(([k, l]) => `<button role="tab" aria-selected="${UI.tab === k}" data-a="tab:${k}">${l}</button>`).join('')}</nav>`;
+}
+
+function vMarket() {
+  const t = G.town;
+  return `<div class="goods">${GOODS.map(g => {
+    const p = G.price[t][g.id], hist = G.hist[t][g.id], prev = hist[hist.length - 2] || p;
+    const ch = (p - prev) / prev, h = G.hold[g.id];
+    const tr = Math.abs(ch) < .01 ? '' : ch > 0 ? `<span class="tr up">▲${Math.round(ch * 100)}%</span>` : `<span class="tr down">▼${Math.round(-ch * 100)}%</span>`;
+    let own = '';
+    if (h) {
+      const avg = h.cost / h.n, pl = Math.round(sellPx(p) * h.n - h.cost);
+      own = `<div class="own">手持ち ${h.n}${g.unit}（仕入れ平均 ${Math.round(avg)}両）　いま売ると <span class="pl ${pl >= 0 ? 'plus' : 'minus'}">${pl >= 0 ? '+' : ''}${pl}両</span></div>`;
+    }
+    return `<div class="good">
+<div class="ico" aria-hidden="true">${g.e}</div>
+<div><div class="nm">${g.n}<small>1${g.unit}・荷${g.vol}</small></div>
+<div class="px">買 <b>${buyPx(p)}</b> 売 <b>${sellPx(p)}</b> ${tr} ${spark(hist)}</div></div>
+<div class="btns"><button class="btn buy" data-a="trade:buy:${g.id}">買う</button><button class="btn sell" data-a="trade:sell:${g.id}" ${h ? '' : 'disabled'}>売る</button></div>
+${own}
+</div>`;
+  }).join('')}</div>
+<p class="hint">「買」は仕入れ値、「売」は引き取り値。折れ線はこの町のここ数日の相場。</p>
+<div class="row" style="margin-top:10px"><span class="grow"></span><button class="btn" data-a="rest">${G.day >= MAX_DAY ? '店じまいする' : 'この町で一日待つ'}</button></div>`;
+}
+
+function vTravel() {
+  const here = G.town, sel = UI.sel && UI.sel !== here ? UI.sel : null;
+  const litPath = sel ? PATH[here][sel] : [];
+  const lit = new Set(); for (let i = 0; i < litPath.length - 1; i++) lit.add([litPath[i], litPath[i + 1]].sort().join('-'));
+  const land = 'M30,280 C20,240 70,230 110,236 C140,200 175,210 200,196 C215,170 200,140 225,120 C215,95 230,70 270,64 C300,40 340,40 372,52 C392,70 388,110 376,140 C372,170 360,200 340,214 C310,226 270,214 248,228 C220,246 180,246 150,250 C120,262 90,290 60,296 C42,298 32,292 30,280 Z';
+  let svg = `<svg viewBox="0 0 400 310" role="img" aria-label="旅の地図"><rect class="sea" width="400" height="310"/><path class="land" d="${land}"/>`;
+  for (const [a, b, w] of EDGES) {
+    const A = T_BY[a], B = T_BY[b], on = lit.has([a, b].sort().join('-'));
+    svg += `<line class="route ${on ? 'lit' : ''}" x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}"/><text class="dlabel" x="${(A.x + B.x) / 2 + 4}" y="${(A.y + B.y) / 2 - 4}">${w}日</text>`;
+  }
+  for (const t of TOWNS) {
+    svg += `<g class="node ${t.id === here ? 'here' : ''} ${t.id === sel ? 'sel' : ''}" data-a="sel:${t.id}" tabindex="0" role="button" aria-label="${t.n}"><circle cx="${t.x}" cy="${t.y}" r="9"/><text x="${t.x + (t.x > 330 ? -12 : 12)}" y="${t.y + 5}" text-anchor="${t.x > 330 ? 'end' : 'start'}">${t.n}</text></g>`;
+  }
+  svg += '</svg>';
+  let panel = `<div class="dest"><p>地図の町を選ぶと、道のりと覚えている相場が見られるわ。赤い丸がいまいる町。</p></div>`;
+  if (sel) {
+    const d = DIST[here][sel], can = G.day + d <= MAX_DAY;
+    const k = G.known[sel], age = G.day - Math.min(...GOODS.map(g => k[g.id].day));
+    const deals = GOODS.map(g => {
+      const m = sellPx(k[g.id].p) - buyPx(G.price[here][g.id]);
+      return { g, m };
+    }).filter(x => x.m > 0).sort((a, b) => b.m / b.g.vol - a.m / a.g.vol).slice(0, 3);
+    panel = `<div class="dest"><h3>${T_BY[sel].n}</h3>
+<p>${esc(T_BY[sel].note)}<br>道のり ${d}日（${PATH[here][sel].map(x => T_BY[x].n).join('→')}）・宿賃 約${d * LODGING}両・着くのは${kan(G.day + d)}日目</p>
+<p>${age === 0 ? 'きょうの相場を知っている。' : `覚えている相場は${age}日前のもの。`}${deals.length ? 'ここで買って運べば儲かりそうなのは ' + deals.map(x => `${x.g.n}（1${x.g.unit}あたり約${x.m}両）`).join('、') : 'ここから運んで儲かる品は見当たらない。'}</p>
+<div class="row"><span class="grow small">${G.guard ? `用心棒あと${G.guard}日` : '用心棒なし'}</span><button class="btn main" data-a="go:${sel}" ${can ? '' : 'disabled'}>${can ? '出発する' : '日数が足りない'}</button></div></div>`;
+  }
+  return `<div class="map">${svg}</div>${panel}`;
+}
+
+function vLedger() {
+  const here = G.town;
+  let h = `<div class="wrapx"><table class="ledger"><thead><tr><th></th>${TOWNS.map(t => `<th>${t.n}<small>${t.id === here ? 'いま' : (G.day - G.known[t.id].kome.day) + '日前'}</small></th>`).join('')}</tr></thead><tbody>`;
+  for (const g of GOODS) {
+    const vals = TOWNS.map(t => t.id === here ? G.price[here][g.id] : G.known[t.id][g.id].p);
+    const mn = Math.min(...vals), mx = Math.max(...vals);
+    h += `<tr><th>${g.e} ${g.n}</th>${TOWNS.map((t, i) => `<td class="${vals[i] === mn ? 'lo' : vals[i] === mx ? 'hi' : ''} ${t.id === here ? 'here' : ''}">${Math.round(vals[i])}</td>`).join('')}</tr>`;
+  }
+  h += '</tbody></table></div><p class="hint">青がいちばん安い町、朱がいちばん高い町。数字は覚えている相場で、日が経つほどあてにならない。瓦版の噂も合わせて読むこと。</p>';
+  h += `<div class="news" style="margin-top:10px">${G.news.slice(0, 6).map(n => `<div><b>${kan(n.day)}日目</b>${esc(n.text)}</div>`).join('')}</div>`;
+  return h;
+}
+
+function vShop() {
+  const nx = CARTS[G.cart + 1];
+  return `<div class="shop">
+<div class="item"><div class="ico" aria-hidden="true">🛒</div><div class="tx"><b>荷を増やす：${nx ? nx.n : '最上級'}</b>${nx ? `いまは${CARTS[G.cart].n}（荷${cap()}）。${nx.n}なら荷${nx.cap}まで積める。` : `${CARTS[G.cart].n}で荷${cap()}まで積める。`}</div>${nx ? `<button class="btn" data-a="cart" ${G.money >= nx.cost ? '' : 'disabled'}>${nx.cost.toLocaleString()}両</button>` : ''}</div>
+<div class="item"><div class="ico" aria-hidden="true">🗡️</div><div class="tx"><b>用心棒を雇う</b>${GUARD_DAYS}日のあいだ盗賊を追い払う。${G.guard ? `いまあと${G.guard}日。` : ''}</div><button class="btn" data-a="guard" ${G.money >= GUARD_COST ? '' : 'disabled'}>${GUARD_COST}両</button></div>
+<div class="item"><div class="ico" aria-hidden="true">📜</div><div class="tx"><b>飛脚に相場を聞く</b>全部の町の、きょうの相場が相場帳に載る。</div><button class="btn" data-a="news" ${G.money >= NEWS_COST ? '' : 'disabled'}>${NEWS_COST}両</button></div>
+<div class="item"><div class="ico" aria-hidden="true">💰</div><div class="tx"><b>両替商で借りる</b>${LOAN_STEP}両ずつ、${LOAN_MAX}両まで。利息は日に一分（1%）で、毎日ふくらむ。${G.debt ? `いまの借金 ${G.debt}両。` : ''}</div><div style="display:flex;flex-direction:column;gap:6px"><button class="btn" data-a="borrow" ${G.debt + LOAN_STEP <= LOAN_MAX ? '' : 'disabled'}>借りる</button><button class="btn" data-a="repay" ${G.debt && G.money ? '' : 'disabled'}>返す</button></div></div>
+</div>`;
+}
+
+function vResult() {
+  const r = UI.result, [rank, msg] = rankOf(r.total);
+  return `<section class="result">
+<p style="color:var(--muted);font-weight:700">六十日の旅を終えて、残った身代は</p>
+<div class="big">${r.total.toLocaleString()}<span style="font-size:.4em">両</span></div>
+${r.isBest ? '<p style="color:var(--shu);font-weight:900">これまでで最高の身代</p>' : ''}
+<p class="rank">${rank}</p>
+<p>${esc(msg)}</p>
+<div class="detail">
+<span>所持金</span><b>${G.money.toLocaleString()}両</b>
+<span>売れ残りの荷（半値で投げ売り）</span><b>${r.goods.toLocaleString()}両</b>
+<span>借金</span><b>${G.debt ? '−' + G.debt.toLocaleString() : 0}両</b>
+<span>取引の回数</span><b>${G.stats.trades}回</b>
+<span>いちばんの大儲け</span><b>${G.stats.bestProfit ? `${G.stats.bestText} ${G.stats.bestProfit.toLocaleString()}両` : '—'}</b>
+<span>盗賊に遭った回数</span><b>${G.stats.bandits}回</b>
+</div>
+<div class="row" style="justify-content:center"><button class="btn main" data-a="start">もう一度旅に出る</button><button class="btn" data-a="title">タイトルへ</button></div>
+</section>`;
+}
+
+function vModal() {
+  const m = UI.modal;
+  if (!m) return '';
+  if (m.type === 'journey') {
+    return `<div class="modal"><div class="sheet" role="dialog" aria-label="道中の出来事"><h3>道中記</h3><ul class="journey">${m.log.map(l => `<li class="${l.k}">${esc(l.t)}</li>`).join('')}</ul><button class="btn main" style="width:100%" data-a="close">市場をのぞく</button></div></div>`;
+  }
+  if (m.type === 'trade') {
+    const g = G_BY[m.g], h = G.hold[m.g];
+    const max = tradeMax(m.side, m.g);
+    const q = Math.min(m.q, max);
+    const total = q ? quote(G.town, m.g, q, m.side) : 0;
+    let extra = '';
+    if (m.side === 'sell' && q) { const basis = Math.round(h.cost * q / h.n); const pl = total - basis; extra = `<span>仕入れ値</span><b>${basis}両</b><span>${pl >= 0 ? '儲け' : '損'}</span><b style="color:${pl >= 0 ? 'var(--up)' : 'var(--down)'}">${Math.abs(pl)}両</b>`; }
+    if (m.side === 'buy') extra = `<span>残る所持金</span><b>${(G.money - total).toLocaleString()}両</b><span>荷</span><b>${used() + q * g.vol}/${cap()}</b>`;
+    return `<div class="modal"><div class="sheet" role="dialog" aria-label="${g.n}の取引">
+<h3>${g.e} ${g.n}を${m.side === 'buy' ? '買う' : '売る'}</h3>
+<p>${m.side === 'buy' ? `いまの仕入れ値は1${g.unit} ${buyPx(G.price[G.town][m.g])}両。たくさん買うほど少しずつ値上がりする。` : `いまの引き取り値は1${g.unit} ${sellPx(G.price[G.town][m.g])}両。たくさん売るほど少しずつ値下がりする。`}</p>
+<div class="qty"><input type="range" id="qty" min="0" max="${max}" value="${q}" aria-label="数量"><output>${q}${g.unit}</output></div>
+<div class="quick"><button data-a="q:0">0</button><button data-a="q:${Math.floor(max / 4)}">¼</button><button data-a="q:${Math.floor(max / 2)}">半分</button><button data-a="q:${max}">全部</button></div>
+<div class="sum"><span>${m.side === 'buy' ? '支払い' : '受け取り'}</span><b>${total.toLocaleString()}両</b>${extra}</div>
+<div class="row"><button class="btn" data-a="close">やめる</button><span class="grow"></span><button class="btn ${m.side}" data-a="confirm" ${q ? '' : 'disabled'}>${m.side === 'buy' ? '仕入れる' : '売り払う'}</button></div>
+</div></div>`;
+  }
+  return '';
+}
+
+function tradeMax(side, g) {
+  if (side === 'sell') return G.hold[g] ? G.hold[g].n : 0;
+  const room = Math.floor((cap() - used()) / G_BY[g].vol);
+  let p = G.price[G.town][g], tot = 0, n = 0;
+  while (n < room) { const c = buyPx(p); if (tot + c > G.money) break; tot += c; p *= 1 + IMP_BUY; n++; }
+  return n;
+}
+
+function render() {
+  if (UI.screen === 'title') app.innerHTML = vTitle();
+  else if (UI.screen === 'result') app.innerHTML = vResult();
+  else {
+    const body = { market: vMarket, travel: vTravel, ledger: vLedger, shop: vShop }[UI.tab]();
+    app.innerHTML = vBoard() + vTabs() + body;
+  }
+  modalRoot.innerHTML = vModal();
+  const r = document.getElementById('qty');
+  if (r) r.addEventListener('input', () => { UI.modal.q = +r.value; renderModalOnly(); });
+}
+function renderModalOnly() {
+  modalRoot.innerHTML = vModal();
+  const r = document.getElementById('qty');
+  if (r) { r.addEventListener('input', () => { UI.modal.q = +r.value; renderModalOnly(); }); r.focus(); }
+}
+
+/* ========== 操作 ========== */
+function act(a) {
+  const [k, x, y] = a.split(':');
+  if (k === 'start') { snd('start'); newGame(); window.scrollTo(0, 0); }
+  else if (k === 'title') { UI = { screen: 'title', tab: 'market', sel: null, modal: null }; render(); }
+  else if (k === 'tab') { UI.tab = x; snd('click'); render(); }
+  else if (k === 'sel') { UI.sel = x; snd('click'); render(); }
+  else if (k === 'go') travel(x);
+  else if (k === 'rest') rest();
+  else if (k === 'trade') { UI.modal = { type: 'trade', side: x, g: y, q: x === 'sell' ? tradeMax('sell', y) : Math.floor(tradeMax('buy', y) / 2) }; snd('click'); render(); }
+  else if (k === 'q') { UI.modal.q = +x; renderModalOnly(); }
+  else if (k === 'confirm') { const m = UI.modal; UI.modal = null; (m.side === 'buy' ? buy : sell)(m.g, Math.min(m.q, tradeMax(m.side, m.g))); render(); }
+  else if (k === 'close') { UI.modal = null; render(); }
+  else if (k === 'cart') buyCart();
+  else if (k === 'guard') hireGuard();
+  else if (k === 'news') buyNews();
+  else if (k === 'borrow') borrow();
+  else if (k === 'repay') repay();
+}
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-a]');
+  if (!el || el.disabled) return;
+  act(el.dataset.a);
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && UI.modal) { UI.modal = null; render(); }
+  const el = e.target.closest && e.target.closest('.node[data-a]');
+  if (el && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); act(el.dataset.a); }
+});
+modalRoot.addEventListener('click', e => { if (e.target.classList.contains('modal')) { UI.modal = null; render(); } });
+
+/* ========== オート商人 ========== */
+const AUTO = { plan: null, wait: 0, resultAt: 0 };
+function autoPlan() {
+  const here = G.town;
+  let bestP = null;
+  for (const t of TOWNS) {
+    if (t.id === here) continue;
+    const d = DIST[here][t.id];
+    if (G.day + d > MAX_DAY) continue;
+    let money = G.money - d * LODGING - 5, space = cap() - used(), profit = 0;
+    const buys = [];
+    // 手持ちの荷をそこで売ったときの上乗せ
+    for (const [g, h] of Object.entries(G.hold)) profit += (sellPx(G.known[t.id][g].p) - sellPx(G.price[here][g])) * h.n * .5;
+    const cands = GOODS.map(g => {
+      const bp = G.price[here][g.id], sp = G.known[t.id][g.id].p;
+      return { g, bp, sp, m: (sp * .96 - bp * 1.04) / g.vol };
+    }).filter(c => c.m > 0).sort((a, b) => b.m - a.m);
+    for (const c of cands) {
+      // 仕入れで上がる値と、売りで下がる値が釣り合うところまで
+      const lim = Math.floor(Math.log(c.sp * .96 / (c.bp * 1.04)) / (Math.log(1 + IMP_BUY) - Math.log(1 - IMP_SELL)) * .8);
+      let q = 0, p = c.bp, sp = c.sp, pr = 0, cost = 0;
+      while (q < lim && (q + 1) * c.g.vol <= space && cost + buyPx(p) <= money) {
+        cost += buyPx(p); pr += sellPx(sp) - buyPx(p); p *= 1 + IMP_BUY; sp *= 1 - IMP_SELL; q++;
+      }
+      if (q > 0) { buys.push({ g: c.g.id, q }); profit += pr; money -= cost; space -= q * c.g.vol; }
+    }
+    const score = (profit - d * LODGING) / d;
+    if (!bestP || score > bestP.score) bestP = { dest: t.id, buys, score, d };
+  }
+  return bestP && bestP.score > 3 ? bestP : null;
+}
+function autoTick() {
+  if (!window.tgAuto) { AUTO.plan = null; return; }
+  if (AUTO.wait > 0) { AUTO.wait--; return; }
+  if (UI.screen === 'title') { act('start'); return; }
+  if (UI.screen === 'result') { if (!AUTO.resultAt) AUTO.resultAt = Date.now(); else if (Date.now() - AUTO.resultAt > 6000) { AUTO.resultAt = 0; act('start'); } return; }
+  if (UI.modal) { UI.modal = null; render(); return; }
+  const here = G.town, left = MAX_DAY - G.day;
+  // 1. 着いた町では、儲かる荷・行き先にしていた荷を売る
+  for (const [g, h] of Object.entries(G.hold)) {
+    const gain = sellPx(G.price[here][g]) * h.n - h.cost;
+    const bestElse = Math.max(...TOWNS.filter(t => t.id !== here && DIST[here][t.id] <= left).map(t => sellPx(G.known[t.id][g].p)), 0);
+    if ((AUTO.plan && AUTO.plan.dest === here) || gain > 0 || left <= 1 || sellPx(G.price[here][g]) >= bestElse * .92) {
+      UI.tab = 'market'; sell(g, h.n); render(); return;
+    }
+  }
+  if (AUTO.plan && AUTO.plan.dest === here) AUTO.plan = null;
+  // 2. 借金は早めに返す
+  if (G.debt && G.money > G.debt * 2) { repay(); return; }
+  // 3. 余裕があれば荷を増やす
+  const nx = CARTS[G.cart + 1];
+  if (nx && G.money > nx.cost * 2.2 && left > 12) { UI.tab = 'shop'; buyCart(); return; }
+  // 4. 計画を立てて仕入れる
+  if (!AUTO.plan) {
+    if (G.day > 1 && (G.day - G.known[TOWNS.find(t => t.id !== here).id].kome.day) > 8 && G.money > 300) { buyNews(); return; }
+    AUTO.plan = autoPlan();
+    if (!AUTO.plan) { if (left <= 0) { endGame(); return; } UI.tab = 'market'; rest(); return; }
+    UI.tab = 'travel'; UI.sel = AUTO.plan.dest; render(); AUTO.wait = 1; return;
+  }
+  const b = AUTO.plan.buys.shift();
+  if (b) {
+    const q = Math.min(b.q, tradeMax('buy', b.g));
+    UI.tab = 'market'; render();
+    if (q > 0) { buy(b.g, q); render(); }
+    return;
+  }
+  // 5. 高い荷を運ぶなら用心棒
+  if (G.guard < AUTO.plan.d && cargoValue() > 400 && G.money > GUARD_COST * 3) { hireGuard(); return; }
+  const dest = AUTO.plan.dest;
+  UI.tab = 'travel'; UI.sel = dest;
+  if (!travel(dest)) { AUTO.plan = null; render(); }
+  AUTO.wait = 2;
+}
+setInterval(autoTick, 700);
+
+render();
+</script>
+<a class="tg-back" href="index.html" aria-label="ゲーム一覧にもどる">← 一覧</a>
+<style>
+.tg-back{position:fixed;z-index:2147483647;top:calc(8px + env(safe-area-inset-top,0px));left:calc(8px + env(safe-area-inset-left,0px));
+  display:inline-block;margin:0;padding:6px 12px;border-radius:999px;background:rgba(12,14,24,.72);color:#fff;
+  font:700 13px/1.2 "Hiragino Sans","Yu Gothic",sans-serif;letter-spacing:0;text-decoration:none;border:1px solid rgba(255,255,255,.35);
+  -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);-webkit-tap-highlight-color:transparent}
+.tg-back:hover{background:rgba(12,14,24,.9)}
+.tg-back:focus-visible{outline:2px solid #fff;outline-offset:2px}
+</style>
+<button class="tg-auto" type="button" aria-pressed="false" aria-label="オートプレイ">AUTO</button>
+<style>
+.tg-auto{position:fixed;z-index:2147483647;top:calc(8px + env(safe-area-inset-top,0px));left:calc(88px + env(safe-area-inset-left,0px));
+  display:inline-block;margin:0;padding:6px 12px;border-radius:999px;background:rgba(12,14,24,.72);color:#fff;cursor:pointer;
+  font:700 13px/1.2 "Hiragino Sans","Yu Gothic",sans-serif;letter-spacing:.06em;border:1px solid rgba(255,255,255,.35);box-shadow:none;
+  -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);-webkit-tap-highlight-color:transparent;transform:none}
+.tg-auto.tg-inline{position:static;flex:none}
+.tg-auto[aria-pressed="true"]{background:#f5c518;color:#1a1400;border-color:#f5c518;animation:tg-auto-pulse 1.2s ease-in-out infinite alternate}
+.tg-auto:focus-visible{outline:2px solid #fff;outline-offset:2px}
+@keyframes tg-auto-pulse{to{box-shadow:0 0 12px rgba(245,197,24,.8)}}
+@media (prefers-reduced-motion:reduce){.tg-auto[aria-pressed="true"]{animation:none}}
+</style>
+<script>
+(function(){
+  window.tgAuto = false;
+  var b = document.querySelector('.tg-auto');
+  if (!b) return;
+  var stop = function(e){ e.stopPropagation(); };
+  ['pointerdown','pointerup','mousedown','touchstart','keydown'].forEach(function(t){ b.addEventListener(t, stop); });
+  b.addEventListener('click', function(e){
+    e.stopPropagation();
+    window.tgAuto = !window.tgAuto;
+    b.setAttribute('aria-pressed', String(window.tgAuto));
+    b.textContent = window.tgAuto ? 'AUTO ON' : 'AUTO';
+    b.blur();
+    window.dispatchEvent(new Event('tgauto'));
+  });
+})();
+</script>
+<button class="tg-snd" type="button" aria-pressed="true" aria-label="音のオンオフ">音：ON</button>
+<style>
+.tg-snd{position:fixed;z-index:2147483647;top:calc(8px + env(safe-area-inset-top,0px));left:calc(186px + env(safe-area-inset-left,0px));
+  display:inline-block;margin:0;padding:6px 12px;border-radius:999px;background:rgba(12,14,24,.72);color:#fff;cursor:pointer;
+  font:700 13px/1.2 "Hiragino Sans","Yu Gothic",sans-serif;letter-spacing:0;border:1px solid rgba(255,255,255,.35);box-shadow:none;
+  -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);-webkit-tap-highlight-color:transparent;transform:none}
+.tg-snd[aria-pressed="false"]{color:rgba(255,255,255,.6)}
+.tg-snd:focus-visible{outline:2px solid #fff;outline-offset:2px}
+</style>
+<script>
+/* ---------- 共通の効果音（Web Audioで合成） ---------- */
+window.tgSound = (function(){
+  var AC = null, noiseBuf = null, on = true, last = {};
+  try { on = localStorage.getItem('tg_sound') !== '0'; } catch (e) {}
+  function ctx(){
+    if (!AC) {
+      try {
+        AC = new (window.AudioContext || window.webkitAudioContext)();
+        noiseBuf = AC.createBuffer(1, AC.sampleRate, AC.sampleRate);
+        var d = noiseBuf.getChannelData(0); for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      } catch (e) { AC = null; }
+    }
+    if (AC && AC.state === 'suspended') AC.resume();
+    return AC;
+  }
+  function tone(f, dur, type, vol, slide, delay){
+    var t = AC.currentTime + (delay || 0), o = AC.createOscillator(), g = AC.createGain();
+    o.type = type || 'triangle'; o.frequency.setValueAtTime(f, t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, f * slide), t + dur);
+    g.gain.setValueAtTime(vol || .08, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + dur + .03);
+  }
+  function noise(dur, vol, freq, delay, kind){
+    var t = AC.currentTime + (delay || 0), s = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain();
+    s.buffer = noiseBuf; f.type = kind || 'bandpass'; f.frequency.value = freq || 1000; f.Q.value = 1;
+    g.gain.setValueAtTime(vol || .1, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    s.connect(f); f.connect(g); g.connect(AC.destination); s.start(t); s.stop(t + dur + .03);
+  }
+  function arp(fs, step, type, vol, dur){ fs.forEach(function(f, i){ tone(f, dur || .22, type, vol, 0, i * step); }); }
+  var LIB = {
+    click:  function(){ tone(900, .05, 'square', .03); },
+    pick:   function(){ tone(660, .06, 'triangle', .07); tone(990, .08, 'triangle', .06, 0, .05); },
+    unpick: function(){ tone(520, .08, 'triangle', .06, .7); },
+    tick:   function(){ tone(1500 + Math.random() * 300, .025, 'square', .025); },
+    land:   function(){ tone(784, .09, 'square', .05); tone(1175, .18, 'square', .05, 0, .07); },
+    start:  function(){ arp([392, 523, 659], .09, 'square', .05, .18); },
+    shot:   function(){ tone(1200, .07, 'square', .025, .45); },
+    shotFoe:function(){ tone(700, .08, 'square', .02, .5); },
+    slash:  function(){ noise(.12, .12, 2600, 0, 'highpass'); tone(500, .1, 'sawtooth', .03, .5); },
+    dash:   function(){ noise(.2, .1, 800, 0, 'bandpass'); tone(200, .2, 'sine', .06, 2.2); },
+    charge: function(){ tone(200, .7, 'sawtooth', .05, 4); },
+    beam:   function(){ noise(.5, .2, 500, 0, 'lowpass'); tone(90, .5, 'sawtooth', .08, .5); },
+    hit:    function(){ noise(.09, .14, 900, 0, 'lowpass'); tone(160, .08, 'square', .04, .6); },
+    big:    function(){ noise(.3, .22, 400, 0, 'lowpass'); tone(110, .3, 'sawtooth', .07, .5); },
+    heal:   function(){ arp([784, 988, 1319], .06, 'sine', .06, .2); },
+    miss:   function(){ noise(.15, .06, 3000, 0, 'highpass'); },
+    good:   function(){ arp([659, 784, 1047], .08, 'triangle', .07, .25); },
+    bad:    function(){ tone(330, .25, 'triangle', .07, .75); tone(247, .35, 'triangle', .06, .8, .18); },
+    win:    function(){ arp([523, 659, 784, 1047, 1319], .1, 'square', .045, .28); },
+    lose:   function(){ arp([392, 330, 262, 196], .22, 'triangle', .08, .4); },
+    splash: function(){ noise(.35, .18, 700, 0, 'lowpass'); noise(.2, .08, 2400, .05, 'bandpass'); },
+    bubble: function(){ tone(250 + Math.random() * 250, .07, 'sine', .04, 1.8); },
+    slurp:  function(){ noise(.5, .12, 1400, 0, 'bandpass'); noise(.3, .08, 900, .55, 'bandpass'); },
+    coin:   function(){ tone(988, .06, 'square', .04); tone(1319, .14, 'square', .04, 0, .06); },
+    summon: function(){ tone(130, 1, 'sawtooth', .05, 3); arp([523, 784, 1047, 1568], .12, 'sine', .07, .5); },
+    evolve: function(){ arp([523, 659, 784, 1047, 784, 1047, 1319, 1568], .07, 'triangle', .06, .3); },
+    fuse:   function(){ tone(110, 1.1, 'sawtooth', .06, 2.5); noise(.9, .1, 300, .2, 'lowpass'); arp([659, 880, 1319], .12, 'sine', .07, .4); }
+  };
+  function play(name){
+    if (!on || !LIB[name]) return;
+    var now = performance.now();
+    if (last[name] && now - last[name] < 55) return;
+    last[name] = now;
+    if (!ctx()) return;
+    try { LIB[name](); } catch (e) {}
+  }
+  var btn = document.querySelector('.tg-snd');
+  function sync(){ if (btn) { btn.textContent = on ? '音：ON' : '音：OFF'; btn.setAttribute('aria-pressed', String(on)); } }
+  if (btn) {
+    ['pointerdown','pointerup','mousedown','touchstart','keydown'].forEach(function(t){ btn.addEventListener(t, function(e){ e.stopPropagation(); }); });
+    btn.addEventListener('click', function(e){
+      e.stopPropagation(); on = !on; sync(); btn.blur();
+      try { localStorage.setItem('tg_sound', on ? '1' : '0'); } catch (err) {}
+      if (on) { ctx(); play('pick'); }
+    });
+  }
+  sync();
+  // ブラウザは最初の操作まで音を出せないので、最初のタップで準備する
+  window.addEventListener('pointerdown', function(){ if (on) ctx(); }, { once: true, capture: true });
+  return { play: play };
+})();
+</script>
+<style>
+.tg-bar{position:fixed;z-index:2147483647;top:calc(8px + env(safe-area-inset-top,0px));left:calc(8px + env(safe-area-inset-left,0px));display:flex;gap:8px;align-items:center;pointer-events:none}
+.tg-bar>*{position:static!important;pointer-events:auto}
+</style>
+<script>
+(function(){
+  var bar=document.createElement('div'); bar.className='tg-bar'; document.body.appendChild(bar);
+  document.querySelectorAll('.tg-back:not(.tg-inline),.tg-auto:not(.tg-inline),.tg-snd').forEach(function(el){ bar.appendChild(el); });
+})();
+</script>
+</body>
+</html>
