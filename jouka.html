@@ -872,7 +872,7 @@ function drawTitleArt(){
  for(const lx of [.12,.88]){const X=W*lx;g.fillStyle='#120a14';g.fillRect(X-1.5,hz-80,3,90);const lg=g.createRadialGradient(X,hz-80,2,X,hz-80,50);lg.addColorStop(0,'rgba(255,230,170,.75)');lg.addColorStop(1,'rgba(255,230,170,0)');g.fillStyle=lg;g.fillRect(X-50,hz-130,100,100);g.fillStyle='#fff3c0';g.fillRect(X-5,hz-82,10,3);}
  const base=H*.82;
  const ch=(x,y,s,lk,rim)=>{g.fillStyle='rgba(0,0,0,.45)';g.beginPath();g.ellipse(x,y+2,14*s,3.5*s,0,0,7);g.fill();g.save();g.shadowColor=rim;g.shadowBlur=18;drawChar(g,x,y,s,lk);g.restore();};
- ch(W*.2,base,4.2,CH.tetsuo.look,'rgba(255,90,90,.85)');ch(W*.8,base,4.2,CH.ocho.look,'rgba(220,110,255,.85)');
+ ch(W*.2,base,4.2,CH.hachi.look,'rgba(255,90,90,.85)');ch(W*.8,base,4.2,CH.aoi.look,'rgba(255,150,200,.9)');
  const hg=g.createRadialGradient(W*.5,base-60,10,W*.5,base-60,120);hg.addColorStop(0,'rgba(140,230,255,.45)');hg.addColorStop(1,'rgba(140,230,255,0)');g.fillStyle=hg;g.fillRect(0,base-200,W,240);
  ch(W*.5,base+14,5.2,CH.hero.look,'rgba(140,230,255,.95)');
  for(let i=0;i<14;i++)sparkle(g,W*.5+(R()-.5)*200,base-90+(R()-.5)*150,3+R()*7,R(),i%3?'#fff':'#bff4ff');
