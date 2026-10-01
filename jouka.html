@@ -203,6 +203,8 @@ const L=(g,hair,hc,outfit,oc,acc=[],x={})=>Object.assign({g,hair,hc,outfit,oc,ac
 // st/gr: [やる気,MP,説得力,メンタル,素早さ]
 const CH={
  hero:{n:'正',full:'清水 正',title:'転校生',look:L('m','sara','#c9ab74','gakuran','#1d2446',['hglasses'],{good:true,hero:true}),st:[36,10,9,7,7],gr:[8,3,2.3,1.7,1.3]},
+ hachi:{n:'ハチ',en:'狂犬ハチ',title:'子分',s:0,fixed:true,look:L('m','wolf','#d9dde2','longran','#5a1626',['bandaid','fang','chain']),ref:L('m','wolf','#d9dde2','gakuran','#3a1830',['bandaid','fang'],{good:true}),st:[30,6,9,6,8],gr:[8,2,2.4,1.7,1.5],sk:['chuken','kabau'],acts:['menchi','kamitsuki'],
+  line:'アニキ！ この犬塚ハチ、一生ついていきやす！ 何でも命令してくだせえ！'},
  komori:{n:'小森',en:'パシリ',title:'図書委員',s:0,look:L('m','short','#8a5a2b','longran','#2a2a2a'),st:[22,8,6,4,9],gr:[6,3,1.8,1.3,1.6],sk:['kobai'],acts:['menchi','saboru'],
   line:'オレ、ずっとパシリで…誰かに頼られたの初めてっす！ 小森っす、よろしくっす！'},
  banda:{n:'番田',en:'口だけヤンキー',title:'放送委員',s:0,look:L('m','regent','#c98a2a','longran','#222',['sun']),st:[26,6,8,5,6],gr:[7,2,2.1,1.5,1.2],sk:['housou'],acts:['menchi','katsuage'],
@@ -236,7 +238,7 @@ const CH={
  tenma:{n:'テンマ',en:'総番長 覇王寺テンマ',title:'生徒会長',s:3,boss:true,bhp:4.2,look:L('m','long','#e8c34a','longran','#5a0a0a',[],{big:true}),st:[40,20,13,8,10],gr:[10,5,2.9,2.0,1.7],sk:['chorei'],acts:['haou','tekken','iatsu','zenkai'],
   line:'生徒会、やってみるか。この町の、全員で。'},
 };
-const RECRUITS=['komori','banda','mika','gonta','tetsuo','shinji','akemi','jin','yuri','saki','kenji','ocho','gou','reiko','kiba','tenma'];
+const RECRUITS=['hachi','komori','banda','mika','gonta','tetsuo','shinji','akemi','jin','yuri','saki','kenji','ocho','gou','reiko','kiba','tenma'];
 const HERO_LEARN=[[1,'study'],[2,'bento'],[4,'shido'],[6,'seiron'],[10,'hr'],[15,'yuujou']];
 const SK={
  study:{name:'勉強を教える',mp:3,tg:'enemies',ef:'dmg',pw:0.7,d:'敵全体のグレ度を下げる',say:'{a}は勉強を教えた！ わかりやすい！'},
@@ -248,6 +250,7 @@ const SK={
  kobai:{name:'購買ダッシュ',mp:3,tg:'ally',ef:'heal',h:[30,5],d:'味方1人のやる気を回復',say:'{a}は購買にダッシュしてパンを買ってきた！'},
  housou:{name:'校内放送',mp:5,tg:'enemies',ef:'atkdn',d:'敵全体の攻撃力を下げる',say:'{a}の校内放送！「落ち着いて行動しましょう」'},
  bansho:{name:'丁寧な板書',mp:5,tg:'enemies',ef:'dmg',pw:0.95,d:'敵全体のグレ度を下げる',say:'{a}は丁寧な板書で説明した！'},
+ chuken:{name:'忠犬突撃',mp:3,tg:'enemy',ef:'dmg',pw:1.5,d:'敵1人にダメージ',say:'{a}「アニキの敵はオレの敵だァ！」 忠犬突撃！'},
  kabau:{name:'かばう',mp:2,tg:'self',ef:'protect',d:'このターン仲間への攻撃を引き受ける',say:'{a}は仲間の前に立ちはだかった！'},
  houki:{name:'ほうき一閃',mp:4,tg:'enemy',ef:'dmg',pw:1.8,d:'敵1人に大ダメージ',say:'{a}のほうき一閃！ 心のホコリを払う！'},
  anzen:{name:'安全運転講習',mp:4,tg:'enemy',ef:'stun',d:'敵1人を1回休みにする',say:'{a}は安全運転講習を始めた！'},
@@ -264,6 +267,7 @@ const SK={
 };
 const AC={
  menchi:{ty:'atk',pw:1.0,say:'{a}はメンチを切った！'},
+ kamitsuki:{ty:'atk',pw:1.2,say:'{a}は噛みつく勢いで食ってかかった！'},
  saboru:{ty:'stun',say:'{a}「授業なんてサボっちまえよ…」'},
  katsuage:{ty:'steal',pw:0.8,say:'{a}はカツアゲしてきた！'},
  bike:{ty:'atk',pw:1.45,say:'{a}はバイクで突っ込んできた！'},
@@ -334,7 +338,7 @@ function reformLook(l){
  if(weapon)r.acc.push('book');
  return r;
 }
-function lookOf(id,ref){if(id==='hero'||!ref)return CH[id].look;return refCache[id]||(refCache[id]=reformLook(CH[id].look));}
+function lookOf(id,ref){if(id==='hero'||!ref)return CH[id].look;if(CH[id].ref)return CH[id].ref;return refCache[id]||(refCache[id]=reformLook(CH[id].look));}
 function drawChar(g,x,y,s,lk,dir=0,walk=0){
  g.save();g.translate(x,y);
  const sx=s*(lk.big?1.22:1)*(lk.small?0.8:1)*(lk.hero?.97:1), sy=s*(lk.big?1.08:1)*(lk.small?0.78:1)*(lk.hero?1.07:1);
@@ -435,6 +439,13 @@ function drawChar(g,x,y,s,lk,dir=0,walk=0){
   case 'bob':cap();g.fillRect(-4.8,-24.3,9.6,1.5);g.fillRect(-5.4,-23,1.8,5.6);g.fillRect(3.6,-23,1.8,5.6);break;
   case 'braids':cap();g.fillRect(-4.8,-24.3,9.6,1.4);sides(2.5);for(let i=0;i<4;i++){circ(g,-4.9,-18.6+i*1.9,1.05);circ(g,4.9,-18.6+i*1.9,1.05);}g.fillStyle='#d8313b';g.fillRect(-5.6,-11.7,1.4,.8);g.fillRect(4.2,-11.7,1.4,.8);break;
   case 'pony':cap();sides(2.4);g.fillRect(-4.6,-24.1,9.2,1.3);break;
+  case 'wolf':{const tip='#8a9099';
+   cap();g.beginPath();g.moveTo(-5.4,-22);g.lineTo(-7.2,-24.6);g.lineTo(-5,-25.2);g.lineTo(-5.6,-28.4);g.lineTo(-2.6,-26.6);g.lineTo(-1.4,-30.2);g.lineTo(0.6,-27);g.lineTo(2.8,-29.8);g.lineTo(3.2,-26.4);g.lineTo(6.4,-27.6);g.lineTo(5.2,-24.6);g.lineTo(7.4,-23.4);g.lineTo(5.4,-22);g.closePath();g.fill();
+   g.beginPath();g.moveTo(-5.2,-22.6);g.lineTo(-6.2,-17.6);g.lineTo(-4.4,-19.8);g.lineTo(-4.2,-22);g.closePath();g.fill();g.beginPath();g.moveTo(5.2,-22.6);g.lineTo(6.2,-17.8);g.lineTo(4.4,-19.8);g.lineTo(4.2,-22);g.closePath();g.fill();
+   if(dir!==1){g.beginPath();g.moveTo(-4.8,-23.4);g.lineTo(-3.4,-21.2);g.lineTo(-2.4,-23.4);g.lineTo(-1.2,-21.6);g.lineTo(0,-23.6);g.lineTo(1.4,-21.4);g.lineTo(2.4,-23.4);g.lineTo(3.6,-21.8);g.lineTo(4.8,-23.4);g.lineTo(4.4,-24.6);g.lineTo(-4.4,-24.6);g.closePath();g.fill();}
+   else{g.beginPath();g.moveTo(-4.6,-19);g.lineTo(-3.4,-16.4);g.lineTo(-1.8,-18.6);g.lineTo(0,-15.8);g.lineTo(1.8,-18.6);g.lineTo(3.4,-16.4);g.lineTo(4.6,-19);g.lineTo(4.6,-22);g.lineTo(-4.6,-22);g.closePath();g.fill();}
+   g.strokeStyle=tip;g.lineWidth=.4;g.beginPath();g.moveTo(-5,-25.2);g.lineTo(-3.2,-24.6);g.moveTo(-2.6,-26.6);g.lineTo(-1.6,-25.2);g.moveTo(0.6,-27);g.lineTo(1,-25.2);g.moveTo(3.2,-26.4);g.lineTo(3.4,-25);g.moveTo(5.2,-24.6);g.lineTo(4.4,-24);g.stroke();
+   g.strokeStyle='rgba(255,255,255,.6)';g.lineWidth=.35;g.beginPath();g.moveTo(-3.6,-26);g.lineTo(-1.6,-28.4);g.moveTo(1,-26.4);g.lineTo(2.4,-28.4);g.stroke();break;}
   case 'sara':{
    const P=(pts)=>{g.beginPath();g.moveTo(pts[0],pts[1]);for(let i=2;i<pts.length;i+=2)g.lineTo(pts[i],pts[i+1]);g.closePath();g.fill();};
    const dk=lerpC(hc,'#7a5a34',.6),md=hc,hi=lerpC(hc,'#ffffff',.65);
@@ -460,6 +471,8 @@ function drawChar(g,x,y,s,lk,dir=0,walk=0){
  if(dir!==1){
   for(const a of acc){
    if(a==='sun'){g.fillStyle='#111';rr(g,fx-4.3,-22,8.6,2.3,.8);g.fillStyle='rgba(255,255,255,.35)';g.fillRect(fx-3.4,-21.7,1.6,.5);}
+   if(a==='bandaid'){g.fillStyle='#f3d2a0';g.save();g.translate(fx,-20.2);g.rotate(-.12);rr(g,-2.2,-.55,4.4,1.1,.4);g.fillStyle='#e8bc82';g.fillRect(-.7,-.55,1.4,1.1);g.fillStyle='rgba(150,100,60,.5)';g.fillRect(-1.7,-.2,.25,.25);g.fillRect(1.4,-.2,.25,.25);g.restore();}
+   if(a==='fang'){g.fillStyle='#fff';g.beginPath();g.moveTo(fx+.4,-18.85);g.lineTo(fx+1.2,-18.85);g.lineTo(fx+.8,-18.05);g.closePath();g.fill();}
    if(a==='hglasses'){g.fillStyle='rgba(170,220,255,.08)';g.fillRect(fx-3.6,-22.1,3.1,2.1);g.fillRect(fx+.5,-22.1,3.1,2.1);g.strokeStyle='#1c2036';g.lineWidth=.5;g.beginPath();g.moveTo(fx-3.7,-22.1);g.lineTo(fx-.5,-22.1);g.moveTo(fx+.5,-22.1);g.lineTo(fx+3.7,-22.1);g.stroke();g.strokeStyle='rgba(60,70,100,.7)';g.lineWidth=.2;g.strokeRect(fx-3.6,-22.1,3.1,2.1);g.strokeRect(fx+.5,-22.1,3.1,2.1);g.strokeStyle='#1c2036';g.lineWidth=.3;g.beginPath();g.moveTo(fx-.5,-21.8);g.lineTo(fx+.5,-21.8);g.stroke();
     g.strokeStyle='rgba(255,255,255,.9)';g.lineWidth=.3;g.beginPath();g.moveTo(fx-3.3,-20.2);g.lineTo(fx-2.8,-21.1);g.moveTo(fx+.8,-20.2);g.lineTo(fx+1.3,-21.1);g.stroke();}
    if(a==='glasses'){g.strokeStyle='#2c2c2c';g.lineWidth=.45;g.beginPath();g.arc(fx-1.8,-20.8,1.35,0,Math.PI*2);g.moveTo(fx+3.15,-20.8);g.arc(fx+1.8,-20.8,1.35,0,Math.PI*2);g.moveTo(fx-.45,-20.9);g.lineTo(fx+.45,-20.9);g.stroke();}
@@ -970,6 +983,16 @@ async function bossEvent(i){
  saveGame();toast('オートセーブしました');
  if(purCount()>=4)await ending();
 }
+async function hachiEvent(){
+ await say([['？？？','おいテメェ！ 見ねえ顔だな。ここらは「狂犬ハチ」様のシマだぜ！'],['正','…ほう、ちょうどいい。俺の帝国の、最初の配下を探していたところだ。'],['ハチ','ああん!? ナメてんのか！ かかってこいや！']]);
+ let res;
+ do{res=await runBattle([{cid:'hachi',lv:1}],{school:0,bg:'town',noRun:true,noRecruit:true});
+  if(res!=='win'){healAll();updateHUD();await say([['ハチ','へっ、口ほどにもねえ…って、まだ立つのかよ!?'],['正','（…今のは様子見だ。次で決める）']]);}
+ }while(res!=='win');
+ await say([['ハチ','つ、強え…。説教って、こんなに胸に響くもんなのか…！'],['ハチ','アニキ！ オレを子分にしてくだせえ！'],['正','フッ…いいだろう。今日からお前は、俺の子分だ。']]);
+ await recruitPopup('hachi',true,1);
+ await say([['','グレ度を0にして更生させた不良は、こうして仲間になることがある。'],['','ハチは「子分」。控えに回ることなく、いつでも一緒に戦ってくれる。'],['正','さあ行くぞ、ハチ。まずは弱木高校だ。'],['ハチ','へい、アニキ！']]);
+}
 async function intro(){
  await say([['','ここは荒川市。日本一荒れた高校が4つも集まる、通称「不良シティー」。'],['正','荒川市…噂以上に薄汚れた街だ。だが、だからこそ手に入れる価値がある。'],['正','校則も、規律も、正しさも――すべて俺の武器だ。'],['正','この薄汚い街を浄化し、俺の帝国を築き上げてやる。手始めは、最弱の弱木高校からだ。'],['','目標：町の不良たちを更生させ、「優等生の町」にしよう！'],['','まずは北西の弱木高校へ。左の「わが家」で休憩とセーブができるよ。']]);
 }
@@ -1020,7 +1043,7 @@ async function pickAction(a,canBack,resv){
  if(window.tgAuto)return autoAct(a,resv);
  while(true){
   setPrompt(`${a.name}はどうする？`);
-  const c=await cmdChoose([{label:'説教',v:'atk'},{label:'スキル',v:'sk'},{label:'道具',v:'it'},{label:'防御',v:'gd'},{label:'逃げる',v:'run',dis:B.o.boss}],canBack);
+  const c=await cmdChoose([{label:'説教',v:'atk'},{label:'スキル',v:'sk'},{label:'道具',v:'it'},{label:'防御',v:'gd'},{label:'逃げる',v:'run',dis:B.o.boss||B.o.noRun}],canBack);
   if(c==='__back')return 'back';
   if(c==='atk'){const t=await pickEnemy();if(t==='__back')continue;return {ty:'atk',t};}
   if(c==='sk'){const sks=skillsOf(a.m);if(!sks.length)continue;setPrompt(`${a.name}のスキル（MP ${a.mp}）`);const s=await cmdChoose(sks.map(id=>({label:SK[id].name,sub:`MP${SK[id].mp}・${SK[id].d}`,v:id,dis:a.mp<SK[id].mp})),true);if(s==='__back')continue;const sk=SK[s];let t=null;
@@ -1239,7 +1262,7 @@ async function runBattle(list,o={}){
   await bmsg(o.boss?`${en[0].name}を更生させた！`:'不良たちを全員更生させた！',800);
   await bmsg(`経験値${exp}と、${gold}円を手に入れた！`,1000);
   for(const id of Object.keys(S.members)){const m=S.members[id];const inP=S.party.includes(id);const msgs=gainExp(m,inP?exp:Math.floor(exp/2));if(inP)for(const t of msgs)await bmsg(t,1000);}
-  if(!o.boss){const done=new Set();for(const e of en){if(done.has(e.cid)||S.members[e.cid])continue;done.add(e.cid);if(chance(0.35))await recruitPopup(e.cid,false,e.lv);}}
+  if(!o.boss&&!o.noRecruit){const done=new Set();for(const e of en){if(done.has(e.cid)||S.members[e.cid])continue;done.add(e.cid);if(chance(0.35))await recruitPopup(e.cid,false,e.lv);}}
  }else if(result==='lose'){snd('lose');await bmsg('みんなの心が折れてしまった…',1400);}
  await fadeTo(1);
  $('battle').classList.add('hidden');B=null;msgSkip=null;mode='map';updateHUD();
@@ -1307,7 +1330,7 @@ function menuMember(id){
  const p=panel(`<div class="ph"><b>${c.title}の${c.n}</b><span>Lv${m.lv}</span></div><div style="display:flex;gap:12px;align-items:center"><div id="mp1"></div><div style="flex:1;font-size:13px;line-height:1.6">次のレベルまで ${nextExp(m.lv)-m.exp}<br>${Object.entries(m.eq).map(([k,v])=>`${SLOT[k]}：${v?EQ[v].name:'なし'}`).join('<br>')}</div></div>
  <div class="stats">${['hp','mp','atk','def','spd'].map(k=>`<div><span>${STN[k]}</span><span>${k==='hp'?m.hp+'/'+s.hp:k==='mp'?m.mp+'/'+s.mp:s[k]}</span></div>`).join('')}</div>
  <div class="sklist"><b>スキル</b><br>${sks.map(k=>`・${SK[k].name}（MP${SK[k].mp}）${SK[k].d}`).join('<br>')||'なし'}</div>
- ${id==='hero'?'':`<button class="pbtn" id="ptog">${inp?'控えにする':'パーティに入れる'}</button>`}<button class="pbtn sub" id="mback">もどる</button>`);
+ ${id==='hero'||c.fixed?'':`<button class="pbtn" id="ptog">${inp?'控えにする':'パーティに入れる'}</button>`}<button class="pbtn sub" id="mback">もどる</button>`);
  const a=document.createElement('div');a.style.display='flex';a.style.gap='6px';if(id!=='hero'){const w=document.createElement('div');w.style.textAlign='center';w.style.fontSize='10px';w.style.color='#999';w.appendChild(portrait(id,false,60,80,2.3));w.append('不良時代');a.appendChild(w);}const w2=document.createElement('div');w2.style.textAlign='center';w2.style.fontSize='10px';w2.style.color='#7fe3ff';w2.appendChild(portrait(id,true,60,80,2.3));w2.append(id==='hero'?'':'いま');a.appendChild(w2);$('mp1').appendChild(a);
  if($('ptog'))$('ptog').onclick=()=>{if(inp){S.party=S.party.filter(x=>x!==id);}else{if(S.party.length>=4){toast('パーティは4人までだよ');return;}S.party.push(id);}resetTrail();menuMember(id);};
  $('mback').onclick=menuParty;
@@ -1382,7 +1405,7 @@ $('bLoad').onclick=async()=>{const d=loadGame();if(!d)return;S=d;S.seen=S.seen||
 async function startGame(loaded){
  mode='map';busy=true;mv=null;resetTrail();grace=6;updateHUD();
  await fadeTo(1);await fadeTo(0);
- if(!loaded)await intro();else toast('つづきから');
+ if(!loaded){await intro();await hachiEvent();}else toast('つづきから');
  busy=false;
 }
 function loop(now){
