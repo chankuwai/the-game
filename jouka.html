@@ -242,6 +242,27 @@ const CH={
 };
 const RECRUITS=['hachi','aoi','komori','banda','mika','gonta','tetsuo','shinji','akemi','jin','yuri','saki','kenji','ocho','gou','reiko','kiba','tenma'];
 const HERO_LEARN=[[1,'study'],[2,'bento'],[4,'shido'],[6,'seiron'],[10,'hr'],[15,'yuujou']];
+/* 仲間がレベルで覚えるスキル */
+const LEARN={
+ hachi:[[4,'tooboe'],[8,'renda'],[14,'aniki']],
+ aoi:[[3,'ocha'],[6,'ouen'],[9,'hoken'],[15,'hohoemi']],
+ komori:[[4,'ocha'],[8,'hon'],[13,'bansho']],
+ banda:[[5,'ouen'],[10,'dj'],[15,'seiron']],
+ mika:[[5,'kobai'],[9,'seiron'],[14,'midare']],
+ gonta:[[7,'taisou'],[10,'ouen'],[15,'tackle']],
+ tetsuo:[[9,'zoukin'],[13,'kabau'],[18,'oosouji']],
+ shinji:[[9,'aisatsu'],[13,'ouen'],[18,'yuujou']],
+ akemi:[[10,'bento'],[14,'ouen'],[19,'gasshou']],
+ jin:[[12,'anzen'],[16,'seiron'],[21,'hr']],
+ yuri:[[12,'harmony'],[16,'hoken'],[20,'chakai']],
+ saki:[[13,'bento'],[17,'harmony'],[21,'chakai']],
+ kenji:[[13,'aisatsu'],[17,'fukuso'],[22,'shomei']],
+ ocho:[[17,'men'],[21,'ouen'],[25,'yuujou']],
+ gou:[[16,'kabau'],[20,'tackle'],[25,'chorei']],
+ reiko:[[16,'study'],[20,'housou'],[25,'hr']],
+ kiba:[[16,'tooboe'],[21,'renda'],[26,'yuujou']],
+ tenma:[[23,'ouen'],[27,'yuujou'],[32,'haou']],
+};
 const SK={
  study:{name:'勉強を教える',mp:3,tg:'enemies',ef:'dmg',pw:0.7,d:'敵全体のグレ度を下げる',say:'{a}は勉強を教えた！ わかりやすい！'},
  bento:{name:'弁当を分ける',mp:4,tg:'ally',ef:'heal',h:[25,6],d:'味方1人のやる気を回復',say:'{a}は手作り弁当を分けた！'},
@@ -266,6 +287,21 @@ const SK={
  shomei:{name:'完璧な証明',mp:10,tg:'enemy',ef:'dmg',pw:2.6,d:'敵1人に特大ダメージ',say:'{a}は完璧な証明を書き上げた！ Q.E.D.！'},
  aisatsu:{name:'すばやい挨拶',mp:4,tg:'enemy',ef:'multi',pw:0.95,n:2,d:'敵1人に2回攻撃',say:'{a}はすばやく挨拶した！「おはようございます！」'},
  chorei:{name:'全校朝礼',mp:10,tg:'enemies',ef:'dmg',pw:1.5,d:'敵全体に大ダメージ',say:'{a}の全校朝礼！ ありがたい話が響き渡る！'},
+ ouen:{name:'応援団エール',mp:6,tg:'allies',ef:'atkup',d:'味方全員の説得力を上げる（3ターン）',say:'{a}「フレー！ フレー！」 全力のエールが響く！'},
+ tooboe:{name:'遠吠え',mp:5,tg:'enemies',ef:'atkdn',d:'敵全体の攻撃力を下げる',say:'{a}は遠吠えした！「ワオォーン！」'},
+ renda:{name:'忠犬連撃',mp:6,tg:'enemy',ef:'multi',pw:0.9,n:3,d:'敵1人に3回攻撃',say:'{a}の怒涛の連撃！'},
+ aniki:{name:'アニキのために',mp:12,tg:'enemy',ef:'dmg',pw:3.0,d:'敵1人に特大ダメージ',say:'{a}「アニキの帝国のためにィ！」 魂の突撃！'},
+ hohoemi:{name:'天使の微笑み',mp:14,tg:'allies',ef:'heal',h:[45,7],d:'味方全員のやる気を大回復',say:'{a}はにっこり微笑んだ！ みんなの心が温かくなる！'},
+ hon:{name:'おすすめの一冊',mp:5,tg:'enemy',ef:'stun',d:'敵1人を1回休みにする',stunMsg:'は本に夢中になっている！',say:'{a}はおすすめの本を差し出した！'},
+ dj:{name:'お昼の放送DJ',mp:9,tg:'enemies',ef:'dmg',pw:1.3,d:'敵全体に大ダメージ',say:'{a}のお昼の放送！ ノリノリのトークが響く！'},
+ taisou:{name:'ラジオ体操',mp:6,tg:'allies',ef:'heal',h:[18,4],d:'味方全員のやる気を回復',say:'{a}の号令でラジオ体操！ 体がほぐれる！'},
+ tackle:{name:'全力タックル',mp:8,tg:'enemy',ef:'dmg',pw:2.4,d:'敵1人に大ダメージ',say:'{a}の全力タックル！ 熱意が真正面からぶつかる！'},
+ zoukin:{name:'雑巾がけダッシュ',mp:6,tg:'enemies',ef:'dmg',pw:1.1,d:'敵全体のグレ度を下げる',say:'{a}は廊下を雑巾がけで駆け抜けた！'},
+ oosouji:{name:'大掃除',mp:12,tg:'enemies',ef:'dmg',pw:1.6,d:'敵全体に特大ダメージ',say:'{a}の大掃除！ 心の汚れまでピカピカだ！'},
+ gasshou:{name:'大合唱',mp:11,tg:'enemies',ef:'dmg',pw:1.5,d:'敵全体に大ダメージ',say:'{a}の指揮で大合唱！ 歌声が胸に響く！'},
+ chakai:{name:'茶会のおもてなし',mp:12,tg:'allies',ef:'heal',h:[35,6],d:'味方全員のやる気を大回復',say:'{a}は野点の茶会を開いた！'},
+ men:{name:'面打ち一本',mp:8,tg:'enemy',ef:'dmg',pw:2.5,d:'敵1人に大ダメージ',say:'{a}「メェェン！」 見事な一本！'},
+ haou:{name:'覇王の改心',mp:16,tg:'enemies',ef:'dmg',pw:2.0,d:'敵全体に特大ダメージ',say:'{a}は覇王の名にかけて頭を下げた！ 誰もが息をのむ！'},
 };
 const AC={
  menchi:{ty:'atk',pw:1.0,say:'{a}はメンチを切った！'},
@@ -321,8 +357,8 @@ function newState(){
 function baseStat(id,lv){const c=CH[id];return c.st.map((b,i)=>Math.round(b+c.gr[i]*(lv-1)));}
 function mStats(m){const [hp,mp,atk,def,spd]=baseStat(m.id,m.lv);const r={hp,mp,atk,def,spd};for(const k of ['w','b','a']){const e=m.eq[k];if(e){const q=EQ[e].st;for(const s in q)r[s]+=q[s];}}return r;}
 function nextExp(lv){return Math.round(8*Math.pow(lv,1.7)+6);}
-function skillsOf(m){if(m.id==='hero')return HERO_LEARN.filter(l=>l[0]<=m.lv).map(l=>l[1]);return CH[m.id].sk||[];}
-function gainExp(m,amt){const out=[];m.exp+=amt;const n=CH[m.id].n;while(m.exp>=nextExp(m.lv)&&m.lv<60){m.exp-=nextExp(m.lv);const b=mStats(m);m.lv++;const a=mStats(m);m.hp+=a.hp-b.hp;m.mp+=a.mp-b.mp;out.push(`${n}はレベル${m.lv}に上がった！`);if(m.id==='hero'){const l=HERO_LEARN.find(x=>x[0]===m.lv);if(l)out.push(`${n}は「${SK[l[1]].name}」を覚えた！`);}}return out;}
+function skillsOf(m){if(m.id==='hero')return HERO_LEARN.filter(l=>l[0]<=m.lv).map(l=>l[1]);return [...(CH[m.id].sk||[]),...(LEARN[m.id]||[]).filter(l=>l[0]<=m.lv).map(l=>l[1])];}
+function gainExp(m,amt){const out=[];m.exp+=amt;const n=CH[m.id].n;while(m.exp>=nextExp(m.lv)&&m.lv<60){m.exp-=nextExp(m.lv);const b=mStats(m);m.lv++;const a=mStats(m);m.hp+=a.hp-b.hp;m.mp+=a.mp-b.mp;out.push(`${n}はレベル${m.lv}に上がった！`);{const l=(m.id==='hero'?HERO_LEARN:(LEARN[m.id]||[])).find(x=>x[0]===m.lv);if(l)out.push(`${n}は「${SK[l[1]].name}」を覚えた！`);}}return out;}
 function purCount(){return S.purified.filter(Boolean).length;}
 function heroLv(){return S.members.hero.lv;}
 function healAll(){for(const id in S.members){const m=S.members[id];const s=mStats(m);m.hp=s.hp;m.mp=s.mp;}}
@@ -1122,8 +1158,9 @@ async function allyAct(a,act){
    case 'revive':{const t=act.t;if(t&&t.hp<=0){t.hp=Math.round(t.max/2);renderParty();await bmsg(`${t.name}は立ち直った！`,600);}else await bmsg('しかし何も起こらなかった。',500);}break;
    case 'atkdn':{const ts=sk.tg==='enemies'?aliveE():[act.t];for(const t of ts){if(!t||t.reformed)continue;t.atkDn=3;await bmsg(`${t.name}の攻撃力が下がった！`,500);}}break;
    case 'atkdef':for(const t of aliveE()){t.atkDn=3;t.defDn=3;}await bmsg('不良たちの攻撃力と守備力が下がった！',650);break;
-   case 'stun':{let t=act.t;if(!t||t.reformed){const es=aliveE();if(!es.length)break;t=pick(es);}if(chance(t.boss?0.4:0.8)){t.stun=1;await bmsg(`${t.name}は講習に聞き入っている！（1回休み）`,700);}else await bmsg(`${t.name}は聞く耳を持たない！`,600);}break;
+   case 'stun':{let t=act.t;if(!t||t.reformed){const es=aliveE();if(!es.length)break;t=pick(es);}if(chance(t.boss?0.4:0.8)){t.stun=1;await bmsg(`${t.name}${sk.stunMsg||'は講習に聞き入っている！'}（1回休み）`,700);}else await bmsg(`${t.name}は聞く耳を持たない！`,600);}break;
    case 'protect':B.protector=a;a.guard=true;break;
+   case 'atkup':for(const t of aliveA())t.atkUp=3;await bmsg('味方全員の説得力が上がった！',600);break;
   }
  }
 }
@@ -1340,7 +1377,7 @@ function menuMember(id){
  const sks=skillsOf(m);
  const p=panel(`<div class="ph"><b>${c.title}の${c.n}</b><span>Lv${m.lv}</span></div><div style="display:flex;gap:12px;align-items:center"><div id="mp1"></div><div style="flex:1;font-size:13px;line-height:1.6">次のレベルまで ${nextExp(m.lv)-m.exp}<br>${Object.entries(m.eq).map(([k,v])=>`${SLOT[k]}：${v?EQ[v].name:'なし'}`).join('<br>')}</div></div>
  <div class="stats">${['hp','mp','atk','def','spd'].map(k=>`<div><span>${STN[k]}</span><span>${k==='hp'?m.hp+'/'+s.hp:k==='mp'?m.mp+'/'+s.mp:s[k]}</span></div>`).join('')}</div>
- <div class="sklist"><b>スキル</b><br>${sks.map(k=>`・${SK[k].name}（MP${SK[k].mp}）${SK[k].d}`).join('<br>')||'なし'}</div>
+ <div class="sklist"><b>スキル</b><br>${sks.map(k=>`・${SK[k].name}（MP${SK[k].mp}）${SK[k].d}`).join('<br>')||'なし'}${(id==='hero'?HERO_LEARN:(LEARN[id]||[])).filter(l=>l[0]>m.lv).map(l=>`<br><span style="color:#777">・Lv${l[0]}で「${SK[l[1]].name}」を覚える</span>`).join('')}</div>
  ${id==='hero'?'':`<button class="pbtn" id="ptog">${inp?'控えにする':'パーティに入れる'}</button>`}<button class="pbtn sub" id="mback">もどる</button>`);
  const a=document.createElement('div');a.style.display='flex';a.style.gap='6px';if(id!=='hero'&&!c.noBad){const w=document.createElement('div');w.style.textAlign='center';w.style.fontSize='10px';w.style.color='#999';w.appendChild(portrait(id,false,60,80,2.3));w.append('不良時代');a.appendChild(w);}const w2=document.createElement('div');w2.style.textAlign='center';w2.style.fontSize='10px';w2.style.color='#7fe3ff';w2.appendChild(portrait(id,true,60,80,2.3));w2.append(id==='hero'?'':'いま');a.appendChild(w2);$('mp1').appendChild(a);
  if($('ptog'))$('ptog').onclick=()=>{if(inp){S.party=S.party.filter(x=>x!==id);}else{if(S.party.length>=4){toast('パーティは4人までだよ');return;}S.party.push(id);}resetTrail();menuMember(id);};
