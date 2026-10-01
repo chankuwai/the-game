@@ -127,6 +127,14 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-o
 .q.kiwami{color:var(--gold)} .q.ryo{color:var(--soul)} .q.nami{color:var(--ink)} .q.hibi{color:var(--red)}
 .sheet input{width:100%;font:inherit;font-size:18px;font-weight:900;text-align:center;background:#1a1612;border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:8px}
 .sheet canvas{width:200px;height:200px}
+.goodfind{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;z-index:150}
+.goodfind .in{text-align:center;animation:stamp 2s ease forwards}
+.goodfind b{display:block;font-family:var(--disp);font-weight:400;font-size:clamp(32px,10.5vw,80px);line-height:1.1;color:var(--gold);-webkit-text-stroke:2px #3a2410;text-shadow:0 5px 0 #3a2410,0 0 34px rgba(232,184,74,.7);transform:rotate(-6deg);white-space:nowrap}
+.goodfind.rare b{color:#fff3a0;text-shadow:0 5px 0 #3a2410,0 0 40px #fff3a0,0 0 80px rgba(232,184,74,.9)}
+.goodfind span{display:inline-block;margin-top:14px;background:rgba(0,0,0,.75);padding:8px 18px;border-radius:999px;font-weight:900;font-size:16px}
+@keyframes stamp{0%{opacity:0;transform:scale(2.4)}12%{opacity:1;transform:scale(.94)}18%{transform:scale(1)}82%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.04)}}
+@media (prefers-reduced-motion:reduce){.goodfind .in{animation:none}}
+.crumble{width:240px;height:240px;background:radial-gradient(circle at 50% 75%,#3a2e22,#1f1913);border-radius:12px}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;font-weight:900;font-size:14px;z-index:200;pointer-events:none;animation:toast 1.8s ease forwards;white-space:nowrap}
 @keyframes toast{0%{opacity:0}12%,80%{opacity:1}100%{opacity:0}}
 </style>
@@ -293,7 +301,7 @@ function shade(hex, f) {
   const m = v => Math.max(0, Math.min(255, Math.round(f < 0 ? v * (1 + f) : v + (255 - v) * f)));
   return `rgb(${m(r)},${m(g)},${m(b)})`;
 }
-function drawGolem(ctx, g, x, y, s, face = 1, t = 0, lunge = 0, hurt = 0) {
+function drawGolem(ctx, g, x, y, s, face = 1, t = 0, lunge = 0, hurt = 0, mark = 'emeth') {
   const so = SOILS[g.soil], col = so.c, dark = shade(col, -.35), light = shade(col, .18);
   const rnd = mulberry(g.seed), eye = SOULS[g.soul].c, has = k => g.mats.includes(k), cnt = k => g.mats.filter(m => m === k).length;
   ctx.save(); ctx.translate(x + lunge * face * 26 + (hurt ? Math.sin(t * 60) * 4 : 0), y); ctx.scale(s * face, s);
@@ -341,6 +349,21 @@ function drawGolem(ctx, g, x, y, s, face = 1, t = 0, lunge = 0, hurt = 0) {
   if (g.q === 'kiwami') ctx.shadowBlur = 22;
   ctx.fillRect(headX + 1, headY - 3, 8, 5); ctx.fillRect(headX - 11, headY - 3, 7, 5);
   ctx.shadowBlur = 0;
+  // 額の刻印：emeth（真理）。e を削ると meth（死）になる
+  if (mark) {
+    const scratch = mark.startsWith('SCRATCH'), pr = scratch ? +mark.split(':')[1] : 0;
+    ctx.save(); ctx.translate(headX - 1, headY - 8); ctx.scale(face, 1);
+    ctx.font = '900 7px "Courier New",monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const word = scratch ? 'emeth' : mark, w = ctx.measureText('emeth').width, cw = w / 5;
+    ctx.fillStyle = shade(col, -.62); ctx.fillText(word, 0, 0);
+    if (scratch) {
+      const ex = -w / 2 + cw / 2;
+      if (pr >= 1) { ctx.fillStyle = shade(col, -.15); ctx.fillRect(ex - cw * .7, -4.5, cw * 1.4, 9); }
+      ctx.strokeStyle = '#2a1408'; ctx.lineWidth = 1.2;
+      for (let i = 0; i < 3; i++) { const k = Math.max(0, Math.min(1, pr * 3 - i)); if (!k) continue; ctx.beginPath(); ctx.moveTo(ex - 4, -4 + i * 3); ctx.lineTo(ex - 4 + 8 * k, -2 + i * 3); ctx.stroke(); }
+    }
+    ctx.restore();
+  }
   if (g.q === 'hibi') { ctx.strokeStyle = '#1a1210'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(headX - 6, headY - 16); ctx.lineTo(headX + 2, headY - 2); ctx.lineTo(headX - 4, headY + 10); ctx.stroke(); }
   ctx.restore();
 }
@@ -349,10 +372,21 @@ function paintCanvas(c, g, opts = {}) {
   const x = c.getContext('2d'), w = c.width, h = c.height;
   x.clearRect(0, 0, w, h);
   const s = (opts.scale || 1) * w / 200;
-  drawGolem(x, g, w / 2 - (g.form === 'kemono' ? 6 : 0) * s, h * .9, s * (g.form === 'kyojin' ? .95 : 1.05), opts.face || 1, opts.t || 0);
+  drawGolem(x, g, w / 2 - (g.form === 'kemono' ? 6 : 0) * s, h * .9, s * (g.form === 'kyojin' ? .95 : 1.05), opts.face || 1, opts.t || 0, 0, 0, opts.mark === undefined ? 'emeth' : opts.mark);
 }
 
 /* ================= 採集 ================= */
+const GOOD_FINDS = ['suisho', 'haguruma', 'uroko', 'hoshi'];
+function goodFind(sub, rare) {
+  document.querySelectorAll('.goodfind').forEach(e => e.remove());
+  const d = document.createElement('div');
+  d.className = 'goodfind' + (rare ? ' rare' : '');
+  d.setAttribute('role', 'status');
+  d.innerHTML = `<div class="in"><b>これはいい土だ！</b><span>${sub}</span></div>`;
+  document.body.appendChild(d);
+  snd(rare ? 'evolve' : 'good');
+  setTimeout(() => d.remove(), 2000);
+}
 function startDig(i) {
   const site = SITES[i];
   DIG = { site: i, left: 6, cells: Array.from({ length: 12 }, () => ({ open: false, item: null, glint: Math.random() < .2 })), got: {} };
@@ -375,6 +409,10 @@ function dig(ci) {
   if (k === 'soil') { const n = 2 + Math.floor(Math.random() * 3); c.item = { k: site.soil, soil: true, n }; add(DIG.got, 's:' + site.soil, n); snd('pick'); }
   else if (k === 'none') { c.item = null; snd('miss'); }
   else { c.item = { k, n: 1 }; add(DIG.got, 'm:' + k, 1); snd(['uroko', 'hoshi', 'haguruma', 'suisho'].includes(k) ? 'good' : 'coin'); c.rare = ['uroko', 'hoshi'].includes(k); }
+  const it = c.item;
+  if (it && (it.soil ? it.n >= 4 : GOOD_FINDS.includes(it.k))) {
+    goodFind(it.soil ? `${SOILS[it.k].n}を${it.n}つも掘り当てた` : `${MATS[it.k].e} ${MATS[it.k].n}を掘り当てた`, !it.soil && ['uroko', 'hoshi'].includes(it.k));
+  }
   render();
 }
 function finishDig() {
@@ -435,6 +473,58 @@ function sellGolem(id) {
   S.golems.splice(i, 1); S.gold += p;
   if (S.champ === id) S.champ = S.golems[0] ? S.golems[0].id : null;
   save(); snd('coin'); toast(`${g.name}を${p}両で譲った`); render();
+}
+
+/* 崩れ落ちる：ゴーレムの絵を小さな欠片に切り分けて落とす */
+function makeTiles(g) {
+  const off = document.createElement('canvas'); off.width = 480; off.height = 480;
+  paintCanvas(off, g, { mark: 'meth' });
+  const data = off.getContext('2d').getImageData(0, 0, 480, 480).data, T = 10, tiles = [];
+  for (let y = 0; y < 480; y += T) for (let x = 0; x < 480; x += T) {
+    const a = data[((y + T / 2) * 480 + x + T / 2) * 4 + 3];
+    if (a > 40) tiles.push({ sx: x, sy: y, x, y, vx: (x - 240) * .5 + rnd(-50, 50), vy: rnd(-90, 10), r: 0, vr: rnd(-7, 7), delay: (1 - y / 480) * .7 + rnd(0, .15), ground: 440 - rnd(0, 26), rest: false });
+  }
+  return { off, tiles, T, dust: [] };
+}
+function stepCrumble(dt) {
+  const m = UI.modal; if (!m || m.type !== 'crumble') return;
+  const c = document.getElementById('crumble'); if (!c) return;
+  const x = c.getContext('2d');
+  m.t += dt;
+  if (m.phase === 'ask' || m.phase === 'scratch') {
+    const pr = m.phase === 'scratch' ? Math.min(1, m.t / .9) : 0;
+    x.clearRect(0, 0, c.width, c.height);
+    paintCanvas(c, m.g, { t: performance.now() / 1000, mark: m.phase === 'scratch' ? 'SCRATCH:' + pr.toFixed(2) : 'emeth' });
+    if (m.phase === 'scratch' && m.t > 1.15) { m.phase = 'fall'; m.t = 0; m.fx = makeTiles(m.g); snd('big'); }
+    return;
+  }
+  const fx = m.fx; if (!fx) return;
+  x.clearRect(0, 0, c.width, c.height);
+  // 土の山
+  const pile = Math.min(1, m.t / 1.6);
+  x.fillStyle = shade(SOILS[m.g.soil].c, -.25);
+  x.beginPath(); x.ellipse(240, 446, 70 + 70 * pile, 10 + 22 * pile, 0, Math.PI, 0); x.fill();
+  for (const p of fx.tiles) {
+    if (m.t > p.delay && !p.rest) {
+      p.vy += 900 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.r += p.vr * dt;
+      if (p.y >= p.ground) { p.y = p.ground; p.vy *= -.22; p.vx *= .5; p.vr *= .4; if (Math.abs(p.vy) < 30) p.rest = true; if (Math.random() < .08) fx.dust.push({ x: p.x, y: p.y, r: 4, life: 1 }); }
+    }
+    x.save(); x.translate(p.x + fx.T / 2, p.y + fx.T / 2); x.rotate(p.r);
+    x.drawImage(fx.off, p.sx, p.sy, fx.T, fx.T, -fx.T / 2, -fx.T / 2, fx.T, fx.T);
+    x.restore();
+  }
+  for (const d of fx.dust) { d.r += 40 * dt; d.life -= dt * 1.2; x.fillStyle = `rgba(190,160,120,${Math.max(0, d.life) * .35})`; x.beginPath(); x.arc(d.x, d.y, d.r, 0, Math.PI * 2); x.fill(); }
+  fx.dust = fx.dust.filter(d => d.life > 0);
+  if (m.phase === 'fall' && m.t > 2.8) { m.phase = 'done'; snd('bad'); render(); }
+}
+function crumbleDone() {
+  const m = UI.modal; if (!m || m.type !== 'crumble') return;
+  const i = S.golems.findIndex(g => g.id === m.g.id);
+  if (i >= 0) S.golems.splice(i, 1);
+  if (S.champ === m.g.id) S.champ = S.golems[0] ? S.golems[0].id : null;
+  add(S.soils, m.g.soil, 2);
+  S.stats.erased = (S.stats.erased || 0) + 1;
+  save(); UI.modal = null; toast(`${m.g.name}は土に還った`); render();
 }
 
 /* ================= 闘技場 ================= */
@@ -550,7 +640,7 @@ function vShelf() {
 <div class="nm">${esc(g.name)} <small class="muted">${FORMS[g.form].n}・${QUAL[g.q].n}</small></div>
 <div class="meta">${SOILS[g.soil].n}・${SOULS[g.soul].n}${g.mats.length ? '・' + g.mats.map(k => MATS[k].e).join('') : ''}</div>
 ${statRows(g)}<div class="traits">${elTag(g.el)}${g.traits.map(t => `<span class="trait">${t}</span>`).join('')}</div>
-<div class="row"><span class="power">${g.power}</span><span class="grow"></span>${g.id === S.champ ? '<span class="small" style="color:var(--gold);font-weight:900">出場中</span>' : `<button class="btn sm" data-a="champ:${g.id}">出場させる</button>`}<button class="btn sm" data-a="sell:${g.id}">${sellPrice(g)}両で譲る</button></div></div>`).join('')}</div>`;
+<div class="row"><span class="power">${g.power}</span><span class="grow"></span>${g.id === S.champ ? '<span class="small" style="color:var(--gold);font-weight:900">出場中</span>' : `<button class="btn sm" data-a="champ:${g.id}">出場させる</button>`}<button class="btn sm" data-a="sell:${g.id}">${sellPrice(g)}両で譲る</button><button class="btn sm red" data-a="erase:${g.id}">額のeを削る</button></div></div>`).join('')}</div>`;
 }
 function vArena() {
   const me = champ(), nf = nextFoe();
@@ -612,6 +702,13 @@ function vModal() {
 <p>名前をつけてやろう。</p><input id="gname" value="${esc(m.g.name)}" maxlength="10" aria-label="ゴーレムの名前">
 <div style="margin:10px 0">${statRows(m.g)}</div>
 <div class="row" style="justify-content:center"><button class="btn main" data-a="named">棚に並べる</button></div></div></div>`;
+  }
+  if (m.type === 'crumble') {
+    const g = m.g;
+    if (m.phase === 'done') return `<div class="modal"><div class="sheet" role="dialog" aria-label="土に還った"><h2>土に還った</h2><canvas id="crumble" class="crumble" width="480" height="480" aria-hidden="true"></canvas><p>額の文字は「meth（死）」になり、${esc(g.name)}は崩れて土くれに戻った。<br>${SOILS[g.soil].n}×2 が手元に残った。</p><button class="btn main" data-a="crumbleDone">見届けた</button></div></div>`;
+    return `<div class="modal"><div class="sheet" role="dialog" aria-label="額のeを削る"><h2>額のeを削る</h2><canvas id="crumble" class="crumble" width="480" height="480" aria-label="${esc(g.name)}"></canvas>
+<p>${m.phase === 'ask' ? `額に刻まれた「emeth（真理）」から e を削れば「meth（死）」。${esc(g.name)}は動きを止め、土に還る。もう元には戻らない。` : 'e を削っている…'}</p>
+${m.phase === 'ask' ? '<div class="row" style="justify-content:center"><button class="btn red" data-a="scratch">削る</button><button class="btn" data-a="closeModal">やめる</button></div>' : ''}</div></div>`;
   }
   if (m.type === 'result') {
     if (m.win) return `<div class="modal"><div class="sheet"><h2 style="color:var(--gold)">${m.boss ? '原初のゴーレムを打ち倒した' : '勝利'}</h2>${m.boss ? '<p>泥から生まれた子が、始まりの巨人を越えた。工房の名は国中に知れ渡るだろう。</p>' : ''}<p>${m.gold}両を手に入れた${m.prize ? `。賞品：${MATS[m.prize].e}${MATS[m.prize].n}` : ''}</p><button class="btn main" data-a="back">工房へ戻る</button></div></div>`;
@@ -679,6 +776,10 @@ function act(a) {
   else if (k === 'named') { const i = document.getElementById('gname'); const g = UI.modal.g; if (i && i.value.trim()) g.name = i.value.trim().slice(0, 10); save(); UI.modal = null; UI.tab = 'shelf'; snd('click'); render(); }
   else if (k === 'champ') { S.champ = x; save(); snd('click'); render(); }
   else if (k === 'sell') sellGolem(x);
+  else if (k === 'erase') { const g = S.golems.find(z => z.id === x); if (g) { UI.modal = { type: 'crumble', g, phase: 'ask', t: 0 }; snd('click'); render(); } }
+  else if (k === 'scratch') { const m = UI.modal; if (m && m.type === 'crumble' && m.phase === 'ask') { m.phase = 'scratch'; m.t = 0; snd('slash'); render(); } }
+  else if (k === 'closeModal') { UI.modal = null; render(); }
+  else if (k === 'crumbleDone') crumbleDone();
   else if (k === 'fight') startFight(+x);
   else if (k === 'fast') { BT.fast = !BT.fast; render(); }
   else if (k === 'skip') { while (!BT.done) { BT.t = 9; stepBattle(0); } }
@@ -760,6 +861,7 @@ function autoTick(dt) {
   AI.next = .6;
   if (UI.screen === 'title') { act(load() ? 'continue' : 'newgame'); return; }
   if (m && m.type === 'soul' && m.done) { act('named'); return; }
+  if (m && m.type === 'crumble') { if (m.phase === 'done') act('crumbleDone'); return; }
   if (m && m.type === 'result') { act('back'); AI.next = 1.2; return; }
   if (UI.screen === 'battle') { if (!BT.fast) { BT.fast = true; render(); } return; }
   if (DIG) {
@@ -782,6 +884,7 @@ function frame(now) {
     BT.texts = BT.texts.filter(tx => tx.life > 0);
     drawArena(now);
   }
+  stepCrumble(dt);
   paintLive(now / 1000);
   requestAnimationFrame(frame);
 }
