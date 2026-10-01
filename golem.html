@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ゴーレム工房</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+/* Layout: 錬金工房の作業台。上に財布と蔵、四枚の帳面（採集・工房・棚・闘技場）。工房は上から順に「土→素材→形→魂」と進む作業手順 */
+:root{
+  --bg:#17130f; --panel:#221c16; --panel2:#2c241c; --ink:#f1e6d4; --muted:#a39580; --line:#3a3026;
+  --clay:#c08a55; --gold:#e8b84a; --soul:#7fd6ff; --red:#e0574a; --green:#7fbf6a;
+  --disp:"Dela Gothic One","Hiragino Kaku Gothic StdN",sans-serif;
+  --body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+[hidden]{display:none!important}
+#app{max-width:640px;margin:0 auto;padding:52px 14px 32px}
+.btn{border:1.5px solid var(--ink);background:transparent;border-radius:999px;padding:9px 20px;font-weight:900;font-size:15px}
+.btn.main{background:var(--clay);border-color:var(--clay);color:#1c120a}
+.btn.gold{background:var(--gold);border-color:var(--gold);color:#1d1404}
+.btn.soul{background:var(--soul);border-color:var(--soul);color:#0a1a22}
+.btn.red{background:var(--red);border-color:var(--red);color:#fff}
+.btn.sm{padding:6px 14px;font-size:13px}
+.btn:disabled{opacity:.35;cursor:default}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.grow{flex:1}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+
+/* タイトル */
+.title{min-height:calc(100dvh - 90px);display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;text-align:center}
+.title canvas{width:200px;height:200px}
+.title h1{margin:0;font-family:var(--disp);font-weight:400;font-size:clamp(44px,13vw,72px);line-height:1;letter-spacing:.04em}
+.title h1 span{color:var(--clay)}
+.title p{margin:0;line-height:1.9;color:#dccfbb;max-width:28em;text-wrap:balance}
+
+/* 頭 */
+.top{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center}
+.top .gold b{color:var(--gold);font-size:20px;font-variant-numeric:tabular-nums}
+.top .inv{font-size:12px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 10px;width:100%}
+.top .rank{margin-left:auto;font-weight:900;font-size:13px;color:var(--muted)}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:12px 0 10px}
+.tabs button{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:10px 2px;font-weight:900;font-size:14px}
+.tabs button[aria-selected="true"]{background:var(--clay);color:#1c120a;border-color:var(--clay)}
+.sec{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px}
+.sec h2{margin:0 0 8px;font-size:16px;display:flex;align-items:center;gap:8px}
+.sec h2 .no{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--clay);color:#1c120a;font-size:13px}
+.sec p{margin:0 0 8px;font-size:13px;line-height:1.7;color:#dccfbb}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1.5px solid var(--line);background:var(--panel2);border-radius:12px;padding:7px 10px;font-weight:700;font-size:13px;display:flex;align-items:center;gap:6px;text-align:left}
+.chip small{color:var(--muted);font-weight:700}
+.chip[aria-pressed="true"]{border-color:var(--clay);background:#3b2a1a}
+.chip:disabled{opacity:.35}
+.sw{display:inline-block;width:14px;height:14px;border-radius:4px;border:1px solid rgba(255,255,255,.25)}
+.el{display:inline-block;font-size:11px;font-weight:900;padding:1px 6px;border-radius:999px;background:#3a3026}
+.picked{display:flex;gap:6px;min-height:36px;margin-top:8px;flex-wrap:wrap}
+.picked .chip{background:#3b2a1a;border-color:var(--clay)}
+.preview{display:grid;grid-template-columns:150px 1fr;gap:12px;align-items:center}
+.preview canvas{width:150px;height:150px;background:radial-gradient(circle at 50% 70%,#3a2e22,#1f1913);border-radius:12px}
+.stats{display:grid;grid-template-columns:auto 1fr auto;gap:4px 8px;align-items:center;font-size:13px;font-weight:900}
+.stats .bar{height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+.stats .bar i{display:block;height:100%;background:var(--clay)}
+.stats span.v{font-variant-numeric:tabular-nums;text-align:right;min-width:2.5em}
+.traits{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.trait{font-size:11px;font-weight:900;padding:2px 8px;border-radius:999px;background:#2e4a3a;color:#cfeedd}
+.power{font-family:var(--disp);font-size:20px;color:var(--gold)}
+
+/* 採集 */
+.site{display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:center}
+.site + .site{border-top:1px solid var(--line);padding-top:10px;margin-top:10px}
+.site b{font-size:15px}
+.site small{display:block;color:var(--muted);font-size:12px;line-height:1.6}
+.dig{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}
+.mound{aspect-ratio:1;border:none;border-radius:50% 50% 14px 14px;background:radial-gradient(circle at 50% 35%,#8a6440,#5a3e24);font-size:28px;display:grid;place-items:center;position:relative;box-shadow:inset 0 -6px 0 rgba(0,0,0,.25)}
+.mound.open{background:#2a2119;box-shadow:inset 0 6px 12px rgba(0,0,0,.6);cursor:default}
+.mound .lb{position:absolute;bottom:4px;left:0;right:0;font-size:10px;font-weight:900;color:var(--ink)}
+.mound.rare{box-shadow:inset 0 6px 12px rgba(0,0,0,.6),0 0 0 2px var(--gold)}
+.mound.glint::after{content:"";position:absolute;top:18%;right:22%;width:7px;height:7px;background:#fff;border-radius:50%;box-shadow:0 0 8px #fff;animation:tw 1s infinite alternate}
+@keyframes tw{to{opacity:.2}}
+@media (prefers-reduced-motion:reduce){.mound.glint::after{animation:none}}
+
+/* 棚・闘技場 */
+.shelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px}
+.gcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px;display:grid;gap:6px}
+.gcard.sel{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)}
+.gcard canvas{width:100%;aspect-ratio:1;background:radial-gradient(circle at 50% 70%,#3a2e22,#1f1913);border-radius:10px}
+.gcard .nm{font-weight:900;font-size:15px;display:flex;align-items:baseline;gap:6px}
+.gcard .meta{font-size:12px;color:var(--muted);line-height:1.6}
+.ladder{display:grid;gap:8px}
+.foe{display:grid;grid-template-columns:72px 1fr auto;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:8px 12px}
+.foe canvas{width:72px;height:72px;background:radial-gradient(circle at 50% 70%,#3a2e22,#1f1913);border-radius:10px}
+.foe.lock{opacity:.4}
+.foe.done{border-color:#4a5e3a}
+.foe b{font-size:15px}
+.foe small{display:block;font-size:12px;color:var(--muted)}
+
+/* 戦い */
+.battle{display:grid;gap:10px}
+.vs{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;font-weight:900}
+.vs .r{text-align:right}
+.vs .hp{height:10px;background:var(--line);border-radius:5px;overflow:hidden;margin-top:4px}
+.vs .hp i{display:block;height:100%;background:var(--green);transition:width .2s}
+.vs .r .hp i{background:var(--red);margin-left:auto}
+#bcv{width:100%;aspect-ratio:16/9;border-radius:12px;background:#000;display:block}
+.blog{font-size:13px;color:#dccfbb;min-height:3.4em;line-height:1.7;background:var(--panel);border-radius:10px;padding:8px 12px}
+
+/* 魂込め */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.66);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px}
+.sheet{width:min(100%,440px);background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;text-align:center;max-height:calc(100dvh - 32px);overflow:auto}
+.sheet h2{margin:0 0 6px;font-family:var(--disp);font-weight:400;font-size:26px}
+.sheet p{margin:0 0 10px;line-height:1.7;color:#dccfbb;font-size:14px}
+.gauge{position:relative;height:36px;border-radius:18px;background:#1a1612;overflow:hidden;border:1px solid var(--line);margin:12px 0}
+.gauge .z{position:absolute;top:0;bottom:0}
+.gauge .fill{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,#2a6f8f,var(--soul));box-shadow:0 0 14px var(--soul)}
+.gauge .lab{position:absolute;top:0;bottom:0;display:grid;place-items:center;font-size:11px;font-weight:900;color:rgba(255,255,255,.8);pointer-events:none}
+.hold{width:100%;padding:18px 0;font-family:var(--disp);font-size:22px;border:none;border-radius:16px;background:var(--soul);color:#0a1a22;box-shadow:0 4px 0 #2a6f8f;touch-action:none;-webkit-user-select:none;user-select:none}
+.hold.on{transform:translateY(3px);box-shadow:none;filter:brightness(1.15)}
+.q{font-family:var(--disp);font-size:34px;margin:6px 0}
+.q.kiwami{color:var(--gold)} .q.ryo{color:var(--soul)} .q.nami{color:var(--ink)} .q.hibi{color:var(--red)}
+.sheet input{width:100%;font:inherit;font-size:18px;font-weight:900;text-align:center;background:#1a1612;border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:8px}
+.sheet canvas{width:200px;height:200px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;font-weight:900;font-size:14px;z-index:200;pointer-events:none;animation:toast 1.8s ease forwards;white-space:nowrap}
+@keyframes toast{0%{opacity:0}12%,80%{opacity:1}100%{opacity:0}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="modal-root"></div>
+<script>
+'use strict';
+/* ================= データ ================= */
+const SOILS = {
+  hatake: { n: '畑の土',     el: '土', c: '#8a5a34', hp: 100, atk: 14, def: 12, spd: 10 },
+  kawa:   { n: '川の粘土',   el: '水', c: '#6f8290', hp: 110, atk: 11, def: 15, spd: 11 },
+  mori:   { n: '森の腐葉土', el: '木', c: '#5d5130', hp: 120, atk: 13, def: 11, spd: 12 },
+  kazan:  { n: '火山灰',     el: '火', c: '#55494c', hp: 95,  atk: 19, def: 11, spd: 12 },
+  haka:   { n: '墓地の土',   el: '闇', c: '#3d3240', hp: 110, atk: 18, def: 13, spd: 14 },
+  tsuki:  { n: '月光の砂',   el: '光', c: '#d8cfae', hp: 120, atk: 17, def: 16, spd: 16 },
+};
+const MATS = {
+  koishi:   { n: '小石',       e: '🪨', d: '守り+6',                 add: { def: 6 } },
+  hane:     { n: '羽根',       e: '🪶', d: '速さ+6',                 add: { spd: 6 } },
+  koke:     { n: '苔',         e: '🌿', d: '体力+25・再生',          add: { hp: 25 }, trait: '再生' },
+  hone:     { n: '骨',         e: '🦴', d: '力+7',                   add: { atk: 7 } },
+  tetsu:    { n: '鉄くず',     e: '🔩', d: '力+6 守り+9 速さ−3',     add: { atk: 6, def: 9, spd: -3 } },
+  mi:       { n: '炎の実',     e: '🔥', d: '力+10 体力−10（火の土なら力+15）', add: { atk: 10, hp: -10 } },
+  suisho:   { n: '水晶',       e: '💎', d: '速さ+5 力+5',             add: { spd: 5, atk: 5 } },
+  haguruma: { n: '古い歯車',   e: '⚙️', d: '速さ+3・連撃',           add: { spd: 3 }, trait: '連撃' },
+  uroko:    { n: '竜の鱗',     e: '🐉', d: '体力+30 守り+15・頑丈', add: { hp: 30, def: 15 }, trait: '頑丈' },
+  hoshi:    { n: '星のかけら', e: '⭐', d: '全部+8 体力+30・会心',   add: { hp: 30, atk: 8, def: 8, spd: 8 }, trait: '会心' },
+};
+const FORMS = {
+  hito:  { n: '人型',   d: '釣り合いのとれた形',       m: { hp: 1, atk: 1, def: 1, spd: 1 } },
+  kemono:{ n: '獣型',   d: '速く鋭い。打たれ弱い',     m: { hp: .9, atk: 1.05, def: .85, spd: 1.4 } },
+  kyojin:{ n: '巨人型', d: '大きく硬く重い。遅い',     m: { hp: 1.45, atk: 1.2, def: 1.15, spd: .65 } },
+};
+const SOULS = {
+  yu:   { n: '勇の魂', c: '#ff5a4a', d: '力が一割五分増す',                         cost: 0 },
+  mamo: { n: '守の魂', c: '#5aa8ff', d: '守りが二割増し、ときどき攻撃を受け流す',   cost: 0 },
+  kyo:  { n: '狂の魂', c: '#c06aff', d: '力が三割五分増すが、守りが二割落ちる',     cost: 300 },
+  ken:  { n: '賢の魂', c: '#ffd34a', d: '三度に一度、属性の大技を放つ',             cost: 700 },
+};
+const QUAL = {
+  hibi:   { n: 'ひび割れ', m: .8,   cls: 'hibi' },
+  nami:   { n: '並',       m: 1,    cls: 'nami' },
+  ryo:    { n: '良',       m: 1.15, cls: 'ryo' },
+  kiwami: { n: '極',       m: 1.35, cls: 'kiwami' },
+};
+const SITES = [
+  { id: 'hatake', n: '裏の畑',   d: '耕された柔らかい土。小石や骨がまじる。', cost: 0,    soil: 'hatake', tbl: [['soil', 40], ['koishi', 22], ['hone', 14], ['hane', 6], ['none', 18]] },
+  { id: 'kawa',   n: '川べり',   d: 'きめの細かい粘土。苔や羽根が流れ着く。', cost: 0,    soil: 'kawa',   tbl: [['soil', 40], ['koke', 16], ['hane', 14], ['koishi', 12], ['none', 18]] },
+  { id: 'mori',   n: '深い森',   d: '黒々とした腐葉土。森の恵みが多い。',     cost: 150,  soil: 'mori',   tbl: [['soil', 38], ['koke', 16], ['hane', 14], ['hone', 12], ['mi', 6], ['none', 14]] },
+  { id: 'kazan',  n: '火山の麓', d: '熱い灰。鉄くずと炎の実が埋まっている。', cost: 500,  soil: 'kazan',  tbl: [['soil', 36], ['tetsu', 18], ['mi', 16], ['suisho', 6], ['none', 24]] },
+  { id: 'haka',   n: '古い墓地', d: '冷たい土。古い歯車や、まれに竜の鱗。',   cost: 1200, soil: 'haka',   tbl: [['soil', 36], ['hone', 16], ['haguruma', 14], ['tetsu', 10], ['uroko', 4], ['none', 20]] },
+  { id: 'tsuki',  n: '月の丘',   d: '月光を吸った砂。水晶と星のかけら。',     cost: 2500, soil: 'tsuki',  tbl: [['soil', 34], ['suisho', 18], ['hoshi', 6], ['uroko', 6], ['haguruma', 8], ['none', 28]] },
+];
+const FOES = [
+  { n: '泥人形', boost: 1.0,         soil: 'hatake', form: 'hito',   soul: 'yu',   q: 'nami',   mats: [],                                 gold: 80,   prize: 'koke' },
+  { n: '川の番人', boost: 1.35,       soil: 'kawa',   form: 'hito',   soul: 'mamo', q: 'nami',   mats: ['koishi', 'koishi'],               gold: 220,  prize: 'mi' },
+  { n: '森の番獣', boost: 1.5,       soil: 'mori',   form: 'kemono', soul: 'yu',   q: 'ryo',    mats: ['hane', 'hone'],                   gold: 420,  prize: 'tetsu' },
+  { n: '鉄腕', boost: 1.45,           soil: 'kazan',  form: 'kyojin', soul: 'kyo',  q: 'nami',   mats: ['tetsu', 'tetsu', 'hone'],         gold: 700,  prize: 'suisho' },
+  { n: '骸の兵', boost: 1.4,         soil: 'haka',   form: 'hito',   soul: 'kyo',  q: 'ryo',    mats: ['hone', 'hone', 'haguruma'],       gold: 1000, prize: 'uroko' },
+  { n: '水晶獣', boost: 1.3,         soil: 'tsuki',  form: 'kemono', soul: 'ken',  q: 'ryo',    mats: ['suisho', 'suisho', 'hane'],       gold: 1400, prize: 'hoshi' },
+  { n: '竜鱗の巨人', boost: 1.1,     soil: 'haka',   form: 'kyojin', soul: 'mamo', q: 'kiwami', mats: ['uroko', 'uroko', 'tetsu'],        gold: 1800, prize: 'hoshi' },
+  { n: '原初のゴーレム', boost: .95, soil: 'tsuki',  form: 'kyojin', soul: 'ken',  q: 'kiwami', mats: ['hoshi', 'hoshi', 'hoshi'],        gold: 3000, prize: 'hoshi', boss: true },
+];
+const BEAT = { '火': '木', '木': '土', '土': '水', '水': '火' };
+function elemMul(a, b) {
+  if ((a === '光' && b === '闇') || (a === '闇' && b === '光')) return 1.3;
+  if (BEAT[a] === b) return 1.3;
+  if (BEAT[b] === a) return .77;
+  return 1;
+}
+const NAMES = ['ドロ', 'ツチクレ', 'ゴロ', 'ネンド', 'イワオ', 'ハニワ', 'ドゴウ', 'クレイ', 'モルタ', 'ガンテツ', 'ススキ', 'ヨモギ', 'カナエ', 'ホムラ', 'シズク', 'オボロ', 'ツクヨ', 'アカツチ', 'コケマル', 'ホネオ'];
+const SAVE_KEY = 'golem_save_v1';
+const SLOTS = 8;
+
+/* ================= 計算 ================= */
+function mulberry(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function buildGolem(o) {
+  const so = SOILS[o.soil], f = FORMS[o.form].m, q = QUAL[o.q].m;
+  const s = { hp: so.hp, atk: so.atk, def: so.def, spd: so.spd };
+  const traits = new Set();
+  for (const k of o.mats) {
+    const m = MATS[k];
+    for (const st in m.add) s[st] += m.add[st];
+    if (k === 'mi' && so.el === '火') s.atk += 5;
+    if (m.trait) traits.add(m.trait);
+  }
+  const st = {};
+  for (const k of ['hp', 'atk', 'def', 'spd']) st[k] = Math.max(1, Math.round(s[k] * f[k] * q * (o.boost || 1)));
+  const g = { id: o.id || Math.random().toString(36).slice(2, 9), name: o.name || '', soil: o.soil, mats: o.mats.slice(), form: o.form, soul: o.soul, q: o.q, el: so.el, st, traits: [...traits], seed: o.seed || Math.floor(Math.random() * 1e9) };
+  g.power = Math.round(st.hp * .3 + st.atk * 2.2 + st.def * 1.8 + st.spd * 1.6 + g.traits.length * 15 + (o.soul === 'ken' || o.soul === 'kyo' ? 10 : 0));
+  return g;
+}
+const sellPrice = g => Math.round(g.power * .6);
+
+/* 戦い：先に結果をすべて計算し、出来事を順に見せる */
+function simulate(a, b, rnd = Math.random) {
+  const mk = (g, side) => {
+    const sm = g.soul;
+    return { g, side, hp: g.st.hp, max: g.st.hp, atk: g.st.atk * (sm === 'yu' ? 1.15 : sm === 'kyo' ? 1.35 : 1), def: g.st.def * (sm === 'mamo' ? 1.2 : sm === 'kyo' ? .8 : 1), spd: g.st.spd, gauge: rnd() * 30, acts: 0, tough: g.traits.includes('頑丈') };
+  };
+  const A = mk(a, 'L'), Bv = mk(b, 'R'), ev = [];
+  let t = 0;
+  while (A.hp > 0 && Bv.hp > 0 && t < 600) {
+    t++;
+    for (const u of [A, Bv]) u.gauge += u.spd;
+    const ready = [A, Bv].filter(u => u.gauge >= 100).sort((x, y) => y.gauge - x.gauge);
+    for (const u of ready) {
+      if (A.hp <= 0 || Bv.hp <= 0) break;
+      u.gauge -= 100; u.acts++;
+      const v = u === A ? Bv : A;
+      const hits = [];
+      const special = u.g.soul === 'ken' && u.acts % 3 === 0;
+      let n = 1; if (!special && u.g.traits.includes('連撃') && rnd() < .25) n = 2;
+      for (let i = 0; i < n; i++) {
+        let dmg = u.atk * (.9 + rnd() * .2) * elemMul(u.g.el, v.g.el);
+        let def = v.def * .6;
+        let kind = 'hit';
+        if (special) { dmg *= 2.2; def *= .5; kind = 'special'; }
+        if (i === 1) dmg *= .6;
+        if (u.g.traits.includes('会心') && rnd() < .25) { dmg *= 1.8; kind = special ? 'special' : 'crit'; }
+        dmg = Math.max(u.atk * .15, dmg - def);
+        if (v.g.soul === 'mamo' && rnd() < .15) { dmg *= .5; kind = 'block'; }
+        dmg = Math.round(dmg);
+        v.hp -= dmg;
+        let saved = false;
+        if (v.hp <= 0 && v.tough) { v.hp = 1; v.tough = false; saved = true; }
+        hits.push({ dmg, kind, saved });
+        if (v.hp <= 0) break;
+      }
+      let heal = 0;
+      if (u.g.traits.includes('再生') && u.hp > 0) { heal = Math.round(u.max * .04); u.hp = Math.min(u.max, u.hp + heal); }
+      ev.push({ who: u.side, hits, heal, hpL: Math.max(0, A.hp), hpR: Math.max(0, Bv.hp) });
+    }
+  }
+  const win = A.hp > 0 && (Bv.hp <= 0 || A.hp / A.max > Bv.hp / Bv.max);
+  return { ev, win, maxL: A.max, maxR: Bv.max };
+}
+function winRate(a, b, n = 40) { let w = 0; for (let i = 0; i < n; i++) if (simulate(a, b).win) w++; return w / n; }
+
+/* ================= セーブ ================= */
+let S = null;
+function fresh() {
+  return { gold: 0, soils: { hatake: 6, kawa: 3 }, mats: { koishi: 2, hone: 1 }, sites: { hatake: 1, kawa: 1 }, souls: { yu: 1, mamo: 1 },
+    golems: [], champ: null, beaten: {}, stats: { made: 0, wins: 0, losses: 0, digs: 0, start: Date.now(), clearAt: 0 } };
+}
+function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {} }
+function load() { try { const t = localStorage.getItem(SAVE_KEY); return t ? JSON.parse(t) : null; } catch (e) { return null; } }
+const snd = n => { if (window.tgSound) window.tgSound.play(n); };
+const add = (bag, k, n) => { bag[k] = (bag[k] || 0) + n; if (bag[k] <= 0) delete bag[k]; };
+const nextFoe = () => FOES.findIndex((_, i) => !S.beaten[i]);
+const champ = () => S.golems.find(g => g.id === S.champ) || S.golems[0] || null;
+
+/* ================= 画面状態 ================= */
+let UI = { screen: 'title', tab: 'work', modal: null };
+let W = { soil: null, mats: [], form: 'hito', soul: 'yu' };   // 作業台
+let DIG = null;      // 採集中
+let BT = null;       // 戦い中
+
+/* ================= ゴーレムの絵 ================= */
+function shade(hex, f) {
+  const n = parseInt(hex.slice(1), 16), r = n >> 16, g = n >> 8 & 255, b = n & 255;
+  const m = v => Math.max(0, Math.min(255, Math.round(f < 0 ? v * (1 + f) : v + (255 - v) * f)));
+  return `rgb(${m(r)},${m(g)},${m(b)})`;
+}
+function drawGolem(ctx, g, x, y, s, face = 1, t = 0, lunge = 0, hurt = 0) {
+  const so = SOILS[g.soil], col = so.c, dark = shade(col, -.35), light = shade(col, .18);
+  const rnd = mulberry(g.seed), eye = SOULS[g.soul].c, has = k => g.mats.includes(k), cnt = k => g.mats.filter(m => m === k).length;
+  ctx.save(); ctx.translate(x + lunge * face * 26 + (hurt ? Math.sin(t * 60) * 4 : 0), y); ctx.scale(s * face, s);
+  const breath = Math.sin(t * 2 + g.seed % 7) * 1.5;
+  const R = (x0, y0, w, h, r = 6, fill = col) => { ctx.fillStyle = fill; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x0, y0, w, h, r) : ctx.rect(x0, y0, w, h); ctx.fill(); ctx.strokeStyle = dark; ctx.lineWidth = 2.5; ctx.stroke(); };
+  // 影
+  ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.beginPath(); ctx.ellipse(0, 2, g.form === 'kyojin' ? 62 : 46, 8, 0, 0, Math.PI * 2); ctx.fill();
+  let headX = 0, headY = -128, chest = [0, -70];
+  if (g.form === 'hito') {
+    R(-20, -42, 14, 42); R(6, -42, 14, 42);
+    R(-30, -102 + breath, 60, 64, 10);
+    R(-44, -98 + breath, 15, 52, 7); R(29 + lunge * 8, -98 + breath, 15, 52, 7);
+    R(-16, -130 + breath, 32, 28, 8, light);
+    headX = 0; headY = -116 + breath; chest = [0, -72 + breath];
+  } else if (g.form === 'kemono') {
+    for (const lx of [-34, -18, 14, 30]) R(lx, -34, 11, 34, 5);
+    ctx.fillStyle = col; ctx.beginPath(); ctx.ellipse(0, -46 + breath, 48, 24, 0, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = dark; ctx.lineWidth = 2.5; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-46, -50); ctx.quadraticCurveTo(-70, -70, -66, -88); ctx.lineWidth = 8; ctx.strokeStyle = col; ctx.stroke();
+    R(34 + lunge * 6, -78 + breath, 32, 26, 9, light);
+    headX = 52; headY = -66 + breath; chest = [4, -46 + breath];
+  } else {
+    R(-30, -36, 22, 36, 6); R(8, -36, 22, 36, 6);
+    R(-50, -124 + breath, 100, 92, 16);
+    R(-76, -120 + breath, 28, 96, 12); R(48 + lunge * 10, -120 + breath, 28, 96, 12);
+    R(-15, -146 + breath, 30, 24, 7, light);
+    headX = 0; headY = -134 + breath; chest = [0, -82 + breath];
+  }
+  // ひび模様（種で固定）
+  ctx.strokeStyle = shade(col, -.5); ctx.lineWidth = 1.4; ctx.globalAlpha = .6;
+  for (let i = 0; i < 5; i++) { let px = chest[0] + (rnd() - .5) * 50, py = chest[1] + (rnd() - .5) * 40; ctx.beginPath(); ctx.moveTo(px, py); for (let j = 0; j < 3; j++) { px += (rnd() - .5) * 16; py += rnd() * 10; ctx.lineTo(px, py); } ctx.stroke(); }
+  ctx.globalAlpha = 1;
+  // 素材の飾り
+  if (has('koishi')) { ctx.fillStyle = '#8d8a84'; for (let i = 0; i < 2 + cnt('koishi'); i++) { ctx.beginPath(); ctx.arc(chest[0] + (rnd() - .5) * 46, chest[1] + (rnd() - .5) * 36, 4 + rnd() * 3, 0, Math.PI * 2); ctx.fill(); } }
+  if (has('tetsu')) { ctx.fillStyle = '#9aa3a8'; ctx.strokeStyle = '#5c6468'; ctx.lineWidth = 2; for (let i = 0; i < cnt('tetsu'); i++) { const px = chest[0] - 18 + i * 14, py = chest[1] - 20; ctx.fillRect(px, py, 16, 12); ctx.strokeRect(px, py, 16, 12); } }
+  if (has('koke')) { ctx.fillStyle = '#5f9a4a'; for (let i = 0; i < 3 + cnt('koke') * 2; i++) { ctx.beginPath(); ctx.arc(chest[0] + (rnd() - .5) * 56, chest[1] - 24 + (rnd() - .5) * 20, 3 + rnd() * 4, 0, Math.PI * 2); ctx.fill(); } }
+  if (has('hone')) { ctx.fillStyle = '#eee6d2'; for (let i = 0; i < cnt('hone') + 1; i++) { const px = chest[0] - 22 + i * 18; ctx.beginPath(); ctx.moveTo(px, chest[1] - 30); ctx.lineTo(px + 5, chest[1] - 50); ctx.lineTo(px + 10, chest[1] - 30); ctx.fill(); } }
+  if (has('hane')) { ctx.fillStyle = 'rgba(240,240,250,.85)'; ctx.beginPath(); ctx.ellipse(chest[0] - 36, chest[1] - 22, 12, 30, -.6, 0, Math.PI * 2); ctx.fill(); }
+  if (has('mi')) { ctx.strokeStyle = `rgba(255,140,60,${.7 + .3 * Math.sin(t * 6)})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(chest[0] - 10, chest[1] - 14); ctx.lineTo(chest[0], chest[1]); ctx.lineTo(chest[0] - 6, chest[1] + 14); ctx.stroke(); }
+  if (has('haguruma')) { ctx.save(); ctx.translate(chest[0] + 12, chest[1] + 8); ctx.rotate(t * 2); ctx.fillStyle = '#b58a3a'; for (let i = 0; i < 8; i++) { ctx.rotate(Math.PI / 4); ctx.fillRect(-3, -13, 6, 6); } ctx.beginPath(); ctx.arc(0, 0, 9, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = col; ctx.beginPath(); ctx.arc(0, 0, 3, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }
+  if (has('uroko')) { ctx.fillStyle = 'rgba(80,170,140,.85)'; for (let i = 0; i < 6; i++) { ctx.beginPath(); ctx.arc(chest[0] - 20 + (i % 3) * 18, chest[1] + 10 + Math.floor(i / 3) * 12, 8, Math.PI, 0); ctx.fill(); } }
+  if (has('suisho')) { ctx.fillStyle = '#9fe8ff'; ctx.shadowColor = '#9fe8ff'; ctx.shadowBlur = 12; ctx.beginPath(); ctx.moveTo(chest[0], chest[1] - 12); ctx.lineTo(chest[0] + 8, chest[1]); ctx.lineTo(chest[0], chest[1] + 12); ctx.lineTo(chest[0] - 8, chest[1]); ctx.fill(); ctx.shadowBlur = 0; }
+  if (has('hoshi')) { ctx.fillStyle = '#fff3a0'; for (let i = 0; i < cnt('hoshi') * 2; i++) { const a = t * 2 + i * 2.1, px = chest[0] + Math.cos(a) * 52, py = chest[1] - 30 + Math.sin(a) * 30; ctx.globalAlpha = .6 + .4 * Math.sin(t * 5 + i); ctx.beginPath(); for (let k = 0; k < 10; k++) { const r = k % 2 ? 2 : 5, aa = k * Math.PI / 5; ctx.lineTo(px + Math.cos(aa) * r, py + Math.sin(aa) * r); } ctx.fill(); } ctx.globalAlpha = 1; }
+  // 目（魂の色）
+  ctx.fillStyle = eye; ctx.shadowColor = eye; ctx.shadowBlur = 10;
+  if (g.q === 'kiwami') ctx.shadowBlur = 22;
+  ctx.fillRect(headX + 1, headY - 3, 8, 5); ctx.fillRect(headX - 11, headY - 3, 7, 5);
+  ctx.shadowBlur = 0;
+  if (g.q === 'hibi') { ctx.strokeStyle = '#1a1210'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(headX - 6, headY - 16); ctx.lineTo(headX + 2, headY - 2); ctx.lineTo(headX - 4, headY + 10); ctx.stroke(); }
+  ctx.restore();
+}
+function paintCanvas(c, g, opts = {}) {
+  if (!c) return;
+  const x = c.getContext('2d'), w = c.width, h = c.height;
+  x.clearRect(0, 0, w, h);
+  const s = (opts.scale || 1) * w / 200;
+  drawGolem(x, g, w / 2 - (g.form === 'kemono' ? 6 : 0) * s, h * .9, s * (g.form === 'kyojin' ? .95 : 1.05), opts.face || 1, opts.t || 0);
+}
+
+/* ================= 採集 ================= */
+function startDig(i) {
+  const site = SITES[i];
+  DIG = { site: i, left: 6, cells: Array.from({ length: 12 }, () => ({ open: false, item: null, glint: Math.random() < .2 })), got: {} };
+  UI.tab = 'gather'; snd('start'); render();
+}
+function rollItem(site, glint) {
+  const tbl = site.tbl.map(([k, w]) => [k, k === 'none' ? w * (glint ? .3 : 1) : (k === 'soil' ? w : w * (glint ? 2 : 1))]);
+  const tot = tbl.reduce((s, x) => s + x[1], 0);
+  let r = Math.random() * tot;
+  for (const [k, w] of tbl) { if ((r -= w) <= 0) return k; }
+  return 'none';
+}
+function dig(ci) {
+  if (!DIG || DIG.left <= 0) return;
+  const c = DIG.cells[ci];
+  if (c.open) return;
+  const site = SITES[DIG.site];
+  const k = rollItem(site, c.glint);
+  c.open = true; DIG.left--; S.stats.digs++;
+  if (k === 'soil') { const n = 2 + Math.floor(Math.random() * 3); c.item = { k: site.soil, soil: true, n }; add(DIG.got, 's:' + site.soil, n); snd('pick'); }
+  else if (k === 'none') { c.item = null; snd('miss'); }
+  else { c.item = { k, n: 1 }; add(DIG.got, 'm:' + k, 1); snd(['uroko', 'hoshi', 'haguruma', 'suisho'].includes(k) ? 'good' : 'coin'); c.rare = ['uroko', 'hoshi'].includes(k); }
+  render();
+}
+function finishDig() {
+  if (!DIG) return;
+  const lines = [];
+  for (const [key, n] of Object.entries(DIG.got)) {
+    const [t, k] = key.split(':');
+    if (t === 's') { add(S.soils, k, n); lines.push(`${SOILS[k].n}×${n}`); }
+    else { add(S.mats, k, n); lines.push(`${MATS[k].e}${MATS[k].n}×${n}`); }
+  }
+  DIG = null; save();
+  toast(lines.length ? '持ち帰った：' + lines.join('、') : '何も見つからなかった');
+  render();
+}
+function unlockSite(i) {
+  const s = SITES[i];
+  if (S.sites[s.id] || S.gold < s.cost) return;
+  S.gold -= s.cost; S.sites[s.id] = 1; save(); snd('good'); toast(`${s.n}で採集できるようになった`); render();
+}
+
+/* ================= 工房 ================= */
+function wbPreview() {
+  if (!W.soil) return null;
+  return buildGolem({ soil: W.soil, mats: W.mats, form: W.form, soul: W.soul, q: 'nami', seed: 7 });
+}
+function canCraft() { return W.soil && (S.soils[W.soil] || 0) >= 3 && S.golems.length < SLOTS && S.souls[W.soul]; }
+function matAvail(k) { return (S.mats[k] || 0) - W.mats.filter(m => m === k).length; }
+function startSoul() {
+  if (!canCraft()) return;
+  UI.modal = { type: 'soul', v: 0, holding: false, done: false, phase: 0, q: null };
+  snd('charge'); render();
+}
+function soulQuality(v) { return v > 95 ? 'hibi' : v >= 85 ? 'kiwami' : v >= 60 ? 'ryo' : 'nami'; }
+function releaseSoul() {
+  const m = UI.modal; if (!m || m.type !== 'soul' || m.done) return;
+  m.holding = false; m.done = true; m.q = soulQuality(m.v);
+  const g = buildGolem({ soil: W.soil, mats: W.mats, form: W.form, soul: W.soul, q: m.q });
+  g.name = NAMES[Math.floor(Math.random() * NAMES.length)];
+  add(S.soils, W.soil, -3); for (const k of W.mats) add(S.mats, k, -1);
+  S.golems.push(g); S.stats.made++;
+  if (!S.champ) S.champ = g.id;
+  m.g = g;
+  snd(m.q === 'kiwami' ? 'evolve' : m.q === 'hibi' ? 'bad' : 'summon');
+  if ((S.soils[W.soil] || 0) < 3) W.soil = null;
+  W.mats = [];
+  save(); render();
+}
+function buySoul(k) {
+  const s = SOULS[k];
+  if (S.souls[k] || S.gold < s.cost) return;
+  S.gold -= s.cost; S.souls[k] = 1; W.soul = k; save(); snd('good'); toast(`${s.n}を手に入れた`); render();
+}
+
+/* ================= 棚 ================= */
+function sellGolem(id) {
+  const i = S.golems.findIndex(g => g.id === id); if (i < 0) return;
+  const g = S.golems[i], p = sellPrice(g);
+  S.golems.splice(i, 1); S.gold += p;
+  if (S.champ === id) S.champ = S.golems[0] ? S.golems[0].id : null;
+  save(); snd('coin'); toast(`${g.name}を${p}両で譲った`); render();
+}
+
+/* ================= 闘技場 ================= */
+function startFight(fi) {
+  const me = champ(); if (!me) return;
+  const f = FOES[fi];
+  const foe = buildGolem({ ...f, seed: 1000 + fi, name: f.n });
+  const r = simulate(me, foe);
+  BT = { fi, me, foe, r, i: -1, t: 0, step: .6, fast: false, hpL: r.maxL, hpR: r.maxR, anim: null, texts: [], done: false, log: `${me.name} 対 ${f.n}` };
+  UI.screen = 'battle'; UI.modal = null; snd('start'); render();
+}
+function stepBattle(dt) {
+  if (!BT || BT.done) return;
+  BT.t += dt;
+  if (BT.anim) { BT.anim.t += dt; }
+  const step = BT.fast ? .22 : .6;
+  if (BT.t < step) return;
+  BT.t = 0;
+  BT.i++;
+  const e = BT.r.ev[BT.i];
+  if (!e) { finishFight(); return; }
+  BT.anim = { who: e.who, t: 0 };
+  BT.hpL = e.hpL; BT.hpR = e.hpR;
+  const tx = e.who === 'L' ? 470 : 170;
+  e.hits.forEach((h, k) => {
+    const lab = h.kind === 'special' ? '大技 ' : h.kind === 'crit' ? '会心 ' : h.kind === 'block' ? '受け流し ' : '';
+    BT.texts.push({ x: tx + k * 26, y: 150 - k * 24, s: lab + h.dmg, c: h.kind === 'special' ? '#ffd34a' : h.kind === 'crit' ? '#ff9a5a' : h.kind === 'block' ? '#9fd0ff' : '#fff', life: 1 });
+    if (h.saved) BT.texts.push({ x: tx, y: 110, s: '頑丈で踏みとどまった', c: '#7fdcb0', life: 1.2 });
+  });
+  if (e.heal) BT.texts.push({ x: e.who === 'L' ? 170 : 470, y: 160, s: '+' + e.heal, c: '#7fdc8a', life: 1 });
+  snd(e.hits.some(h => h.kind === 'special' || h.kind === 'crit') ? 'big' : 'hit');
+  const nm = e.who === 'L' ? BT.me.name : BT.foe.name;
+  BT.log = `${nm}の${e.hits.some(h => h.kind === 'special') ? '大技' : '一撃'}。${e.hits.map(h => h.dmg).join('＋')}の傷${e.heal ? `。苔で${e.heal}回復` : ''}。`;
+  syncBattle();
+}
+function finishFight() {
+  BT.done = true;
+  const f = FOES[BT.fi], first = !S.beaten[BT.fi];
+  let msg;
+  if (BT.r.win) {
+    const gold = first ? f.gold : Math.round(f.gold * .25);
+    S.gold += gold; S.stats.wins++;
+    if (first) { S.beaten[BT.fi] = 1; add(S.mats, f.prize, 1); }
+    if (f.boss && first) S.stats.clearAt = Date.now();
+    msg = { type: 'result', win: true, gold, prize: first ? f.prize : null, boss: f.boss && first };
+    snd('win');
+  } else { S.stats.losses++; msg = { type: 'result', win: false }; snd('lose'); }
+  save();
+  UI.modal = msg; render();
+}
+
+/* ================= 描画 ================= */
+const app = document.getElementById('app'), modalRoot = document.getElementById('modal-root');
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function toast(m) { const d = document.createElement('div'); d.className = 'toast'; d.textContent = m; document.body.appendChild(d); setTimeout(() => d.remove(), 1800); }
+const elTag = e => `<span class="el">${e}</span>`;
+function statRows(g, cap = 220) {
+  const L = { hp: '体力', atk: '力', def: '守り', spd: '速さ' }, mx = { hp: cap * 2.2, atk: cap * .32, def: cap * .3, spd: cap * .25 };
+  return `<div class="stats">${Object.keys(L).map(k => `<span>${L[k]}</span><div class="bar"><i style="width:${Math.min(100, g.st[k] / mx[k] * 100).toFixed(0)}%"></i></div><span class="v">${g.st[k]}</span>`).join('')}</div>`;
+}
+
+function vTitle() {
+  return `<section class="title"><canvas id="tcv" width="400" height="400" aria-hidden="true"></canvas>
+<h1>ゴーレム<span>工房</span></h1>
+<p>土を掘り、素材を練り込み、形をつくって魂を込める。生まれたゴーレムを闘技場に送り出し、頂に座す<b>原初のゴーレム</b>を打ち倒せ。</p>
+<div class="row" style="justify-content:center">${load() ? '<button class="btn main" data-a="continue">工房に入る</button><button class="btn" data-a="newgame">はじめから</button>' : '<button class="btn main" data-a="newgame">工房を開く</button>'}</div></section>`;
+}
+function vTop() {
+  const nf = nextFoe();
+  const soils = Object.entries(S.soils).map(([k, n]) => `<span><span class="sw" style="background:${SOILS[k].c}"></span> ${SOILS[k].n} ${n}</span>`).join('');
+  const mats = Object.entries(S.mats).map(([k, n]) => `<span>${MATS[k].e}${n}</span>`).join('');
+  return `<section class="top"><span class="gold">銭 <b>${S.gold.toLocaleString()}</b>両</span><span class="small muted">ゴーレム ${S.golems.length}/${SLOTS}</span><span class="rank">${nf < 0 ? '闘技場 制覇' : `闘技場 ${nf + 1}戦目`}</span>
+<div class="inv">${soils || '土なし'}<span style="width:100%"></span>${mats || '素材なし'}</div></section>`;
+}
+function vTabs() {
+  const tabs = [['gather', '採集'], ['work', '工房'], ['shelf', '棚'], ['arena', '闘技場']];
+  return `<nav class="tabs" role="tablist">${tabs.map(([k, l]) => `<button role="tab" aria-selected="${UI.tab === k}" data-a="tab:${k}">${l}</button>`).join('')}</nav>`;
+}
+function vGather() {
+  if (DIG) {
+    const site = SITES[DIG.site];
+    return `<section class="sec"><h2>${site.n}で掘る</h2><p>土の山をたたいて掘る。残り <b>${DIG.left}</b> 回。きらりと光る山は珍しい物が出やすい。</p>
+<div class="dig">${DIG.cells.map((c, i) => c.open
+      ? `<button class="mound open ${c.rare ? 'rare' : ''}" disabled aria-label="${c.item ? (c.item.soil ? SOILS[c.item.k].n : MATS[c.item.k].n) : 'からっぽ'}">${c.item ? (c.item.soil ? `<span class="sw" style="width:26px;height:26px;background:${SOILS[c.item.k].c}"></span>` : MATS[c.item.k].e) : '・'}<span class="lb">${c.item ? (c.item.soil ? '土×' + c.item.n : MATS[c.item.k].n) : 'からっぽ'}</span></button>`
+      : `<button class="mound ${c.glint ? 'glint' : ''}" data-a="dig:${i}" ${DIG.left ? '' : 'disabled'} aria-label="土の山を掘る"></button>`).join('')}</div>
+<div class="row"><span class="grow small muted">${Object.keys(DIG.got).length ? '掘り出した：' + Object.entries(DIG.got).map(([key, n]) => { const [t, k] = key.split(':'); return (t === 's' ? SOILS[k].n : MATS[k].e + MATS[k].n) + '×' + n; }).join('、') : ''}</span><button class="btn main" data-a="home">${DIG.left ? '切り上げて帰る' : '持ち帰る'}</button></div></section>`;
+  }
+  return `<section class="sec"><h2>採集地</h2>${SITES.map((s, i) => {
+    const open = !!S.sites[s.id];
+    return `<div class="site"><div><b>${s.n}</b> <span class="sw" style="background:${SOILS[s.soil].c}"></span> ${SOILS[s.soil].n} ${elTag(SOILS[s.soil].el)}<small>${s.d}<br>出る素材：${s.tbl.filter(([k]) => MATS[k]).map(([k]) => MATS[k].e + MATS[k].n).join(' ')}</small></div>
+${open ? `<button class="btn main" data-a="digAt:${i}">掘りに行く</button>` : `<button class="btn gold" data-a="unlock:${i}" ${S.gold >= s.cost ? '' : 'disabled'}>${s.cost}両で通う</button>`}</div>`;
+  }).join('')}</section>`;
+}
+function vWork() {
+  const pv = wbPreview();
+  const full = S.golems.length >= SLOTS;
+  return `<section class="sec"><h2><span class="no">1</span>土を選ぶ<small class="muted small">（3つ使う）</small></h2>
+<div class="chips">${Object.entries(SOILS).map(([k, so]) => { const n = S.soils[k] || 0; return `<button class="chip" aria-pressed="${W.soil === k}" data-a="soil:${k}" ${n >= 3 ? '' : 'disabled'}><span class="sw" style="background:${so.c}"></span>${so.n} ${elTag(so.el)}<small>${n}</small></button>`; }).join('')}</div></section>
+<section class="sec"><h2><span class="no">2</span>素材を混ぜる<small class="muted small">（3つまで・同じ物も可）</small></h2>
+<div class="chips">${Object.entries(MATS).map(([k, m]) => { const n = matAvail(k); return (S.mats[k] || 0) ? `<button class="chip" data-a="mat:${k}" ${n > 0 && W.mats.length < 3 ? '' : 'disabled'}>${m.e} ${m.n}<small>${n}・${m.d}</small></button>` : ''; }).join('') || '<p class="muted">素材がない。採集で掘ってこよう。</p>'}</div>
+<div class="picked">${W.mats.map((k, i) => `<button class="chip" data-a="unmat:${i}" aria-label="${MATS[k].n}を外す">${MATS[k].e} ${MATS[k].n} ✕</button>`).join('') || '<span class="small muted">混ぜる素材はまだない</span>'}</div></section>
+<section class="sec"><h2><span class="no">3</span>形をつくる</h2>
+<div class="chips">${Object.entries(FORMS).map(([k, f]) => `<button class="chip" aria-pressed="${W.form === k}" data-a="form:${k}">${f.n}<small>${f.d}</small></button>`).join('')}</div></section>
+<section class="sec"><h2><span class="no">4</span>魂を選ぶ</h2>
+<div class="chips">${Object.entries(SOULS).map(([k, s]) => S.souls[k] ? `<button class="chip" aria-pressed="${W.soul === k}" data-a="soul:${k}"><span class="sw" style="background:${s.c};border-radius:50%"></span>${s.n}<small>${s.d}</small></button>` : `<button class="chip" data-a="buySoul:${k}" ${S.gold >= s.cost ? '' : 'disabled'}><span class="sw" style="background:${s.c};border-radius:50%;opacity:.4"></span>${s.n}<small>${s.cost}両で授かる・${s.d}</small></button>`).join('')}</div></section>
+<section class="sec"><h2>仕上がりの見込み<small class="muted small">（魂の込め方でさらに変わる）</small></h2>
+${pv ? `<div class="preview"><canvas id="pv" width="300" height="300" aria-label="ゴーレムの見込み"></canvas><div>${statRows(pv)}<div class="traits">${elTag(pv.el)}${pv.traits.map(t => `<span class="trait">${t}</span>`).join('')}</div><p class="small" style="margin:6px 0 0">格 <span class="power">${pv.power}</span></p></div></div>` : '<p class="muted">土を選ぶと見込みが出る。</p>'}
+<div class="row" style="margin-top:10px"><span class="grow small muted">${full ? '棚がいっぱい。棚でゴーレムを譲ろう。' : ''}</span><button class="btn soul" data-a="craft" ${canCraft() ? '' : 'disabled'}>魂を込める</button></div></section>`;
+}
+function vShelf() {
+  if (!S.golems.length) return '<section class="sec"><p class="muted">まだゴーレムがいない。工房でつくろう。</p></section>';
+  return `<p class="small muted" style="margin:0 0 8px">金の枠が闘技場に出るゴーレム。いらないゴーレムは譲ると銭になる。</p><div class="shelf">${S.golems.map(g => `<div class="gcard ${g.id === S.champ ? 'sel' : ''}"><canvas data-g="${g.id}" width="300" height="300" aria-label="${esc(g.name)}"></canvas>
+<div class="nm">${esc(g.name)} <small class="muted">${FORMS[g.form].n}・${QUAL[g.q].n}</small></div>
+<div class="meta">${SOILS[g.soil].n}・${SOULS[g.soul].n}${g.mats.length ? '・' + g.mats.map(k => MATS[k].e).join('') : ''}</div>
+${statRows(g)}<div class="traits">${elTag(g.el)}${g.traits.map(t => `<span class="trait">${t}</span>`).join('')}</div>
+<div class="row"><span class="power">${g.power}</span><span class="grow"></span>${g.id === S.champ ? '<span class="small" style="color:var(--gold);font-weight:900">出場中</span>' : `<button class="btn sm" data-a="champ:${g.id}">出場させる</button>`}<button class="btn sm" data-a="sell:${g.id}">${sellPrice(g)}両で譲る</button></div></div>`).join('')}</div>`;
+}
+function vArena() {
+  const me = champ(), nf = nextFoe();
+  return `<section class="sec"><h2>出場するゴーレム</h2>${me ? `<p>${esc(me.name)}（${FORMS[me.form].n}・${SOILS[me.soil].el}・格 ${me.power}）。棚で入れ替えられる。</p>` : '<p class="muted">まだゴーレムがいない。</p>'}</section>
+<div class="ladder">${FOES.map((f, i) => {
+    const g = buildGolem({ ...f, seed: 1000 + i }), done = !!S.beaten[i], lock = i > (nf < 0 ? FOES.length : nf);
+    const adv = me ? elemMul(me.el, g.el) : 1;
+    return `<div class="foe ${lock ? 'lock' : ''} ${done ? 'done' : ''}"><canvas data-foe="${i}" width="144" height="144" aria-hidden="true"></canvas>
+<div><b>${i + 1}. ${f.n}</b><small>${SOILS[f.soil].el}・${FORMS[f.form].n}・${SOULS[f.soul].n}・格 ${g.power}${me && adv !== 1 ? `・<span style="color:${adv > 1 ? 'var(--green)' : 'var(--red)'}">${adv > 1 ? '相性よし' : '相性わるい'}</span>` : ''}</small><small>${done ? '勝利済み' : `勝てば ${f.gold}両と${MATS[f.prize].e}${MATS[f.prize].n}`}</small></div>
+${lock ? '<span class="small muted">未挑戦</span>' : `<button class="btn ${done ? '' : 'red'} sm" data-a="fight:${i}" ${me ? '' : 'disabled'}>${done ? '再戦' : '挑む'}</button>`}</div>`;
+  }).join('')}</div>`;
+}
+function vBattle() {
+  return `<section class="battle">
+<div class="vs"><div>${esc(BT.me.name)}<div class="hp"><i id="hpL"></i></div></div><div class="muted">対</div><div class="r">${esc(BT.foe.name)}<div class="hp"><i id="hpR"></i></div></div></div>
+<canvas id="bcv" width="1280" height="720" aria-label="闘技場"></canvas>
+<p class="blog" id="blog"></p>
+<div class="row"><button class="btn" data-a="fast">${BT.fast ? '普通の速さ' : '早送り'}</button><span class="grow"></span><button class="btn" data-a="skip">結果まで飛ばす</button></div>
+</section>`;
+}
+function syncBattle() {
+  const L = document.getElementById('hpL'), R = document.getElementById('hpR'), lg = document.getElementById('blog');
+  if (L) L.style.width = (BT.hpL / BT.r.maxL * 100) + '%';
+  if (R) R.style.width = (BT.hpR / BT.r.maxR * 100) + '%';
+  if (lg) lg.textContent = BT.log;
+}
+function drawArena(now) {
+  const c = document.getElementById('bcv'); if (!c || !BT) return;
+  const x = c.getContext('2d'); x.setTransform(2, 0, 0, 2, 0, 0);
+  const t = now / 1000;
+  const g = x.createLinearGradient(0, 0, 0, 360); g.addColorStop(0, '#3a2a1e'); g.addColorStop(1, '#1a130e');
+  x.fillStyle = g; x.fillRect(0, 0, 640, 360);
+  x.fillStyle = '#5a4430'; x.fillRect(0, 290, 640, 70);
+  x.fillStyle = 'rgba(255,200,120,.08)'; for (let i = 0; i < 8; i++) { x.beginPath(); x.arc(80 * i + 40, 60, 30 + 6 * Math.sin(t + i), 0, Math.PI * 2); x.fill(); }
+  const a = BT.anim, k = a ? Math.max(0, 1 - Math.abs(a.t - .15) / .15) : 0;
+  const lungeL = a && a.who === 'L' ? k : 0, lungeR = a && a.who === 'R' ? k : 0;
+  const hurtL = a && a.who === 'R' && a.t > .1 && a.t < .35, hurtR = a && a.who === 'L' && a.t > .1 && a.t < .35;
+  const sL = BT.me.form === 'kyojin' ? .95 : 1.1, sR = BT.foe.form === 'kyojin' ? .95 : 1.1;
+  x.globalAlpha = BT.done && !BT.r.win ? .45 : 1; drawGolem(x, BT.me, 180, 300, sL, 1, t, lungeL, hurtL); x.globalAlpha = 1;
+  x.globalAlpha = BT.done && BT.r.win ? .45 : 1; drawGolem(x, BT.foe, 460, 300, sR, -1, t, lungeR, hurtR); x.globalAlpha = 1;
+  x.textAlign = 'center'; x.textBaseline = 'middle';
+  for (const tx of BT.texts) {
+    x.globalAlpha = Math.min(1, tx.life * 2);
+    x.font = '22px "Dela Gothic One",sans-serif'; x.lineWidth = 5; x.strokeStyle = 'rgba(0,0,0,.7)';
+    x.strokeText(tx.s, tx.x, tx.y); x.fillStyle = tx.c; x.fillText(tx.s, tx.x, tx.y);
+  }
+  x.globalAlpha = 1;
+}
+function vModal() {
+  const m = UI.modal; if (!m) return '';
+  if (m.type === 'soul') {
+    if (!m.done) return `<div class="modal"><div class="sheet" role="dialog" aria-label="魂を込める"><h2>魂を込める</h2>
+<p>押している間、魂が流れ込む。金色のところで手を離せば「極」。込めすぎるとひびが入る。</p>
+<div class="gauge"><div class="z" style="left:60%;width:25%;background:rgba(127,214,255,.18)"></div><div class="z" style="left:85%;width:10%;background:rgba(232,184,74,.5)"></div><div class="z" style="left:95%;width:5%;background:rgba(224,87,74,.45)"></div><div class="fill" id="sfill" style="width:${m.v}%"></div>
+<span class="lab" style="left:0;width:60%">並</span><span class="lab" style="left:60%;width:25%">良</span><span class="lab" style="left:85%;width:10%">極</span></div>
+<button class="hold" id="hold">押して魂を込める</button></div></div>`;
+    return `<div class="modal"><div class="sheet" role="dialog" aria-label="ゴーレム誕生"><h2>ゴーレム誕生</h2><div class="q ${QUAL[m.q].cls}">${QUAL[m.q].n}</div>
+<canvas id="born" width="400" height="400" aria-hidden="true"></canvas>
+<p>名前をつけてやろう。</p><input id="gname" value="${esc(m.g.name)}" maxlength="10" aria-label="ゴーレムの名前">
+<div style="margin:10px 0">${statRows(m.g)}</div>
+<div class="row" style="justify-content:center"><button class="btn main" data-a="named">棚に並べる</button></div></div></div>`;
+  }
+  if (m.type === 'result') {
+    if (m.win) return `<div class="modal"><div class="sheet"><h2 style="color:var(--gold)">${m.boss ? '原初のゴーレムを打ち倒した' : '勝利'}</h2>${m.boss ? '<p>泥から生まれた子が、始まりの巨人を越えた。工房の名は国中に知れ渡るだろう。</p>' : ''}<p>${m.gold}両を手に入れた${m.prize ? `。賞品：${MATS[m.prize].e}${MATS[m.prize].n}` : ''}</p><button class="btn main" data-a="back">工房へ戻る</button></div></div>`;
+    return `<div class="modal"><div class="sheet"><h2 style="color:var(--red)">敗北</h2><p>土に還る前に連れ帰った。素材と形、相性を見直そう。</p><button class="btn main" data-a="back">工房へ戻る</button></div></div>`;
+  }
+  return '';
+}
+function render() {
+  if (UI.screen === 'title') app.innerHTML = vTitle();
+  else if (UI.screen === 'battle') { app.innerHTML = vBattle(); syncBattle(); }
+  else {
+    const body = { gather: vGather, work: vWork, shelf: vShelf, arena: vArena }[UI.tab]();
+    app.innerHTML = vTop() + vTabs() + body;
+  }
+  modalRoot.innerHTML = vModal();
+  paintAll(0);
+  bindHold();
+}
+function paintAll(t) {
+  const pvC = document.getElementById('pv'); if (pvC) { const pv = wbPreview(); if (pv) paintCanvas(pvC, pv, { t }); }
+  document.querySelectorAll('canvas[data-g]').forEach(c => { const g = S.golems.find(x => x.id === c.dataset.g); if (g) paintCanvas(c, g, { t }); });
+  document.querySelectorAll('canvas[data-foe]').forEach(c => { const i = +c.dataset.foe, f = FOES[i]; paintCanvas(c, buildGolem({ ...f, seed: 1000 + i }), { t, face: -1 }); });
+  const born = document.getElementById('born'); if (born && UI.modal && UI.modal.g) paintCanvas(born, UI.modal.g, { t });
+  const tcv = document.getElementById('tcv'); if (tcv) paintCanvas(tcv, TITLE_G, { t });
+}
+const TITLE_G = buildGolem({ soil: 'hatake', form: 'kyojin', soul: 'yu', q: 'kiwami', mats: ['koke', 'suisho', 'tetsu'], seed: 42 });
+
+/* 魂込めのボタン（押しっぱなし） */
+function bindHold() {
+  const h = document.getElementById('hold'); if (!h) return;
+  const on = e => { e.preventDefault(); if (UI.modal && !UI.modal.done) { UI.modal.holding = true; h.classList.add('on'); } };
+  const off = e => { if (UI.modal && UI.modal.holding) { e && e.preventDefault(); releaseSoul(); } };
+  h.addEventListener('pointerdown', on); h.addEventListener('pointerup', off); h.addEventListener('pointerleave', off); h.addEventListener('pointercancel', off);
+  h.addEventListener('keydown', e => { if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) on(e); });
+  h.addEventListener('keyup', e => { if (e.key === ' ' || e.key === 'Enter') off(e); });
+  h.focus();
+}
+function stepSoul(dt) {
+  const m = UI.modal;
+  if (!m || m.type !== 'soul' || m.done || !m.holding) return;
+  // 速さが波打つので、ただ待つだけでは狙いにくい
+  m.phase += dt;
+  m.v += dt * (34 + 26 * Math.sin(m.phase * 5));
+  if (m.v >= 100) { m.v = 100; releaseSoul(); return; }
+  const f = document.getElementById('sfill'); if (f) f.style.width = m.v + '%';
+}
+
+/* ================= 操作 ================= */
+function act(a) {
+  const [k, x] = a.split(':');
+  if (k === 'newgame') { S = fresh(); save(); W = { soil: null, mats: [], form: 'hito', soul: 'yu' }; UI = { screen: 'home', tab: 'gather', modal: null }; snd('start'); render(); }
+  else if (k === 'continue') { S = load() || fresh(); UI = { screen: 'home', tab: 'work', modal: null }; render(); }
+  else if (k === 'tab') { if (DIG && x !== 'gather') finishDig(); UI.tab = x; snd('click'); render(); }
+  else if (k === 'digAt') startDig(+x);
+  else if (k === 'dig') dig(+x);
+  else if (k === 'home') finishDig();
+  else if (k === 'unlock') unlockSite(+x);
+  else if (k === 'soil') { W.soil = W.soil === x ? null : x; snd('click'); render(); }
+  else if (k === 'mat') { if (matAvail(x) > 0 && W.mats.length < 3) { W.mats.push(x); snd('pick'); render(); } }
+  else if (k === 'unmat') { W.mats.splice(+x, 1); snd('unpick'); render(); }
+  else if (k === 'form') { W.form = x; snd('click'); render(); }
+  else if (k === 'soul') { W.soul = x; snd('click'); render(); }
+  else if (k === 'buySoul') buySoul(x);
+  else if (k === 'craft') startSoul();
+  else if (k === 'named') { const i = document.getElementById('gname'); const g = UI.modal.g; if (i && i.value.trim()) g.name = i.value.trim().slice(0, 10); save(); UI.modal = null; UI.tab = 'shelf'; snd('click'); render(); }
+  else if (k === 'champ') { S.champ = x; save(); snd('click'); render(); }
+  else if (k === 'sell') sellGolem(x);
+  else if (k === 'fight') startFight(+x);
+  else if (k === 'fast') { BT.fast = !BT.fast; render(); }
+  else if (k === 'skip') { while (!BT.done) { BT.t = 9; stepBattle(0); } }
+  else if (k === 'back') { BT = null; UI = { screen: 'home', tab: 'arena', modal: null }; render(); }
+}
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-a]');
+  if (!el || el.disabled) return;
+  act(el.dataset.a);
+});
+
+/* ================= オート ================= */
+const AI = { next: 0, holdTo: 0, plan: null };
+function bestCraft(target) {
+  // 持っている土・素材・魂から、次の相手にいちばん勝てそうな組み合わせを探す
+  let best = null;
+  const soils = Object.keys(SOILS).filter(k => (S.soils[k] || 0) >= 3);
+  const have = Object.entries(S.mats).flatMap(([k, n]) => Array(n).fill(k));
+  const uniq = [...new Set(have)];
+  const combos = [[]];
+  for (const a of uniq) { combos.push([a]); for (const b of uniq) { combos.push([a, b]); for (const c of uniq) combos.push([a, b, c]); } }
+  const ok = c => Object.entries(c.reduce((m, k) => (m[k] = (m[k] || 0) + 1, m), {})).every(([k, n]) => (S.mats[k] || 0) >= n);
+  for (const so of soils) for (const form of Object.keys(FORMS)) for (const soul of Object.keys(S.souls)) for (const c of combos) {
+    if (!ok(c)) continue;
+    const g = buildGolem({ soil: so, mats: c, form, soul, q: 'ryo', seed: 1 });
+    const score = g.power * (target ? elemMul(g.el, target.el) : 1) - c.length * 2;
+    if (!best || score > best.score) best = { score, soil: so, mats: c, form, soul, g };
+  }
+  return best;
+}
+function autoHome() {
+  const nf = nextFoe();
+  const foe = nf >= 0 ? buildGolem({ ...FOES[nf], seed: 1000 + nf }) : null;
+  // 1. 魂と採集地を買う
+  for (const k of ['ken', 'kyo']) if (!S.souls[k] && S.gold >= SOULS[k].cost + 100) { UI.tab = 'work'; buySoul(k); return; }
+  for (let i = 0; i < SITES.length; i++) if (!S.sites[SITES[i].id] && S.gold >= SITES[i].cost) { UI.tab = 'gather'; unlockSite(i); return; }
+  // 2. 一番強いゴーレムを出場させる
+  if (S.golems.length) {
+    const top = S.golems.slice().sort((a, b) => (b.power * (foe ? elemMul(b.el, foe.el) : 1)) - (a.power * (foe ? elemMul(a.el, foe.el) : 1)))[0];
+    if (S.champ !== top.id) { UI.tab = 'shelf'; act('champ:' + top.id); return; }
+  }
+  // 3. 勝てそうなら挑む
+  const me = champ();
+  if (me && foe && winRate(me, foe) >= .55) { UI.tab = 'arena'; startFight(nf); return; }
+  if (nf < 0 && me && Math.random() < .3) { startFight(FOES.length - 1); return; }
+  // 4. 棚が埋まりそうなら弱いものを譲る
+  if (S.golems.length >= SLOTS - 1) { const w = S.golems.slice().sort((a, b) => a.power - b.power)[0]; UI.tab = 'shelf'; sellGolem(w.id); return; }
+  // 5. いまより強いものが作れるなら作る
+  const plan = bestCraft(foe);
+  const em = g => g.power * (foe ? elemMul(g.el, foe.el) : 1);
+  const better = plan && (!me || em(plan.g) > em(me) * 1.05);
+  // いまの素材でも「極」が出れば勝てるなら、作り直しに賭ける
+  const gamble = plan && foe && S.golems.length < SLOTS - 1 && winRate(buildGolem({ soil: plan.soil, mats: plan.mats, form: plan.form, soul: plan.soul, q: 'kiwami', seed: 1 }), foe, 30) >= .55;
+  if (better || gamble) {
+    UI.tab = 'work'; W = { soil: plan.soil, mats: plan.mats.slice(), form: plan.form, soul: plan.soul };
+    render(); startSoul(); AI.holdTo = Math.random() < .5 ? rnd(86, 94) : rnd(62, 84); return;
+  }
+  // 6. 銭が足りないときは、楽に勝てる相手と再戦するか、余った土でゴーレムを作って譲る
+  const want = SITES.find(x => !S.sites[x.id]) || null;
+  if (want && S.gold < want.cost && Math.random() < .35) {
+    for (let i = FOES.length - 1; i >= 0; i--) if (S.beaten[i] && me && winRate(me, buildGolem({ ...FOES[i], seed: 1000 + i })) >= .8) { UI.tab = 'arena'; startFight(i); return; }
+    const rich = Object.keys(SOILS).find(k => (S.soils[k] || 0) >= 6);
+    if (rich && S.golems.length < SLOTS - 1) { UI.tab = 'work'; W = { soil: rich, mats: [], form: 'kyojin', soul: 'yu' }; render(); startSoul(); AI.holdTo = rnd(70, 90); return; }
+  }
+  // 7. 余った弱いゴーレムは譲って銭に
+  if (S.golems.length > 2) { const w = S.golems.filter(g => g.id !== S.champ).sort((a, b) => a.power - b.power)[0]; if (w) { UI.tab = 'shelf'; sellGolem(w.id); return; } }
+  // 8. 掘りに行く（いちばん良い採集地）
+  let si = 0; for (let i = SITES.length - 1; i >= 0; i--) if (S.sites[SITES[i].id]) { si = i; break; }
+  if (Math.random() < .35) si = Math.floor(Math.random() * (si + 1));
+  startDig(si);
+}
+function rnd(a, b) { return a + Math.random() * (b - a); }
+function autoTick(dt) {
+  if (!window.tgAuto) return;
+  const m = UI.modal;
+  if (m && m.type === 'soul' && !m.done) { if (!m.holding) m.holding = true; if (m.v >= AI.holdTo) releaseSoul(); return; }
+  AI.next -= dt;
+  if (AI.next > 0) return;
+  AI.next = .6;
+  if (UI.screen === 'title') { act(load() ? 'continue' : 'newgame'); return; }
+  if (m && m.type === 'soul' && m.done) { act('named'); return; }
+  if (m && m.type === 'result') { act('back'); AI.next = 1.2; return; }
+  if (UI.screen === 'battle') { if (!BT.fast) { BT.fast = true; render(); } return; }
+  if (DIG) {
+    if (DIG.left > 0) { const cl = DIG.cells.map((c, i) => [c, i]).filter(([c]) => !c.open); const pick = cl.find(([c]) => c.glint) || cl[Math.floor(Math.random() * cl.length)]; dig(pick[1]); AI.next = .35; }
+    else finishDig();
+    return;
+  }
+  autoHome();
+}
+
+/* ================= ループ ================= */
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  autoTick(dt);
+  stepSoul(dt);
+  if (BT && UI.screen === 'battle') {
+    stepBattle(dt);
+    for (const tx of BT.texts) { tx.y -= 40 * dt; tx.life -= dt; }
+    BT.texts = BT.texts.filter(tx => tx.life > 0);
+    drawArena(now);
+  }
+  paintLive(now / 1000);
+  requestAnimationFrame(frame);
+}
+let lastPaint = 0;
+function paintLive(t) { if (t - lastPaint < .066) return; lastPaint = t; paintAll(t); }
+render();
+requestAnimationFrame(frame);
+</script>
+<a class="tg-back" href="index.html" aria-label="ゲーム一覧にもどる">← 一覧</a>
+<style>
+.tg-back{position:fixed;z-index:2147483647;top:calc(8px + env(safe-area-inset-top,0px));left:calc(8px + env(safe-area-inset-left,0px));
+  display:inline-block;margin:0;padding:6px 12px;border-radius:999px;background:rgba(12,14,24,.72);color:#fff;
+  font:700 13px/1.2 "Hiragino Sans","Yu Gothic",sans-serif;letter-spacing:0;text-decoration:none;border:1px solid rgba(255,255,255,.35);
+  -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);-webkit-tap-highlight-color:transparent}
+.tg-back:hover{background:rgba(12,14,24,.9)}
+.tg-back:focus-visible{outline:2px solid #fff;outline-offset:2px}
+</style>
+<button class="tg-auto" type="button" aria-pressed="false" aria-label="オートプレイ">AUTO</button>
+<style>
+.tg-auto{position:fixed;z-index:2147483647;top:calc(8px + env(safe-area-inset-top,0px));left:calc(88px + env(safe-area-inset-left,0px));
+  display:inline-block;margin:0;padding:6px 12px;border-radius:999px;background:rgba(12,14,24,.72);color:#fff;cursor:pointer;
+  font:700 13px/1.2 "Hiragino Sans","Yu Gothic",sans-serif;letter-spacing:.06em;border:1px solid rgba(255,255,255,.35);box-shadow:none;
+  -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);-webkit-tap-highlight-color:transparent;transform:none}
+.tg-auto.tg-inline{position:static;flex:none}
+.tg-auto[aria-pressed="true"]{background:#f5c518;color:#1a1400;border-color:#f5c518;animation:tg-auto-pulse 1.2s ease-in-out infinite alternate}
+.tg-auto:focus-visible{outline:2px solid #fff;outline-offset:2px}
+@keyframes tg-auto-pulse{to{box-shadow:0 0 12px rgba(245,197,24,.8)}}
+@media (prefers-reduced-motion:reduce){.tg-auto[aria-pressed="true"]{animation:none}}
+</style>
+<script>
+(function(){
+  window.tgAuto = false;
+  var b = document.querySelector('.tg-auto');
+  if (!b) return;
+  var stop = function(e){ e.stopPropagation(); };
+  ['pointerdown','pointerup','mousedown','touchstart','keydown'].forEach(function(t){ b.addEventListener(t, stop); });
+  b.addEventListener('click', function(e){
+    e.stopPropagation();
+    window.tgAuto = !window.tgAuto;
+    b.setAttribute('aria-pressed', String(window.tgAuto));
+    b.textContent = window.tgAuto ? 'AUTO ON' : 'AUTO';
+    b.blur();
+    window.dispatchEvent(new Event('tgauto'));
+  });
+})();
+</script>
+<button class="tg-snd" type="button" aria-pressed="true" aria-label="音のオンオフ">音：ON</button>
+<style>
+.tg-snd{position:fixed;z-index:2147483647;top:calc(8px + env(safe-area-inset-top,0px));left:calc(186px + env(safe-area-inset-left,0px));
+  display:inline-block;margin:0;padding:6px 12px;border-radius:999px;background:rgba(12,14,24,.72);color:#fff;cursor:pointer;
+  font:700 13px/1.2 "Hiragino Sans","Yu Gothic",sans-serif;letter-spacing:0;border:1px solid rgba(255,255,255,.35);box-shadow:none;
+  -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);-webkit-tap-highlight-color:transparent;transform:none}
+.tg-snd[aria-pressed="false"]{color:rgba(255,255,255,.6)}
+.tg-snd:focus-visible{outline:2px solid #fff;outline-offset:2px}
+</style>
+<script>
+/* ---------- 共通の効果音（Web Audioで合成） ---------- */
+window.tgSound = (function(){
+  var AC = null, noiseBuf = null, on = true, last = {};
+  try { on = localStorage.getItem('tg_sound') !== '0'; } catch (e) {}
+  function ctx(){
+    if (!AC) {
+      try {
+        AC = new (window.AudioContext || window.webkitAudioContext)();
+        noiseBuf = AC.createBuffer(1, AC.sampleRate, AC.sampleRate);
+        var d = noiseBuf.getChannelData(0); for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      } catch (e) { AC = null; }
+    }
+    if (AC && AC.state === 'suspended') AC.resume();
+    return AC;
+  }
+  function tone(f, dur, type, vol, slide, delay){
+    var t = AC.currentTime + (delay || 0), o = AC.createOscillator(), g = AC.createGain();
+    o.type = type || 'triangle'; o.frequency.setValueAtTime(f, t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, f * slide), t + dur);
+    g.gain.setValueAtTime(vol || .08, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + dur + .03);
+  }
+  function noise(dur, vol, freq, delay, kind){
+    var t = AC.currentTime + (delay || 0), s = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain();
+    s.buffer = noiseBuf; f.type = kind || 'bandpass'; f.frequency.value = freq || 1000; f.Q.value = 1;
+    g.gain.setValueAtTime(vol || .1, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    s.connect(f); f.connect(g); g.connect(AC.destination); s.start(t); s.stop(t + dur + .03);
+  }
+  function arp(fs, step, type, vol, dur){ fs.forEach(function(f, i){ tone(f, dur || .22, type, vol, 0, i * step); }); }
+  var LIB = {
+    click:  function(){ tone(900, .05, 'square', .03); },
+    pick:   function(){ tone(660, .06, 'triangle', .07); tone(990, .08, 'triangle', .06, 0, .05); },
+    unpick: function(){ tone(520, .08, 'triangle', .06, .7); },
+    tick:   function(){ tone(1500 + Math.random() * 300, .025, 'square', .025); },
+    land:   function(){ tone(784, .09, 'square', .05); tone(1175, .18, 'square', .05, 0, .07); },
+    start:  function(){ arp([392, 523, 659], .09, 'square', .05, .18); },
+    shot:   function(){ tone(1200, .07, 'square', .025, .45); },
+    shotFoe:function(){ tone(700, .08, 'square', .02, .5); },
+    slash:  function(){ noise(.12, .12, 2600, 0, 'highpass'); tone(500, .1, 'sawtooth', .03, .5); },
+    dash:   function(){ noise(.2, .1, 800, 0, 'bandpass'); tone(200, .2, 'sine', .06, 2.2); },
+    charge: function(){ tone(200, .7, 'sawtooth', .05, 4); },
+    beam:   function(){ noise(.5, .2, 500, 0, 'lowpass'); tone(90, .5, 'sawtooth', .08, .5); },
+    hit:    function(){ noise(.09, .14, 900, 0, 'lowpass'); tone(160, .08, 'square', .04, .6); },
+    big:    function(){ noise(.3, .22, 400, 0, 'lowpass'); tone(110, .3, 'sawtooth', .07, .5); },
+    heal:   function(){ arp([784, 988, 1319], .06, 'sine', .06, .2); },
+    miss:   function(){ noise(.15, .06, 3000, 0, 'highpass'); },
+    good:   function(){ arp([659, 784, 1047], .08, 'triangle', .07, .25); },
+    bad:    function(){ tone(330, .25, 'triangle', .07, .75); tone(247, .35, 'triangle', .06, .8, .18); },
+    win:    function(){ arp([523, 659, 784, 1047, 1319], .1, 'square', .045, .28); },
+    lose:   function(){ arp([392, 330, 262, 196], .22, 'triangle', .08, .4); },
+    splash: function(){ noise(.35, .18, 700, 0, 'lowpass'); noise(.2, .08, 2400, .05, 'bandpass'); },
+    bubble: function(){ tone(250 + Math.random() * 250, .07, 'sine', .04, 1.8); },
+    slurp:  function(){ noise(.5, .12, 1400, 0, 'bandpass'); noise(.3, .08, 900, .55, 'bandpass'); },
+    coin:   function(){ tone(988, .06, 'square', .04); tone(1319, .14, 'square', .04, 0, .06); },
+    summon: function(){ tone(130, 1, 'sawtooth', .05, 3); arp([523, 784, 1047, 1568], .12, 'sine', .07, .5); },
+    evolve: function(){ arp([523, 659, 784, 1047, 784, 1047, 1319, 1568], .07, 'triangle', .06, .3); },
+    fuse:   function(){ tone(110, 1.1, 'sawtooth', .06, 2.5); noise(.9, .1, 300, .2, 'lowpass'); arp([659, 880, 1319], .12, 'sine', .07, .4); }
+  };
+  function play(name){
+    if (!on || !LIB[name]) return;
+    var now = performance.now();
+    if (last[name] && now - last[name] < 55) return;
+    last[name] = now;
+    if (!ctx()) return;
+    try { LIB[name](); } catch (e) {}
+  }
+  var btn = document.querySelector('.tg-snd');
+  function sync(){ if (btn) { btn.textContent = on ? '音：ON' : '音：OFF'; btn.setAttribute('aria-pressed', String(on)); } }
+  if (btn) {
+    ['pointerdown','pointerup','mousedown','touchstart','keydown'].forEach(function(t){ btn.addEventListener(t, function(e){ e.stopPropagation(); }); });
+    btn.addEventListener('click', function(e){
+      e.stopPropagation(); on = !on; sync(); btn.blur();
+      try { localStorage.setItem('tg_sound', on ? '1' : '0'); } catch (err) {}
+      if (on) { ctx(); play('pick'); }
+    });
+  }
+  sync();
+  // ブラウザは最初の操作まで音を出せないので、最初のタップで準備する
+  window.addEventListener('pointerdown', function(){ if (on) ctx(); }, { once: true, capture: true });
+  return { play: play };
+})();
+</script>
+<style>
+.tg-bar{position:fixed;z-index:2147483647;top:calc(8px + env(safe-area-inset-top,0px));left:calc(8px + env(safe-area-inset-left,0px));display:flex;gap:8px;align-items:center;pointer-events:none}
+.tg-bar>*{position:static!important;pointer-events:auto}
+</style>
+<script>
+(function(){
+  var bar=document.createElement('div'); bar.className='tg-bar'; document.body.appendChild(bar);
+  document.querySelectorAll('.tg-back:not(.tg-inline),.tg-auto:not(.tg-inline),.tg-snd').forEach(function(el){ bar.appendChild(el); });
+})();
+</script>
+</body>
+</html>
