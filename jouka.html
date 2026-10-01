@@ -205,6 +205,8 @@ const CH={
  hero:{n:'正',full:'清水 正',title:'転校生',look:L('m','sara','#c9ab74','gakuran','#1d2446',['hglasses'],{good:true,hero:true}),st:[36,10,9,7,7],gr:[8,3,2.3,1.7,1.3]},
  hachi:{n:'ハチ',en:'狂犬ハチ',title:'子分',s:0,fixed:true,look:L('m','wolf','#d9dde2','longran','#5a1626',['bandaid','fang','chain']),ref:L('m','wolf','#d9dde2','gakuran','#3a1830',['bandaid','fang'],{good:true}),st:[30,6,9,6,8],gr:[8,2,2.4,1.7,1.5],sk:['chuken','kabau'],acts:['menchi','kamitsuki'],
   line:'アニキ！ この犬塚ハチ、一生ついていきやす！ 何でも命令してくだせえ！'},
+ aoi:{n:'アオイ',en:'白鷺アオイ',title:'ヒロイン',s:0,fixed:true,noBad:true,look:L('f','pony','#4a2a20','sera','#24407a',['ribbon'],{good:true}),st:[24,14,6,5,8],gr:[6,4,1.6,1.3,1.4],sk:['bento','harmony'],acts:['menchi'],
+  line:'言葉で人を変えるあなたの戦い方、もっと近くで見てみたいの。白鷺アオイ、よろしくね。'},
  komori:{n:'小森',en:'パシリ',title:'図書委員',s:0,look:L('m','short','#8a5a2b','longran','#2a2a2a'),st:[22,8,6,4,9],gr:[6,3,1.8,1.3,1.6],sk:['kobai'],acts:['menchi','saboru'],
   line:'オレ、ずっとパシリで…誰かに頼られたの初めてっす！ 小森っす、よろしくっす！'},
  banda:{n:'番田',en:'口だけヤンキー',title:'放送委員',s:0,look:L('m','regent','#c98a2a','longran','#222',['sun']),st:[26,6,8,5,6],gr:[7,2,2.1,1.5,1.2],sk:['housou'],acts:['menchi','katsuage'],
@@ -238,7 +240,7 @@ const CH={
  tenma:{n:'テンマ',en:'総番長 覇王寺テンマ',title:'生徒会長',s:3,boss:true,bhp:4.2,look:L('m','long','#e8c34a','longran','#5a0a0a',[],{big:true}),st:[40,20,13,8,10],gr:[10,5,2.9,2.0,1.7],sk:['chorei'],acts:['haou','tekken','iatsu','zenkai'],
   line:'生徒会、やってみるか。この町の、全員で。'},
 };
-const RECRUITS=['hachi','komori','banda','mika','gonta','tetsuo','shinji','akemi','jin','yuri','saki','kenji','ocho','gou','reiko','kiba','tenma'];
+const RECRUITS=['hachi','aoi','komori','banda','mika','gonta','tetsuo','shinji','akemi','jin','yuri','saki','kenji','ocho','gou','reiko','kiba','tenma'];
 const HERO_LEARN=[[1,'study'],[2,'bento'],[4,'shido'],[6,'seiron'],[10,'hr'],[15,'yuujou']];
 const SK={
  study:{name:'勉強を教える',mp:3,tg:'enemies',ef:'dmg',pw:0.7,d:'敵全体のグレ度を下げる',say:'{a}は勉強を教えた！ わかりやすい！'},
@@ -338,7 +340,7 @@ function reformLook(l){
  if(weapon)r.acc.push('book');
  return r;
 }
-function lookOf(id,ref){if(id==='hero'||!ref)return CH[id].look;if(CH[id].ref)return CH[id].ref;return refCache[id]||(refCache[id]=reformLook(CH[id].look));}
+function lookOf(id,ref){if(id==='hero'||!ref)return CH[id].look;if(CH[id].ref)return CH[id].ref;if(CH[id].noBad)return CH[id].look;return refCache[id]||(refCache[id]=reformLook(CH[id].look));}
 function drawChar(g,x,y,s,lk,dir=0,walk=0){
  g.save();g.translate(x,y);
  const sx=s*(lk.big?1.22:1)*(lk.small?0.8:1)*(lk.hero?.97:1), sy=s*(lk.big?1.08:1)*(lk.small?0.78:1)*(lk.hero?1.07:1);
@@ -486,6 +488,7 @@ function drawChar(g,x,y,s,lk,dir=0,walk=0){
   if(a==='bat'){g.strokeStyle='#8a5a2b';g.lineWidth=1.7;g.lineCap='round';g.beginPath();g.moveTo(6.2,-7);g.lineTo(9.8,-19.5);g.stroke();g.lineCap='butt';}
   if(a==='chain'){g.strokeStyle='#b8b8b8';g.lineWidth=.7;g.setLineDash([.9,.6]);g.beginPath();g.moveTo(6.2,-7.5);g.quadraticCurveTo(8.5,-4,6.8,-1.5);g.stroke();g.setLineDash([]);g.fillStyle='#999';circ(g,6.8,-1.3,.9);}
   if(a==='armband'){g.fillStyle='#d8313b';g.fillRect(4.8,-15.2,2.5,1.9);g.fillStyle='#ffd86a';g.fillRect(4.8,-14.5,2.5,.4);}
+  if(a==='ribbon'){g.fillStyle='#d8313b';g.beginPath();g.moveTo(4.4,-24.6);g.lineTo(2.6,-26.4);g.lineTo(2.4,-23.4);g.closePath();g.fill();g.beginPath();g.moveTo(4.4,-24.6);g.lineTo(6.6,-26.2);g.lineTo(6.4,-23.2);g.closePath();g.fill();g.fillStyle='#a81f2a';circ(g,4.4,-24.7,.8);g.fillStyle='rgba(255,255,255,.4)';g.fillRect(3,-25.6,.9,.4);}
   if(a==='book'){g.fillStyle='#3a6fd8';rr(g,4.6,-11.4,3.8,4.6,.4);g.fillStyle='#fff';g.fillRect(4.9,-7.4,3.2,.5);}
  }
  g.restore();
@@ -983,15 +986,22 @@ async function bossEvent(i){
  saveGame();toast('オートセーブしました');
  if(purCount()>=4)await ending();
 }
+let evNpc=false;
+addNpc('town',{x:5,y:11,dir:3,look:()=>CH.hachi.look,name:'ハチ',cond:()=>evNpc,talk:()=>[]});
+addNpc('town',{x:6,y:11,dir:2,look:()=>CH.aoi.look,name:'女の子',cond:()=>evNpc,talk:()=>[]});
 async function hachiEvent(){
- await say([['？？？','おいテメェ！ 見ねえ顔だな。ここらは「狂犬ハチ」様のシマだぜ！'],['正','…ほう、ちょうどいい。俺の帝国の、最初の配下を探していたところだ。'],['ハチ','ああん!? ナメてんのか！ かかってこいや！']]);
+ evNpc=true;S.dir=3;
+ await say([['女の子','や、やめてください…！ 遅刻しちゃう…！'],['？？？','いいじゃねえか、ちょっと付き合えよ。ここらは「狂犬ハチ」様のシマだぜ？'],['正','…おい。朝から薄汚いものを見せるな。'],['ハチ','ああん!? なんだテメェ、見ねえ顔だな！'],['正','ちょうどいい。俺の帝国の、最初の配下を探していたところだ。'],['ハチ','ナメてんのか！ かかってこいや！']]);
  let res;
  do{res=await runBattle([{cid:'hachi',lv:1}],{school:0,bg:'town',noRun:true,noRecruit:true});
   if(res!=='win'){healAll();updateHUD();await say([['ハチ','へっ、口ほどにもねえ…って、まだ立つのかよ!?'],['正','（…今のは様子見だ。次で決める）']]);}
  }while(res!=='win');
  await say([['ハチ','つ、強え…。説教って、こんなに胸に響くもんなのか…！'],['ハチ','アニキ！ オレを子分にしてくだせえ！'],['正','フッ…いいだろう。今日からお前は、俺の子分だ。']]);
  await recruitPopup('hachi',true,1);
- await say([['','グレ度を0にして更生させた不良は、こうして仲間になることがある。'],['','ハチは「子分」。控えに回ることなく、いつでも一緒に戦ってくれる。'],['正','さあ行くぞ、ハチ。まずは弱木高校だ。'],['ハチ','へい、アニキ！']]);
+ await say([['女の子','あの…助けてくれて、ありがとう。'],['アオイ','私、白鷺アオイ。弱木高校の2年生。…ケンカじゃなくて、言葉で人を変えちゃうなんて。'],['アオイ','私もずっと、この町をなんとかしたいって思ってたの。…ついて行ってもいい？'],['正','好きにしろ。…帝国には、優秀な人材が要る。'],['アオイ','ふふ、帝国？ 変な人。でも、よろしくね。']]);
+ await recruitPopup('aoi',true,1);
+ evNpc=false;resetTrail();
+ await say([['','グレ度を0にして更生させた不良は、こうして仲間になることがある。'],['','仲間はメニューの「なかま」で、バトルに出すか控えにするかを選べる。'],['正','行くぞ、ハチ、アオイ。まずは弱木高校だ。'],['ハチ','へい、アニキ！'],['アオイ','うん！']]);
 }
 async function intro(){
  await say([['','ここは荒川市。日本一荒れた高校が4つも集まる、通称「不良シティー」。'],['正','荒川市…噂以上に薄汚れた街だ。だが、だからこそ手に入れる価値がある。'],['正','校則も、規律も、正しさも――すべて俺の武器だ。'],['正','この薄汚い街を浄化し、俺の帝国を築き上げてやる。手始めは、最弱の弱木高校からだ。'],['','目標：町の不良たちを更生させ、「優等生の町」にしよう！'],['','まずは北西の弱木高校へ。左の「わが家」で休憩とセーブができるよ。']]);
@@ -1277,6 +1287,7 @@ function recruitPopup(cid,forced,lv){return new Promise(res=>{
  const bad=c.look,good=lookOf(cid,true);
  const draw=now=>{if(!alive)return;const t=now-t0;g.clearRect(0,0,W,H);
   if(t<900){const sc=3.2;drawChar(g,W/2,H-12,sc,t<500?bad:good);for(let k=0;k<8;k++){const a=k/8*Math.PI*2+t/250,rad=30+t/20;sparkle(g,W/2+Math.cos(a)*rad,H/2+Math.sin(a)*rad,7,t/200,k%2?'#fff':'#ffe07a');}if(t>350&&t<650){g.fillStyle=`rgba(255,255,255,${1-Math.abs(t-500)/150})`;g.fillRect(0,0,W,H);}}
+  else if(c.noBad){drawChar(g,W/2,H-10,3.2,good);for(let k=0;k<5;k++){const tw=Math.sin(now/300+k*1.3);if(tw>0)sparkle(g,W/2+[-40,36,-30,42,0][k],[40,56,110,96,24][k],5*tw,0,k%2?'#ffd0e0':'#fff');}}
   else{g.globalAlpha=.75;drawChar(g,W*.24,H-14,2.4,bad);g.globalAlpha=1;g.fillStyle='#ffe07a';g.font='bold 22px sans-serif';g.textAlign='center';g.fillText('➡',W*.5,H/2+6);g.font='10px sans-serif';g.fillStyle='#ccc';g.fillText('不良時代',W*.24,14);g.fillText('更生後',W*.76,14);g.textAlign='left';
    drawChar(g,W*.76,H-10,3.1,good);for(let k=0;k<4;k++){const tw=Math.sin(now/300+k*1.7);if(tw>0)sparkle(g,W*.76+[-34,30,-26,36][k],[40,56,110,96][k],5*tw,0,'#fff');}}
   requestAnimationFrame(draw);};
@@ -1330,8 +1341,8 @@ function menuMember(id){
  const p=panel(`<div class="ph"><b>${c.title}の${c.n}</b><span>Lv${m.lv}</span></div><div style="display:flex;gap:12px;align-items:center"><div id="mp1"></div><div style="flex:1;font-size:13px;line-height:1.6">次のレベルまで ${nextExp(m.lv)-m.exp}<br>${Object.entries(m.eq).map(([k,v])=>`${SLOT[k]}：${v?EQ[v].name:'なし'}`).join('<br>')}</div></div>
  <div class="stats">${['hp','mp','atk','def','spd'].map(k=>`<div><span>${STN[k]}</span><span>${k==='hp'?m.hp+'/'+s.hp:k==='mp'?m.mp+'/'+s.mp:s[k]}</span></div>`).join('')}</div>
  <div class="sklist"><b>スキル</b><br>${sks.map(k=>`・${SK[k].name}（MP${SK[k].mp}）${SK[k].d}`).join('<br>')||'なし'}</div>
- ${id==='hero'||c.fixed?'':`<button class="pbtn" id="ptog">${inp?'控えにする':'パーティに入れる'}</button>`}<button class="pbtn sub" id="mback">もどる</button>`);
- const a=document.createElement('div');a.style.display='flex';a.style.gap='6px';if(id!=='hero'){const w=document.createElement('div');w.style.textAlign='center';w.style.fontSize='10px';w.style.color='#999';w.appendChild(portrait(id,false,60,80,2.3));w.append('不良時代');a.appendChild(w);}const w2=document.createElement('div');w2.style.textAlign='center';w2.style.fontSize='10px';w2.style.color='#7fe3ff';w2.appendChild(portrait(id,true,60,80,2.3));w2.append(id==='hero'?'':'いま');a.appendChild(w2);$('mp1').appendChild(a);
+ ${id==='hero'?'':`<button class="pbtn" id="ptog">${inp?'控えにする':'パーティに入れる'}</button>`}<button class="pbtn sub" id="mback">もどる</button>`);
+ const a=document.createElement('div');a.style.display='flex';a.style.gap='6px';if(id!=='hero'&&!c.noBad){const w=document.createElement('div');w.style.textAlign='center';w.style.fontSize='10px';w.style.color='#999';w.appendChild(portrait(id,false,60,80,2.3));w.append('不良時代');a.appendChild(w);}const w2=document.createElement('div');w2.style.textAlign='center';w2.style.fontSize='10px';w2.style.color='#7fe3ff';w2.appendChild(portrait(id,true,60,80,2.3));w2.append(id==='hero'?'':'いま');a.appendChild(w2);$('mp1').appendChild(a);
  if($('ptog'))$('ptog').onclick=()=>{if(inp){S.party=S.party.filter(x=>x!==id);}else{if(S.party.length>=4){toast('パーティは4人までだよ');return;}S.party.push(id);}resetTrail();menuMember(id);};
  $('mback').onclick=menuParty;
 }
