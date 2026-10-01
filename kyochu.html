@@ -525,7 +525,7 @@ function updatePlayer(dt,I){
  P.vy+=1500*dt;P.y+=P.vy*dt;if(P.y>=G){P.y=G;P.vy=0;P.onG=true;}
  P.x=clamp(P.x,10,W-10);
  const ang=I.aim!==null?I.aim:assistAim();
- if(I.atk&&!prevAtk&&P.cd<=0){fire(ang,false);P.cd=.14;}
+ if(I.atk&&P.cd<=0){fire(ang,false);P.cd=.16;}
  if(I.atk){P.charge+=dt;if(P.charge>=.75&&!P.full){P.full=true;sfx('charge');}}
  else{if(P.full)fire(ang,true);P.charge=0;P.full=false;}
  prevAtk=I.atk;
