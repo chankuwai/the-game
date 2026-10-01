@@ -435,15 +435,26 @@ function drawChar(g,x,y,s,lk,dir=0,walk=0){
   case 'bob':cap();g.fillRect(-4.8,-24.3,9.6,1.5);g.fillRect(-5.4,-23,1.8,5.6);g.fillRect(3.6,-23,1.8,5.6);break;
   case 'braids':cap();g.fillRect(-4.8,-24.3,9.6,1.4);sides(2.5);for(let i=0;i<4;i++){circ(g,-4.9,-18.6+i*1.9,1.05);circ(g,4.9,-18.6+i*1.9,1.05);}g.fillStyle='#d8313b';g.fillRect(-5.6,-11.7,1.4,.8);g.fillRect(4.2,-11.7,1.4,.8);break;
   case 'pony':cap();sides(2.4);g.fillRect(-4.6,-24.1,9.2,1.3);break;
-  case 'sara':g.beginPath();g.ellipse(0,-22.6,5.1,3.7,0,Math.PI,0);g.fill();g.fillRect(-5.2,-22.8,1.3,3.8);g.fillRect(3.9,-22.8,1.3,3.4);
-   if(dir!==1){g.beginPath();g.moveTo(2.2,-26.2);g.quadraticCurveTo(-2.6,-25.6,-5.2,-22.4);g.lineTo(-4.6,-22.9);g.lineTo(-4,-22.2);g.lineTo(-3.2,-23.4);g.lineTo(-2.2,-22.8);g.lineTo(-1.2,-23.7);g.lineTo(0.2,-23.3);g.lineTo(1.4,-24.2);g.lineTo(2.6,-24.6);g.quadraticCurveTo(4.2,-24.4,5.1,-22.6);g.quadraticCurveTo(4.8,-25.6,2.2,-26.2);g.closePath();g.fill();}
-   else circ(g,0,-21.4,5);
-   if(dir!==1){g.beginPath();g.moveTo(-5.2,-22.6);g.lineTo(-4.4,-22.4);g.lineTo(-4.6,-18.6);g.lineTo(-5.3,-19.4);g.closePath();g.fill();g.beginPath();g.moveTo(5.2,-22.6);g.lineTo(4.4,-22.4);g.lineTo(4.7,-19.2);g.lineTo(5.3,-19.8);g.closePath();g.fill();}
-   g.strokeStyle='rgba(150,175,235,.6)';g.lineWidth=.4;g.beginPath();g.moveTo(1.6,-25.6);g.quadraticCurveTo(-1.4,-25,-3.4,-23.6);g.moveTo(.6,-25.9);g.quadraticCurveTo(-2.4,-25.4,-4.4,-23.2);g.stroke();
-   g.strokeStyle='rgba(0,0,0,.35)';g.beginPath();g.moveTo(2.2,-26.1);g.lineTo(2.5,-24.7);g.moveTo(-.4,-25.4);g.quadraticCurveTo(-2,-24.6,-2.6,-23.1);g.moveTo(3.4,-24.6);g.lineTo(4.4,-23);g.stroke();
-   g.strokeStyle='rgba(190,210,255,.8)';g.lineWidth=.3;g.beginPath();g.moveTo(-1.8,-25.6);g.quadraticCurveTo(-3.4,-24.8,-4.2,-23.6);g.stroke();
-   if(dir!==1){g.fillStyle=hc;g.beginPath();g.moveTo(-5.1,-22.4);g.lineTo(-3.9,-21.8);g.lineTo(-4.4,-19.2);g.lineTo(-5,-18.6);g.closePath();g.fill();}
-   else{g.beginPath();g.moveTo(-4.6,-18.4);g.lineTo(-3,-17.4);g.lineTo(-1.2,-18.2);g.lineTo(0,-17.2);g.lineTo(1.4,-18.2);g.lineTo(3,-17.4);g.lineTo(4.6,-18.4);g.lineTo(4.6,-20);g.lineTo(-4.6,-20);g.closePath();g.fill();}break;
+  case 'sara':{
+   const P=(pts)=>{g.beginPath();g.moveTo(pts[0],pts[1]);for(let i=2;i<pts.length;i+=2)g.lineTo(pts[i],pts[i+1]);g.closePath();g.fill();};
+   const dk=lerpC(hc,'#000000',.45),lt='rgba(175,200,255,.75)';
+   g.beginPath();g.ellipse(0,-22.7,5.25,4.2,0,Math.PI,0);g.fill();
+   P([-1.6,-26.6,-0.6,-27.6,0.6,-26.7,1.8,-27.4,2.4,-26.2]);
+   if(dir===1){circ(g,0,-21.4,5.05);P([-5,-21,-4.6,-17.6,-3.4,-18.6,-2.2,-17.2,-1,-18.4,0.2,-16.9,1.4,-18.4,2.6,-17.2,3.6,-18.6,4.8,-17.6,5,-21]);
+    g.strokeStyle=dk;g.lineWidth=.35;g.beginPath();for(const x of [-2.2,0.2,2.6]){g.moveTo(x*.6,-25.5);g.quadraticCurveTo(x*.9,-21,x,-17.6);}g.stroke();}
+   else{
+    P([-5.25,-22.9,-5.7,-19.4,-5.1,-17.8,-4.6,-19.6,-4.3,-18.3,-3.9,-21.4]);
+    P([5.25,-22.9,5.5,-19.8,5,-18.6,4.6,-20.2,4.1,-21.6]);
+    P([1.6,-26.4,-1.6,-25.8,-4.2,-24.4,-5.4,-22.6,-4.7,-22.8,-4.9,-21.1,-3.7,-22.6,-3.1,-21.5,-2.4,-22.4,-1.4,-21.6,-0.5,-22.6,0.3,-20.9,0.9,-22.9,1.6,-23.8,2.2,-25.2]);
+    P([1.6,-26.4,3.4,-25.8,4.8,-24.4,5.4,-22.4,4.6,-23,4.5,-21.8,3.6,-23.2,2.9,-22.4,2.4,-24,2,-25.2]);
+    g.strokeStyle=dk;g.lineWidth=.32;g.beginPath();
+    g.moveTo(1.2,-25.9);g.quadraticCurveTo(-1.4,-24.6,-3.7,-22.6);g.moveTo(1.4,-25.2);g.quadraticCurveTo(-0.4,-23.8,-1.4,-21.6);g.moveTo(1.6,-24.6);g.quadraticCurveTo(0.9,-23,0.3,-21);
+    g.moveTo(2.4,-25.6);g.quadraticCurveTo(3.6,-24.4,3.6,-23.2);g.moveTo(-4.9,-22);g.lineTo(-5.1,-18.4);g.stroke();
+    g.strokeStyle='rgba(0,0,0,.4)';g.lineWidth=.3;g.beginPath();g.moveTo(1.7,-26.3);g.lineTo(2.1,-25.1);g.stroke();
+   }
+   g.strokeStyle=lt;g.lineWidth=.55;g.beginPath();g.arc(0,-22.3,3.5,Math.PI*1.1,Math.PI*1.32);g.stroke();g.beginPath();g.arc(0,-22.3,3.5,Math.PI*1.64,Math.PI*1.8);g.stroke();
+   g.strokeStyle='rgba(255,255,255,.55)';g.lineWidth=.3;g.beginPath();g.arc(0,-22.3,3.5,Math.PI*1.16,Math.PI*1.26);g.stroke();
+   break;}
   case 'hero':cap();sides(3);g.beginPath();g.moveTo(-5.3,-21.6);g.lineTo(-6.4,-25.4);g.lineTo(-3.6,-25.6);g.lineTo(-3.2,-29.2);g.lineTo(-0.4,-26.6);g.lineTo(1.6,-30.2);g.lineTo(2.6,-26.4);g.lineTo(6.2,-27.6);g.lineTo(4.8,-24.4);g.lineTo(6.4,-22.2);g.lineTo(3.4,-23.4);g.lineTo(1.2,-22);g.lineTo(-1.2,-23.6);g.lineTo(-3.2,-22.2);g.closePath();g.fill();
    g.strokeStyle='rgba(110,150,255,.75)';g.lineWidth=.5;g.beginPath();g.moveTo(-3,-28.4);g.lineTo(-1.2,-25.2);g.moveTo(1.6,-29.4);g.lineTo(2.2,-25.6);g.moveTo(-5.4,-24.8);g.lineTo(-3.8,-23.4);g.stroke();break;
  }
