@@ -66,18 +66,18 @@ const GOAL=20;
 
 /* ================= ステージと相手 ================= */
 const STAGES={
- hana:{name:'花見の部',place:'桜並木の公園',start:12*60,drink:'缶ビール',qBase:2.2,qAmp:1.8,
-  opp:{name:'桜田部長',title:'宴会部長',drunk:11.2,pee:12,risk:1.1,look:'bucho'}},
- tsuki:{name:'月見の部',place:'月見の縁側',start:19*60,drink:'熱燗',qBase:1.2,qAmp:1.6,
-  opp:{name:'おタマ姐さん',title:'酒蔵の女将',drunk:10.6,pee:11.5,risk:.85,look:'otama'}},
+ hana:{name:'花見の部',place:'桜並木の公園',start:12*60,drink:'缶ビール',qBase:1.6,qAmp:1.5,
+  opp:{name:'桜田部長',title:'宴会部長',drunk:11.2,pee:12.5,ptick:5,risk:1.1,look:'bucho'}},
+ tsuki:{name:'月見の部',place:'月見の縁側',start:19*60,drink:'熱燗',qBase:1.1,qAmp:1.4,
+  opp:{name:'おタマ姐さん',title:'酒蔵の女将',drunk:10.6,pee:12,ptick:5,risk:.85,look:'otama'}},
 };
 const ME={name:'あなた',title:'飲兵衛見習い',drunk:11,pee:11,look:'me'};
 
 /* ================= 状態 ================= */
 let G=null;
-function mkP(o){return {name:o.name,title:o.title,dBase:o.drunk,pBase:o.pee,risk:o.risk||1,look:o.look,cups:0,drunk:0,pee:10,toilet:0,wait:0,ko:false,act:null,anim:null,said:null,saidT:0,out:false};}
+function mkP(o){return {name:o.name,title:o.title,dBase:o.drunk,pBase:o.pee,pTick:o.ptick||4,risk:o.risk||1,look:o.look,cups:0,drunk:0,pee:10,toilet:0,wait:0,ko:false,act:null,anim:null,said:null,saidT:0,out:false};}
 function newGame(stage){G={stage,S:STAGES[stage],turn:1,queue:2,prevQ:2,ph:'choose',p:[mkP(ME),mkP(STAGES[stage].opp)],fx:[],banner:null,over:false,winner:null};G.queue=calcQueue(1);G.prevQ=G.queue;}
-function calcQueue(turn){const S=G.S;return clamp(Math.round(S.qBase+S.qAmp*Math.sin(turn*.55+(G.stage==='hana'?0:2))+rnd(-1,1)),0,5);}
+function calcQueue(turn){const S=G.S;return clamp(Math.round(S.qBase+S.qAmp*Math.sin(turn*.55+(G.stage==='hana'?0:2))+rnd(-1,1)),0,3);}
 function koProb(d){return clamp(Math.pow(Math.max(0,d-40)/60,1.5)*.9,0,.9);}
 const timeStr=t=>{const m=G.S.start+(t-1)*10;return `${Math.floor(m/60)%24}:${String(m%60).padStart(2,'0')}`;};
 function say(p,t){p.said=t;p.saidT=1.8;}
@@ -355,7 +355,7 @@ function preLines(stage){const best=(()=>{try{return JSON.parse(localStorage.get
 /* ================= 進行 ================= */
 const ov=$('ov');function showOv(h){ov.className='';ov.innerHTML=h;}function hideOv(){ov.className='hidden';ov.innerHTML='';}
 function acts(list){const a=$('acts');a.innerHTML='';for(const b of list){const e=document.createElement('button');e.className=b.c;e.innerHTML=b.t;e.disabled=!!b.dis;e.onclick=()=>{snd('click');b.f();};a.appendChild(e);}}
-function queueAhead(P,other){return G.queue+(other.toilet>0?1:0);}
+function queueAhead(P,other){return Math.min(3,G.queue+(other.toilet>0?1:0));}
 function aiChoose(P,O,smart){const q=queueAhead(P,O),nd=P.drunk+P.dBase;
  if(P.pee>=88)return 'wc';
  if(P.pee>=(smart?55:62)&&q<=(smart?1:2))return 'wc';
@@ -382,17 +382,17 @@ async function turn(){const [A,B]=G.p;
  A.act=A.forced&&a!=='busy'&&a!=='ko'?'wc':a;B.act=b;
  // せーの！
  G.banner={txt:'せーの！',t:0,d:.9,col:'#ffe9a0'};snd('start');await sleep(900);G.ph='reveal';
- const both=[A,B];let wcOrder=0;const busy0=both.map(P=>P.toilet>0);
+ const both=[A,B];const busy0=both.map(P=>P.toilet>0);
  for(let i=0;i<2;i++){const P=both[i];
   if(P.act==='drink'){drinkUp(P);say(P,['ゴクッ！','ぷはぁ〜！','もう1杯！','うまい！'][Math.floor(Math.random()*4)]);G.fx.push({txt:'+1杯',x:i?252:108,y:220,t:0,d:1.2,col:'#ffe066'});}
   else if(P.act==='rest'){P.drunk-=15;say(P,['ふぅ…','水ください','ちょっと休憩'][Math.floor(Math.random()*3)]);G.fx.push({txt:'酔い−15',x:i?252:108,y:220,t:0,d:1.2,col:'#8ad0ff'});}
-  else if(P.act==='wc'){P.wait=G.queue+wcOrder+(busy0[1-i]?1:0);wcOrder++;P.toilet=P.wait+1;say(P,P.forced?'もう限界！':'ちょっとトイレ');snd('pick');G.fx.push({txt:`トイレへ（${P.toilet}ターン）`,x:i?252:108,y:220,t:0,d:1.4,col:'#9aff8a',size:14});}
+  else if(P.act==='wc'){const ahead=(i===0&&both[1].act==='wc')?1:0;P.wait=Math.min(3,G.queue+ahead+(busy0[1-i]?1:0));P.toilet=P.wait+1;if(ahead)G.fx.push({txt:`${both[1].name}が先に入る`,x:108,y:196,t:0,d:1.6,col:'#ffd0e0',size:12});say(P,P.forced?'もう限界！':'ちょっとトイレ');snd('pick');G.fx.push({txt:`トイレへ（${P.toilet}ターン）`,x:i?252:108,y:220,t:0,d:1.4,col:'#9aff8a',size:14});}
   else if(P.act==='ko'){P.drunk-=8;}}
  await sleep(1100);
  const win=G.p.map(P=>P.cups>=GOAL),down=G.p.map(P=>P.drunk>=100);
  // 時間経過（トイレの列は1人1ターン、自分の用足しも1ターン）
  for(const P of G.p){if(P.toilet>0){P.drunk-=8;if(P.wait>0){P.wait--;P.toilet--;P.pee=clamp(P.pee+3,0,100);if(P.pee>=100)say(P,'は、早く…！');}else{P.toilet=0;P.pee=0;say(P,'すっきり！');snd('splash');}}
-  else{P.drunk-=3;P.pee+=4;}
+  else{P.drunk-=3;P.pee+=P.pTick;}
   P.drunk=clamp(P.drunk,0,100);P.pee=clamp(P.pee,0,100);}
  for(let i=0;i<2;i++)if(down[i]){G.p[i].out=true;G.p[i].drunk=100;say(G.p[i],'ばたんきゅ〜');}
  if(win[0]||win[1]||down[0]||down[1]){
