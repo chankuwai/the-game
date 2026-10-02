@@ -32,6 +32,8 @@ html,body{margin:0;height:100%;background:#120a10;color:#fff;overflow:hidden;tou
 .hana{background:linear-gradient(#ff9ac0,#c0406a)}
 .tsuki{background:linear-gradient(#5a6ab0,#1e2650)}
 .gray{background:linear-gradient(#555,#2a2a2a)}
+.gray:disabled{opacity:.75}
+.bonen{background:linear-gradient(#e0a030,#8a2a10);border-color:#ffe0a0}
 .rules{text-align:left;font-size:12px;line-height:1.7;color:#e8d8c8;margin-top:10px;background:rgba(0,0,0,.25);border-radius:10px;padding:8px 10px}
 .story{position:fixed;left:0;right:0;bottom:0;z-index:70;padding:0 10px calc(14px + env(safe-area-inset-bottom));display:flex;justify-content:center}
 .story.hidden{display:none}
@@ -68,6 +70,8 @@ const GOAL=20;
 const STAGES={
  hana:{name:'花見の部',place:'桜並木の公園',start:12*60,drink:'缶ビール',qBase:1.6,qAmp:1.5,
   opp:{name:'桜田部長',title:'宴会部長',drunk:11.2,pee:12.5,ptick:5,risk:1.1,look:'bucho'}},
+ bonen:{name:'忘年会の部',place:'居酒屋の大広間',start:19*60,drink:'生ビール',qBase:1.6,qAmp:1.5,
+  opp:{name:'鬼瓦会長',title:'裏ボス・大酒豪',drunk:10.1,pee:12.5,ptick:5,risk:.8,look:'kaicho'}},
  tsuki:{name:'月見の部',place:'月見の縁側',start:19*60,drink:'熱燗',qBase:1.1,qAmp:1.4,
   opp:{name:'おタマ姐さん',title:'酒蔵の女将',drunk:10.6,pee:12,ptick:5,risk:.85,look:'otama'}},
 };
@@ -77,7 +81,7 @@ const ME={name:'あなた',title:'飲兵衛見習い',drunk:11,pee:11,look:'me'}
 let G=null;
 function mkP(o){return {name:o.name,title:o.title,dBase:o.drunk,pBase:o.pee,pTick:o.ptick||4,risk:o.risk||1,look:o.look,cups:0,drunk:0,pee:10,toilet:0,wait:0,ko:false,act:null,anim:null,said:null,saidT:0,out:false};}
 function newGame(stage){G={stage,S:STAGES[stage],turn:1,queue:2,prevQ:2,ph:'choose',p:[mkP(ME),mkP(STAGES[stage].opp)],fx:[],banner:null,over:false,winner:null};G.queue=calcQueue(1);G.prevQ=G.queue;}
-function calcQueue(turn){const S=G.S;return clamp(Math.round(S.qBase+S.qAmp*Math.sin(turn*.55+(G.stage==='hana'?0:2))+rnd(-1,1)),0,3);}
+function calcQueue(turn){const S=G.S;return clamp(Math.round(S.qBase+S.qAmp*Math.sin(turn*.55+(G.stage==='hana'?0:G.stage==='tsuki'?2:4))+rnd(-1,1)),0,3);}
 function koProb(d){return clamp(Math.pow(Math.max(0,d-40)/60,1.5)*.9,0,.9);}
 const timeStr=t=>{const m=G.S.start+(t-1)*10;return `${Math.floor(m/60)%24}:${String(m%60).padStart(2,'0')}`;};
 function say(p,t){p.said=t;p.saidT=1.8;}
@@ -85,8 +89,34 @@ function say(p,t){p.said=t;p.saidT=1.8;}
 /* ================= 背景（キャッシュ） ================= */
 const BG={};
 function bgFor(stage){if(BG[stage])return BG[stage];const S=2,c=document.createElement('canvas');c.width=W*S;c.height=SCN*S;const g=c.getContext('2d');g.scale(S,S);
- let sd=stage==='hana'?11:29;const R=()=>{sd=(sd*16807)%2147483647;return sd/2147483647;};
- if(stage==='hana'){
+ let sd=stage==='hana'?11:stage==='tsuki'?29:47;const R=()=>{sd=(sd*16807)%2147483647;return sd/2147483647;};
+ if(stage==='bonen'){
+  const wl=g.createLinearGradient(0,0,0,SCN);wl.addColorStop(0,'#5a3418');wl.addColorStop(.7,'#8a5a2e');wl.addColorStop(1,'#6a4020');g.fillStyle=wl;g.fillRect(0,0,W,SCN);
+  g.fillStyle='rgba(255,220,160,.08)';for(let x=0;x<W;x+=24)g.fillRect(x,0,1,250);
+  g.fillStyle='#3a2210';for(const x of [0,150,346])g.fillRect(x,0,14,260);g.fillRect(0,0,W,10);g.fillRect(0,196,W,8);
+  // 窓（外は雪の夜）
+  g.fillStyle='#2a1808';g.fillRect(22,34,104,104);const sk=g.createLinearGradient(0,40,0,132);sk.addColorStop(0,'#0e1430');sk.addColorStop(1,'#2a3460');g.fillStyle=sk;g.fillRect(28,40,92,92);
+  g.fillStyle='#e8eef8';g.beginPath();g.moveTo(28,132);g.lineTo(28,118);g.quadraticCurveTo(60,108,90,116);g.quadraticCurveTo(108,112,120,118);g.lineTo(120,132);g.fill();
+  g.fillStyle='rgba(255,230,160,.85)';g.fillRect(44,96,8,10);g.fillRect(92,100,6,8);g.fillStyle='#3a2a20';g.fillRect(40,92,18,3);
+  g.strokeStyle='#2a1808';g.lineWidth=3;g.beginPath();g.moveTo(74,40);g.lineTo(74,132);g.moveTo(28,86);g.lineTo(120,86);g.stroke();
+  // 横断幕
+  g.fillStyle='rgba(0,0,0,.25)';g.fillRect(172,110,170,38);g.fillStyle='#fffaf0';g.fillRect(168,106,170,36);g.fillStyle='#c81e1e';g.font='900 24px "Hiragino Mincho ProN","Yu Mincho",serif';g.textAlign='center';g.fillText('大忘年会',253,133);g.textAlign='left';
+  g.fillStyle='#ffd75e';g.beginPath();g.arc(176,110,3.5,0,TAU);g.arc(330,110,3.5,0,TAU);g.fill();
+  // お品書き
+  const menu=['生','焼鳥','枝豆','鍋','熱燗','刺身'];menu.forEach((m,i)=>{const x=172+i*27;g.fillStyle='#f4ecd8';g.fillRect(x,150,21,42);g.fillStyle='#1a1a1a';g.font='bold 10px "Hiragino Mincho ProN","Yu Mincho",serif';g.textAlign='center';[...m].forEach((c,k)=>g.fillText(c,x+10.5,165+k*13));g.textAlign='left';});
+  // 提灯
+  for(const x of [12,140]){g.fillStyle='#d8301a';g.beginPath();g.ellipse(x+14,168,13,17,0,0,TAU);g.fill();g.fillStyle='#1a1008';g.fillRect(x+6,150,16,3);g.fillRect(x+6,183,16,3);g.fillStyle='#fff';g.font='bold 12px "Hiragino Mincho ProN",serif';g.textAlign='center';g.fillText('酒',x+14,173);g.textAlign='left';}
+  // 畳
+  const tt=g.createLinearGradient(0,204,0,SCN);tt.addColorStop(0,'#b8b070');tt.addColorStop(1,'#8a8448');g.fillStyle=tt;g.fillRect(0,204,W,SCN-204);
+  g.strokeStyle='rgba(60,50,20,.35)';g.lineWidth=1;for(let y=208;y<SCN;y+=4){g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke();}
+  g.fillStyle='#3a5a2a';g.fillRect(0,262,W,4);g.fillRect(178,204,4,58);
+  // 座卓と鍋
+  g.fillStyle='rgba(0,0,0,.3)';g.beginPath();g.ellipse(181,300,74,12,0,0,TAU);g.fill();
+  g.fillStyle='#4a2a14';g.fillRect(112,276,138,10);g.fillStyle='#6a3a1c';g.fillRect(108,270,146,8);g.fillStyle='rgba(255,220,160,.15)';g.fillRect(108,270,146,2);
+  g.fillStyle='#2a2a2a';g.beginPath();g.ellipse(181,266,22,8,0,0,TAU);g.fill();g.fillStyle='#3a3a3a';g.fillRect(159,258,44,9);g.fillStyle='#d8743a';g.beginPath();g.ellipse(181,258,20,6,0,0,TAU);g.fill();
+  for(const [dx,c] of [[-10,'#f4e0c0'],[-2,'#7ac04a'],[7,'#fff'],[12,'#e8c040']]){g.fillStyle=c;g.beginPath();g.ellipse(181+dx,257,4,2,0,0,TAU);g.fill();}
+  for(const [x,y] of [[128,272],[232,272]]){g.fillStyle='#f4f0e6';g.beginPath();g.ellipse(x,y,9,3,0,0,TAU);g.fill();}
+ }else if(stage==='hana'){
   const sk=g.createLinearGradient(0,0,0,SCN);sk.addColorStop(0,'#7ec8ff');sk.addColorStop(.55,'#c8e8ff');sk.addColorStop(1,'#fff2e0');g.fillStyle=sk;g.fillRect(0,0,W,SCN);
   g.fillStyle='rgba(255,255,255,.85)';for(const [x,y,s] of [[60,40,1],[250,28,1.3],[330,70,.8]]){for(let i=0;i<5;i++){g.beginPath();g.arc(x+i*12*s-24*s,y+Math.sin(i)*4,14*s*(1-Math.abs(i-2)*.15),0,TAU);g.fill();}}
   g.fillStyle='#a8d890';g.beginPath();g.moveTo(0,190);for(let x=0;x<=W;x+=20)g.lineTo(x,180+Math.sin(x*.02)*10);g.lineTo(W,SCN);g.lineTo(0,SCN);g.fill();
@@ -125,6 +155,7 @@ function bgFor(stage){if(BG[stage])return BG[stage];const S=2,c=document.createE
   const dg=(x,y)=>{const gr=g.createRadialGradient(x-1.5,y-1.5,.5,x,y,5);gr.addColorStop(0,'#fff');gr.addColorStop(1,'#e8e0cc');g.fillStyle=gr;g.beginPath();g.arc(x,y,5,0,TAU);g.fill();};
   for(let i=0;i<4;i++)dg(166+i*10,277);for(let i=0;i<3;i++)dg(171+i*10,269);for(let i=0;i<2;i++)dg(176+i*10,261);dg(181,253);
  }
+ if(stage==='bonen'){BG[stage]=c;return c;}
  // 仮設トイレ
  const bx=300,by=132;g.fillStyle='rgba(0,0,0,.25)';g.beginPath();g.ellipse(bx+22,by+94,30,6,0,0,TAU);g.fill();
  const bg2=g.createLinearGradient(bx,0,bx+44,0);bg2.addColorStop(0,'#2a7a4a');bg2.addColorStop(1,'#1a5a32');g.fillStyle=bg2;g.fillRect(bx,by+10,44,82);
@@ -141,11 +172,12 @@ function drawDrinker(g,P,x,y,s,t,idx){
  const d=P.drunk/100;const sway=Math.sin(t*1.6+idx)*d*.16+(P.ko?.45*(idx?-1:1):0);const fid=P.pee>70&&!P.ko?Math.sin(t*28)*1.6:0;
  g.save();g.translate(x+fid,y);g.scale(s,s);
  g.fillStyle='rgba(0,0,0,.28)';g.beginPath();g.ellipse(0,0,40,9,0,0,TAU);g.fill();
- const L=P.look;const body=L==='me'?'#3a5aa0':L==='bucho'?'#3a3a44':'#7a3a8a',body2=L==='me'?'#24386a':L==='bucho'?'#24242c':'#4a1a5a';
+ const L=P.look;const body={me:'#3a5aa0',bucho:'#3a3a44',otama:'#7a3a8a',kaicho:'#2a4a32'}[L],body2={me:'#24386a',bucho:'#24242c',otama:'#4a1a5a',kaicho:'#16281c'}[L];
  g.fillStyle=body2;g.beginPath();g.ellipse(0,-8,38,12,0,0,TAU);g.fill();
  g.rotate(sway);
  const tg=g.createLinearGradient(-22,0,22,0);tg.addColorStop(0,body2);tg.addColorStop(.5,body);tg.addColorStop(1,body2);g.fillStyle=tg;g.beginPath();g.moveTo(-26,-10);g.quadraticCurveTo(-28,-50,-16,-62);g.lineTo(16,-62);g.quadraticCurveTo(28,-50,26,-10);g.closePath();g.fill();
  if(L==='bucho'){g.fillStyle='#fff';g.beginPath();g.moveTo(-8,-62);g.lineTo(0,-46);g.lineTo(8,-62);g.fill();}
+ if(L==='kaicho'){g.fillStyle='#fffaf0';g.beginPath();g.moveTo(-9,-62);g.lineTo(0,-40);g.lineTo(9,-62);g.fill();g.fillStyle='#e8c060';g.beginPath();g.arc(-14,-46,4,0,TAU);g.arc(14,-46,4,0,TAU);g.fill();g.strokeStyle='#e8c060';g.lineWidth=2;g.beginPath();g.moveTo(-2,-38);g.lineTo(2,-30);g.stroke();}
  if(L==='otama'){g.strokeStyle='#ffd0e0';g.lineWidth=3;g.beginPath();g.moveTo(-10,-62);g.lineTo(4,-36);g.moveTo(10,-62);g.lineTo(-2,-40);g.stroke();g.fillStyle='#e8c060';g.fillRect(-24,-34,48,8);}
  if(L==='me'){g.strokeStyle='rgba(255,255,255,.25)';g.lineWidth=2;g.beginPath();g.moveTo(-6,-62);g.lineTo(0,-30);g.lineTo(6,-62);g.stroke();}
  // 腕と杯
@@ -153,7 +185,7 @@ function drawDrinker(g,P,x,y,s,t,idx){
  const skin=L==='otama'?'#f6dcc4':'#f2c8a0';
  g.save();g.translate(18,-52);g.rotate(-.3-drink*1.9);g.fillStyle=body;g.fillRect(-5,0,10,28);g.fillStyle=skin;g.beginPath();g.arc(0,30,6,0,TAU);g.fill();
  g.translate(0,32);g.rotate(.3+drink*1.6);
- if(G.stage==='hana'){const cg=g.createLinearGradient(-5,0,5,0);cg.addColorStop(0,'#9aa0a8');cg.addColorStop(.5,'#f0f0f4');cg.addColorStop(1,'#8a9098');g.fillStyle=cg;g.fillRect(-5,-16,10,17);g.fillStyle='#e8b830';g.fillRect(-5,-11,10,6);g.fillStyle='#c0c4cc';g.fillRect(-5,-17,10,2);}
+ if(G.stage==='bonen'){g.fillStyle='rgba(255,255,255,.35)';g.fillRect(-7,-20,13,20);const bg=g.createLinearGradient(-6,0,5,0);bg.addColorStop(0,'#e8a020');bg.addColorStop(.5,'#ffd060');bg.addColorStop(1,'#d08a18');g.fillStyle=bg;g.fillRect(-6,-15,11,14);g.fillStyle='#fffaf0';g.beginPath();g.ellipse(-.5,-16,6.5,3,0,0,TAU);g.fill();g.strokeStyle='rgba(255,255,255,.7)';g.lineWidth=2;g.beginPath();g.arc(7,-9,4,-1.2,1.2);g.stroke();}else if(G.stage==='hana'){const cg=g.createLinearGradient(-5,0,5,0);cg.addColorStop(0,'#9aa0a8');cg.addColorStop(.5,'#f0f0f4');cg.addColorStop(1,'#8a9098');g.fillStyle=cg;g.fillRect(-5,-16,10,17);g.fillStyle='#e8b830';g.fillRect(-5,-11,10,6);g.fillStyle='#c0c4cc';g.fillRect(-5,-17,10,2);}
  else{g.fillStyle='#f4f0e6';g.beginPath();g.moveTo(-7,-8);g.lineTo(7,-8);g.lineTo(4,0);g.lineTo(-4,0);g.closePath();g.fill();g.fillStyle='#2a4a9a';g.fillRect(-6,-7,12,1.6);}
  g.restore();
  g.save();g.translate(-18,-52);g.rotate(.35+(P.pee>70?.5:0));g.fillStyle=body;g.fillRect(-5,0,10,26);g.fillStyle=skin;g.beginPath();g.arc(0,28,6,0,TAU);g.fill();g.restore();
@@ -166,6 +198,10 @@ function drawDrinker(g,P,x,y,s,t,idx){
  else if(L==='bucho'){g.fillStyle='#3a3a3a';g.beginPath();g.ellipse(-22,-2,6,10,0,0,TAU);g.ellipse(22,-2,6,10,0,0,TAU);g.fill();g.fillStyle='rgba(255,255,255,.5)';g.beginPath();g.ellipse(-6,-16,8,4,-.4,0,TAU);g.fill();
   g.fillStyle='#c81e1e';g.save();g.rotate(-.15);g.fillRect(-26,-18,52,7);g.restore();g.beginPath();g.moveTo(-24,-12);g.lineTo(-38,-2+Math.sin(t*5)*3);g.lineTo(-33,4+Math.sin(t*5)*3);g.lineTo(-22,-8);g.fill();
   g.strokeStyle='#222';g.lineWidth=1.5;g.beginPath();g.arc(-9,2,6,0,TAU);g.moveTo(15,2);g.arc(9,2,6,0,TAU);g.moveTo(-3,2);g.lineTo(3,2);g.stroke();}
+ else if(L==='kaicho'){g.fillStyle='rgba(255,255,255,.55)';g.beginPath();g.ellipse(-7,-15,9,4.5,-.4,0,TAU);g.fill();g.fillStyle='#f4f4f0';g.beginPath();g.ellipse(-21,0,5,8,0,0,TAU);g.ellipse(21,0,5,8,0,0,TAU);g.fill();
+  g.fillStyle='#f4f4f0';g.beginPath();g.ellipse(-10,-7,7,3,-.2,0,TAU);g.ellipse(10,-7,7,3,.2,0,TAU);g.fill();
+  g.beginPath();g.moveTo(0,8);g.quadraticCurveTo(-12,8,-20,17+Math.sin(t*3)*1.5);g.quadraticCurveTo(-10,13,0,12);g.quadraticCurveTo(10,13,20,17+Math.sin(t*3)*1.5);g.quadraticCurveTo(12,8,0,8);g.fill();
+  g.save();g.translate(4,-24);g.rotate(.18);const hg2=g.createLinearGradient(-9,0,9,0);hg2.addColorStop(0,'#e8302a');hg2.addColorStop(.5,'#ffd75e');hg2.addColorStop(1,'#3a8aff');g.fillStyle=hg2;g.beginPath();g.moveTo(-10,0);g.lineTo(0,-26);g.lineTo(10,0);g.closePath();g.fill();g.fillStyle='#fff';g.beginPath();g.arc(0,-27,3.5,0,TAU);g.fill();g.restore();}
  else{g.fillStyle='#1a1018';g.beginPath();g.arc(0,-4,25.5,Math.PI*1.02,-.02);g.fill();g.beginPath();g.arc(0,-30,13,0,TAU);g.fill();g.fillRect(-25,-6,6,16);g.fillRect(19,-6,6,16);
   g.strokeStyle='#ffd75e';g.lineWidth=2;g.beginPath();g.moveTo(8,-36);g.lineTo(22,-46);g.stroke();g.fillStyle='#ff6a9a';g.beginPath();g.arc(23,-47,4,0,TAU);g.fill();g.fillStyle='#ff9ac0';g.beginPath();g.arc(-10,-34,3,0,TAU);g.fill();}
  // 顔
@@ -184,7 +220,7 @@ function drawDrinker(g,P,x,y,s,t,idx){
  if(P.ko){g.fillStyle='#fff';g.font='bold 14px sans-serif';for(let i=0;i<3;i++){const k=(t*.8+i/3)%1;g.globalAlpha=1-k;g.fillText('z',x+(idx?-30:20)+k*14,y-110*s-k*26);}g.globalAlpha=1;}
 }
 function drawStack(g,P,x,y,dir){const n=P.cups;for(let i=0;i<n;i++){const row=Math.floor(i/5),col=i%5;const cx=x+dir*(col*9+(row%2)*4),cy=y-row*12;
- if(G.stage==='hana'){const cg=g.createLinearGradient(cx-4,0,cx+4,0);cg.addColorStop(0,'#9aa0a8');cg.addColorStop(.5,'#f4f4f8');cg.addColorStop(1,'#8a9098');g.fillStyle=cg;g.fillRect(cx-4,cy-11,8,11);g.fillStyle='#e8b830';g.fillRect(cx-4,cy-8,8,4);}
+ if(G.stage==='bonen'){g.fillStyle='rgba(255,255,255,.4)';g.fillRect(cx-4,cy-11,8,11);g.fillStyle='rgba(232,160,32,.25)';g.fillRect(cx-3,cy-3,6,3);g.strokeStyle='rgba(255,255,255,.6)';g.lineWidth=1.2;g.beginPath();g.arc(cx+4.5,cy-6,2.5,-1.2,1.2);g.stroke();}else if(G.stage==='hana'){const cg=g.createLinearGradient(cx-4,0,cx+4,0);cg.addColorStop(0,'#9aa0a8');cg.addColorStop(.5,'#f4f4f8');cg.addColorStop(1,'#8a9098');g.fillStyle=cg;g.fillRect(cx-4,cy-11,8,11);g.fillStyle='#e8b830';g.fillRect(cx-4,cy-8,8,4);}
  else{g.fillStyle='#f4f0e6';g.beginPath();g.moveTo(cx-5,cy-7);g.lineTo(cx+5,cy-7);g.lineTo(cx+3,cy);g.lineTo(cx-3,cy);g.closePath();g.fill();g.fillStyle='#2a4a9a';g.fillRect(cx-4,cy-6,8,1.3);}}}
 function drawQueue(g,t){const bx=300,base=226;const cols=['#a85a3a','#5a7aa8','#7a5a9a','#a8a03a','#3a8a7a'];const list=[];for(let i=0;i<G.queue;i++)list.push({c:cols[i%5],me:-1});
  const booth=[];G.p.forEach((P,i)=>{if(P.toilet>0){if(P.wait>0)list.splice(Math.min(list.length,P.wait-1),0,{c:i?'#e0507a':'#4a8aff',me:i});else booth.push(i);}});
@@ -204,6 +240,7 @@ function miniFace(g,x,y,r,st,look,t,ko){g.save();g.translate(x+(st===3?Math.sin(
  const skin=['#f6d2b0','#f8b8a2','#f39282','#e8606a'][st];const hg=g.createRadialGradient(-r*.3,-r*.3,2,0,0,r);hg.addColorStop(0,'#fff2e6');hg.addColorStop(1,skin);g.fillStyle=hg;g.beginPath();g.arc(0,0,r,0,TAU);g.fill();
  if(look==='me'){g.fillStyle='#2a1a14';g.beginPath();g.arc(0,-r*.25,r*1.02,Math.PI*1.05,-.05);g.fill();g.fillStyle='#e8302a';g.fillRect(-r,-r*.55,r*2,r*.26);}
  else if(look==='bucho'){g.fillStyle='#3a3a3a';g.beginPath();g.ellipse(-r*.92,0,r*.22,r*.4,0,0,TAU);g.ellipse(r*.92,0,r*.22,r*.4,0,0,TAU);g.fill();g.fillStyle='#c81e1e';g.fillRect(-r,-r*.72,r*2,r*.24);}
+ else if(look==='kaicho'){g.fillStyle='#f4f4f0';g.beginPath();g.ellipse(-r*.88,0,r*.2,r*.32,0,0,TAU);g.ellipse(r*.88,0,r*.2,r*.32,0,0,TAU);g.fill();g.fillStyle='#ffd75e';g.beginPath();g.moveTo(-r*.4,-r*.85);g.lineTo(r*.1,-r*1.7);g.lineTo(r*.5,-r*.8);g.fill();}
  else{g.fillStyle='#1a1018';g.beginPath();g.arc(0,-r*.15,r*1.04,Math.PI*1.02,-.02);g.fill();g.beginPath();g.arc(0,-r*1.15,r*.5,0,TAU);g.fill();g.fillStyle='#ff6a9a';g.beginPath();g.arc(r*.55,-r*1.2,r*.18,0,TAU);g.fill();}
  if(st>=1){g.fillStyle=`rgba(255,50,70,${.25+st*.18})`;g.beginPath();g.ellipse(-r*.55,r*.3,r*.3,r*.2,0,0,TAU);g.ellipse(r*.55,r*.3,r*.3,r*.2,0,0,TAU);g.fill();}
  if(st===3){g.fillStyle='rgba(255,60,60,.18)';g.beginPath();g.arc(0,0,r,0,TAU);g.fill();}
@@ -242,6 +279,37 @@ function miniPee(g,x,y,st,t,idx){const shake=st===3?Math.sin(t*40)*1.4:st===2?Ma
  if(st>=2){g.strokeStyle=st===3?'rgba(255,90,90,.9)':'rgba(255,230,140,.8)';g.lineWidth=1.2;for(const sd of [-1,1]){g.beginPath();g.moveTo(x+sd*14,y-4);g.lineTo(x+sd*17,y);g.lineTo(x+sd*14,y+4);g.stroke();}}
  if(st===3){g.fillStyle='#ff4a4a';g.font='900 12px sans-serif';g.textAlign='center';g.fillText('!!',x+22,y-12+Math.sin(t*10));g.textAlign='left';}}
 
+
+/* ================= トイレ前の様子（小窓） ================= */
+function person(g,x,y,col,tag,t,i,me){const bob=Math.sin(t*5+i*1.7)*1.2,fid=Math.sin(t*14+i)*.8;
+ g.fillStyle='rgba(0,0,0,.3)';g.beginPath();g.ellipse(x,y,7,2,0,0,TAU);g.fill();
+ g.strokeStyle='#2a2a3a';g.lineWidth=2.4;g.lineCap='round';g.beginPath();g.moveTo(x-2.5,y-9);g.lineTo(x-1+fid,y-1);g.moveTo(x+2.5,y-9);g.lineTo(x+1-fid,y-1);g.stroke();
+ g.fillStyle=col;g.beginPath();g.roundRect?g.roundRect(x-5,y-22+bob,10,14,3):g.rect(x-5,y-22+bob,10,14);g.fill();
+ g.fillStyle='#f2c8a0';g.beginPath();g.arc(x,y-27+bob,5.5,0,TAU);g.fill();
+ if(me==='me'){g.fillStyle='#e8302a';g.fillRect(x-5.5,y-30+bob,11,2.2);}
+ if(me==='bucho'){g.fillStyle='#c81e1e';g.fillRect(x-5.5,y-31+bob,11,2.2);}
+ if(me==='otama'){g.fillStyle='#1a1018';g.beginPath();g.arc(x,y-33+bob,3,0,TAU);g.fill();}
+ if(me==='kaicho'){g.fillStyle='#ffd75e';g.beginPath();g.moveTo(x-4,y-31+bob);g.lineTo(x,y-41+bob);g.lineTo(x+4,y-31+bob);g.fill();}
+ g.fillStyle='#1a1010';g.beginPath();g.arc(x-1.8,y-27.5+bob,.8,0,TAU);g.arc(x+1.8,y-27.5+bob,.8,0,TAU);g.fill();
+ if(tag){g.font='bold 8px sans-serif';const w=g.measureText(tag).width+6;g.fillStyle=me==='me'?'#4a8aff':'#e0507a';g.beginPath();g.roundRect?g.roundRect(x-w/2,y-52,w,11,4):g.rect(x-w/2,y-52,w,11);g.fill();g.fillStyle='#fff';g.textAlign='center';g.fillText(tag,x,y-43.5);g.textAlign='left';}}
+function drawWcPanel(g,t){const x0=196,y0=8,w=156,h=92;
+ g.fillStyle='rgba(10,6,10,.62)';g.beginPath();g.roundRect?g.roundRect(x0,y0,w,h,10):g.rect(x0,y0,w,h);g.fill();g.strokeStyle='rgba(255,255,255,.25)';g.lineWidth=1;g.stroke();
+ g.fillStyle='#fff';g.font='bold 10px sans-serif';g.fillText(G.stage==='bonen'?'お手洗いの前':'トイレ前',x0+8,y0+14);
+ const tr=G.queue>G.prevQ?'↗':G.queue<G.prevQ?'↘':'→';g.font='bold 11px sans-serif';g.fillStyle=G.queue<=0?'#9aff8a':G.queue>=3?'#ff8a8a':'#ffe066';g.textAlign='right';g.fillText(`待ち${G.queue}人 ${tr}`,x0+w-8,y0+14);g.textAlign='left';
+ g.fillStyle='rgba(255,255,255,.08)';g.fillRect(x0+6,y0+h-14,w-12,8);
+ // 個室
+ const bx=x0+w-36,by=y0+22;const inside=G.p.map((P,i)=>P.toilet>0&&P.wait===0?i:-1).filter(i=>i>=0);const occ=inside.length>0||G.queue>0;
+ if(G.stage==='bonen'){g.fillStyle='#5a3a20';g.fillRect(bx-2,by,32,h-30);g.fillStyle='#e8dcc0';g.fillRect(bx+2,by+4,24,h-38);g.fillStyle='#2a3a6a';g.fillRect(bx+2,by+4,24,16);g.fillStyle='#fff';g.font='bold 6px sans-serif';g.textAlign='center';g.fillText('お手洗い',bx+14,by+14);}
+ else{g.fillStyle='#2a7a4a';g.fillRect(bx,by+4,28,h-34);g.fillStyle='#e8e8e0';g.beginPath();g.moveTo(bx-2,by+5);g.quadraticCurveTo(bx+14,by-4,bx+30,by+5);g.fill();g.fillStyle='#1e6a3e';g.fillRect(bx+4,by+10,20,h-42);g.fillStyle='#fff';g.font='bold 7px sans-serif';g.textAlign='center';g.fillText('WC',bx+14,by+19);}
+ g.fillStyle=occ?'#e8302a':'#3ac05a';g.fillRect(bx+6,by+24,16,7);g.fillStyle='#fff';g.font='bold 5.5px sans-serif';g.fillText(occ?'使用中':'空き',bx+14,by+29.5);g.textAlign='left';
+ if(inside.length){const i=inside[0];const P=G.p[i];g.font='bold 8px sans-serif';const tg=i?P.name.slice(0,3)+'が中':'自分が中';const tw=g.measureText(tg).width+6;g.fillStyle=i?'#e0507a':'#4a8aff';g.beginPath();g.roundRect?g.roundRect(bx+14-tw/2,by+36,tw,11,4):g.rect(bx+14-tw/2,by+36,tw,11);g.fill();g.fillStyle='#fff';g.textAlign='center';g.fillText(tg,bx+14,by+44.5);g.textAlign='left';
+  if(Math.sin(t*6)>0){g.fillStyle='rgba(140,210,255,.9)';g.beginPath();g.arc(bx+26,by+52,1.6,0,TAU);g.fill();}}
+ // 列
+ const cols=['#8a6a5a','#5a7a9a','#7a6a8a'];const list=[];for(let i=0;i<G.queue;i++)list.push({c:cols[i%3],tag:'',me:''});
+ G.p.forEach((P,i)=>{if(P.toilet>0&&P.wait>0)list.splice(Math.min(list.length,P.wait-1),0,{c:i?'#e0507a':'#4a8aff',tag:i?'相手':'自分',me:P.look});});
+ list.forEach((q,i)=>person(g,bx-14-i*21,y0+h-8,q.c,q.tag,t,i,q.me));
+ if(!list.length&&!inside.length){g.fillStyle='rgba(160,255,160,.8)';g.font='bold 10px sans-serif';g.fillText('ガラガラ！',x0+18,y0+56);}}
+
 /* ================= 描画 ================= */
 const petals=Array.from({length:44},()=>({x:Math.random()*W,y:Math.random()*SCN,s:.6+Math.random(),a:Math.random()*6,v:.5+Math.random()}));
 function render(){const g=ctx;g.setTransform(SC*DPR,0,0,SC*DPR,0,0);const t=performance.now()/1000;
@@ -249,7 +317,8 @@ function render(){const g=ctx;g.setTransform(SC*DPR,0,0,SC*DPR,0,0);const t=perf
  g.drawImage(bgFor(G.stage),0,0,W,SCN);
  if(G.stage==='tsuki'){g.strokeStyle='#c8b07a';g.lineWidth=1.4;for(let i=0;i<9;i++){const bx=i<5?14+i*12:300+(i-5)*14,h=80+(i%3)*14,sw=Math.sin(t*1.3+i)*6;g.beginPath();g.moveTo(bx,258);g.quadraticCurveTo(bx+sw*.4,258-h*.6,bx+sw,258-h);g.stroke();g.fillStyle='rgba(240,220,170,.8)';g.beginPath();g.ellipse(bx+sw,258-h+10,3,12,sw*.04,0,TAU);g.fill();}
   for(let i=0;i<7;i++){const fx=(i*61+t*14)%W,fy=150+Math.sin(t+i*2)*30;g.fillStyle=`rgba(220,255,140,${.4+.4*Math.sin(t*3+i)})`;g.beginPath();g.arc(fx,fy,1.6,0,TAU);g.fill();}}
- drawQueue(g,t);
+ if(G.stage==='bonen'){g.save();g.beginPath();g.rect(28,40,92,92);g.clip();for(const p of petals){const x=28+((p.x*.3+t*6*p.v)%92),y=40+((p.y*.4+t*18*p.v)%92);g.fillStyle='rgba(255,255,255,.9)';g.beginPath();g.arc(x,y,1.3*p.s,0,TAU);g.fill();}g.restore();
+  for(let k=0;k<4;k++){const ph=(t*.5+k*.25)%1;g.fillStyle=`rgba(255,255,255,${.35*(1-ph)})`;g.beginPath();g.arc(181+Math.sin(t*2+k)*6,262-ph*60,6+ph*10,0,TAU);g.fill();}}
  const [A,B]=G.p;drawStack(g,A,22,330,1);drawStack(g,B,338,330,-1);
  drawDrinker(g,A,108,330,1.12,t,0);drawDrinker(g,B,252,330,1.12,t,1);
  if(G.stage==='hana'){for(const p of petals){p.y+=p.v*.6;p.x+=Math.sin(t+p.a)*.4-.2;p.a+=.02;if(p.y>SCN){p.y=-5;p.x=Math.random()*W;}if(p.x<-5)p.x=W+5;g.save();g.translate(p.x,p.y);g.rotate(p.a);g.fillStyle='rgba(255,190,215,.9)';g.beginPath();g.ellipse(0,0,3.2*p.s,1.8*p.s,0,0,TAU);g.fill();g.restore();}}
@@ -261,8 +330,8 @@ function render(){const g=ctx;g.setTransform(SC*DPR,0,0,SC*DPR,0,0);const t=perf
  // 上部の情報
  g.fillStyle='rgba(0,0,0,.45)';g.beginPath();g.roundRect?g.roundRect(8,8,148,40,10):g.rect(8,8,148,40);g.fill();
  g.fillStyle='#ffe9a0';g.font='bold 12px sans-serif';g.fillText(`${G.S.name}　第${G.turn}ターン`,16,24);g.fillStyle='#fff';g.font='11px sans-serif';g.fillText(`${timeStr(G.turn)}　${G.S.place}`,16,40);
- g.fillStyle='rgba(0,0,0,.5)';g.beginPath();g.roundRect?g.roundRect(222,100,74,30,8):g.rect(222,100,74,30);g.fill();g.fillStyle='#fff';g.font='bold 10px sans-serif';g.textAlign='center';g.fillText('トイレ待ち',259,112);
- const tr=G.queue>G.prevQ?'↗':G.queue<G.prevQ?'↘':'→';g.font='bold 12px sans-serif';g.fillStyle=G.queue<=1?'#9aff8a':G.queue>=4?'#ff8a8a':'#ffe066';g.fillText(`${G.queue}人 ${tr}`,259,126);g.textAlign='left';
+ drawWcPanel(g,t);
+
  if(G.banner){const b=G.banner;b.t+=1/60;const k=Math.min(1,b.t*4),k2=Math.max(0,1-(b.t-b.d+.25)*4);g.globalAlpha=Math.min(k,k2);g.save();g.translate(W/2,150);g.scale(.6+k*.4,.6+k*.4);g.font='900 44px sans-serif';g.textAlign='center';g.lineWidth=8;g.strokeStyle='#5a1030';g.strokeText(b.txt,0,0);g.fillStyle=b.col||'#fff';g.fillText(b.txt,0,0);g.restore();g.globalAlpha=1;if(b.t>b.d)G.banner=null;}
  // HUD
  g.fillStyle='#1e1016';g.fillRect(0,SCN,W,H-SCN);const hg=g.createLinearGradient(0,SCN,0,SCN+6);hg.addColorStop(0,'rgba(0,0,0,.6)');hg.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=hg;g.fillRect(0,SCN,W,6);
@@ -286,7 +355,7 @@ function titleArt(g,t){const sk=g.createLinearGradient(0,0,0,H);sk.addColorStop(
 (function loop(){render();requestAnimationFrame(loop);})();
 
 /* ================= ストーリー ================= */
-const NAMEC={'部長':'#ffb0a0','おタマ':'#e0b0ff','あなた':'#a0c8ff','警備員':'#c0e0a0'};
+const NAMEC={'部長':'#ffb0a0','おタマ':'#e0b0ff','あなた':'#a0c8ff','警備員':'#c0e0a0','会長':'#ffd7a0'};
 const STORY={
  hana:{pre:[
   ['','春。会社の花見で、新人のあなたは場所取りを命じられた。'],
@@ -314,6 +383,36 @@ const STORY={
   ['部長','……新人……この勝負……来年に持ち越しだ……'],
   ['あなた','……場所取りは……どっちが……'],
   ['','結局、来年は二人で朝5時から並ぶことになった。']]},
+ bonen:{pre:[
+  ['','年の瀬。会社の大忘年会。'],
+  ['部長','新人！ 今日はとんでもないお方がいらっしゃるぞ……'],
+  ['おタマ','あら坊や、あんたも呼ばれてたのかい。'],
+  ['あなた','おタマ姐さん！？ どうしてここに……'],
+  ['おタマ','うちの酒を一番買ってくださるお得意さまの宴会だからね。'],
+  ['会長','ふぉっふぉっふぉ。花見と月見で暴れたという新人は、おぬしか。'],
+  ['部長','か、会長！\n（小声で）……うちで一番えらい人だ。そして一番飲む人だ。'],
+  ['会長','わしに飲み勝ったら、来年から……そうじゃな、社長にしてやろう。'],
+  ['あなた','しゃ、社長！？'],
+  ['会長','負けたら、来年の忘年会の幹事じゃ。全部署分な。'],
+  ['','一年の締めくくりに、最後の戦いが始まる。']],
+ win:[
+  ['会長','ふぉ……ふぉっふぉ……見事じゃ……ヒック……'],
+  ['会長','約束どおり、来年から……社長……むにゃ……'],
+  ['部長','（新人が社長……ということは、わしの上司……！？）'],
+  ['おタマ','ふふ、面白いことになってきたねぇ。'],
+  ['','翌朝。会長は何も覚えていなかった。'],
+  ['','ただ、あなたの机の上に「金一封」と書かれた封筒が置いてあった。\n中身は500円だった。']],
+ lose:[
+  ['会長','ふぉっふぉっふぉ！ まだまだ青いのぉ。'],
+  ['会長','では約束どおり、来年の忘年会の幹事は任せたぞ。全部署分な。'],
+  ['あなた','ぜ、全部署……何百人……'],
+  ['部長','……場所取り、手伝ってやるよ。朝5時からな。'],
+  ['','こうして、あなたの新しい一年が始まった。']],
+ draw:[
+  ['会長','……ふぉ……ふぉ……引き分けとは……わしも歳かのぉ……'],
+  ['おタマ','あらあら、二人そろって座布団の上で大の字だよ。'],
+  ['部長','会長と新人が同時に潰れた……\nこれは来年の社内報に載るぞ……'],
+  ['','翌月の社内報の一面は、二人の寝顔だった。']]},
  tsuki:{pre:[
   ['','秋。噂を頼りに、山奥の酒蔵「月見屋」を訪ねたあなた。'],
   ['おタマ','@PRE'],
@@ -366,7 +465,8 @@ function aiChoose(P,O,smart){const q=queueAhead(P,O),nd=P.drunk+P.dBase;
  if(koProb(nd)>.42*risk&&lead<5)return 'rest';
  if(P.drunk>=(smart?62:70)&&Math.random()<.65)return 'rest';
  return 'drink';}
-function choose(){return new Promise(res=>{const P=G.p[0],O=G.p[1];
+let pendingChoose=null;
+function choose(){return new Promise(res0=>{const P=G.p[0],O=G.p[1];const res=v=>{pendingChoose=null;res0(v);};pendingChoose=()=>res(P.toilet>0?'busy':P.ko?'ko':aiChoose(P,O,true));
  if(P.toilet>0||P.ko){const why=P.toilet>0?(P.wait>0?`トイレの列に並んでいる（前に${P.wait}人）`:'用を足している'):'酔い潰れて動けない…';acts([{t:'次のターンへ<small>'+why+'</small>',c:'bNext',f:()=>res(P.toilet>0?'busy':'ko')}]);if(window.tgAuto)setTimeout(()=>res(P.toilet>0?'busy':'ko'),500/(window.__speed||1));return;}
  if(window.tgAuto){setTimeout(()=>res(aiChoose(P,O,true)),550/(window.__speed||1));acts([]);return;}
  const q=queueAhead(P,O);
@@ -378,7 +478,7 @@ async function turn(){const [A,B]=G.p;
   if(Math.random()<koProb(P.drunk)){P.ko=true;say(P,['…zzz','うぃ〜…','もう飲めにゃい'][Math.floor(Math.random()*3)]);}}
  G.ph='choose';
  const a=await choose();acts([]);
- const b=B.toilet>0?'busy':B.ko?'ko':B.forced?'wc':aiChoose(B,A,G.stage==='tsuki');
+ const b=B.toilet>0?'busy':B.ko?'ko':B.forced?'wc':aiChoose(B,A,G.stage!=='hana');
  A.act=A.forced&&a!=='busy'&&a!=='ko'?'wc':a;B.act=b;
  // せーの！
  G.banner={txt:'せーの！',t:0,d:.9,col:'#ffe9a0'};snd('start');await sleep(900);G.ph='reveal';
@@ -413,20 +513,25 @@ async function match(stage){newGame(stage);hideOv();acts([]);await sleep(300);aw
  await story(STORY[stage][win?'win':r.w===-1?'draw':'lose']);
  const best=(()=>{try{return JSON.parse(localStorage.getItem('hebereke_rec')||'{}');}catch(e){return {};}})();
  if(win&&!G.autoUsed){const k=stage;if(!best[k]||G.turn<best[k]){best[k]=G.turn;try{localStorage.setItem('hebereke_rec',JSON.stringify(best));}catch(e){}}}
- const other=stage==='hana'?'tsuki':'hana';
+ const won=(()=>{try{return JSON.parse(localStorage.getItem('hebereke_won')||'{}');}catch(e){return {};}})();const wasOpen=!!(won.hana&&won.tsuki);
+ if(win){won[stage]=true;try{localStorage.setItem('hebereke_won',JSON.stringify(won));}catch(e){}}
+ const open=!!(won.hana&&won.tsuki),newly=open&&!wasOpen;
+ const other=stage==='hana'?'tsuki':stage==='tsuki'?(open?'bonen':'hana'):'hana';
+ const cls=k=>k==='hana'?'hana':k==='tsuki'?'tsuki':'bonen';
  showOv(`<div class="box"><h2>${win?'飲兵衛の頂点！':r.w===-1?'相討ち…':'完敗…'}</h2><p>${r.why}</p>
   <p style="font-size:15px">あなた ${A.cups}杯（酔い${Math.round(A.drunk)}%）<br>${B.name} ${B.cups}杯（酔い${Math.round(B.drunk)}%）</p><p>${G.turn}ターン（${timeStr(G.turn)}）で決着${win&&best[stage]===G.turn&&!G.autoUsed?'　<b style="color:#ffd75e">最短記録！</b>':''}</p>
-  <button class="bb ${stage==='hana'?'hana':'tsuki'}" id="re">もう一度 ${STAGES[stage].name}</button><button class="bb ${other==='hana'?'hana':'tsuki'}" id="ot">${STAGES[other].name}へ<small>相手：${STAGES[other].opp.name}</small></button><button class="bb gray" id="tt">タイトルへ</button></div>`);
+  ${newly?'<p style="font-size:16px;color:#ffd75e;font-weight:900">裏ボス「忘年会の部」が解放された！</p>':''}<button class="bb ${cls(stage)}" id="re">もう一度 ${STAGES[stage].name}</button><button class="bb ${cls(other)}" id="ot">${STAGES[other].name}へ<small>相手：${STAGES[other].opp.name}</small></button><button class="bb gray" id="tt">タイトルへ</button></div>`);
  $('re').onclick=()=>{snd('click');match(stage);};$('ot').onclick=()=>{snd('click');match(other);};$('tt').onclick=()=>{snd('click');title();};
  if(window.tgAuto)setTimeout(()=>{if($('ot'))$('ot').click();},2500/(window.__speed||1));}
 function title(){G=null;acts([]);const best=(()=>{try{return JSON.parse(localStorage.getItem('hebereke_rec')||'{}');}catch(e){return {};}})();
  showOv(`<div class="box" style="text-align:center;background:rgba(30,14,22,.88)"><div class="ttl">へべれけ！</div><div class="ttl2">花見月見で飲兵衛対決</div>
   <div class="rules">・先に<b>${GOAL}杯</b>飲んだ方の勝ち。毎ターン「せーの！」で同時に行動。<br>・飲むと<b>酔い</b>と<b>おしっこ</b>が溜まる。顔色で酔い具合がわかる（シラフ→ほろよい→酔っ払い→へべれけ）。酔うほど確率で潰れてそのターンは動けず、へべれけを超えると撃沈。<br>・<b>休憩</b>か時間経過で酔いがさめる。<br>・<b>トイレ</b>は列の人数＋1ターン飲めないが、酔いもさめる。並んでいる間もおしっこは溜まるので、空いている時を狙え。</div>
   <button class="bb hana" id="sh">${STAGES.hana.name}<small>相手：${STAGES.hana.opp.name}（${STAGES.hana.opp.title}）${best.hana?'　最短 '+best.hana+'ターン':''}</small></button>
-  <button class="bb tsuki" id="st">${STAGES.tsuki.name}<small>相手：${STAGES.tsuki.opp.name}（${STAGES.tsuki.opp.title}）${best.tsuki?'　最短 '+best.tsuki+'ターン':''}</small></button></div>`);
- $('sh').onclick=()=>{snd('click');match('hana');};$('st').onclick=()=>{snd('click');match('tsuki');};
+  <button class="bb tsuki" id="st">${STAGES.tsuki.name}<small>相手：${STAGES.tsuki.opp.name}（${STAGES.tsuki.opp.title}）${best.tsuki?'　最短 '+best.tsuki+'ターン':''}</small></button>
+  ${(()=>{let w={};try{w=JSON.parse(localStorage.getItem('hebereke_won')||'{}');}catch(e){}return w.hana&&w.tsuki?`<button class="bb bonen" id="sb">${STAGES.bonen.name}（裏ボス）<small>相手：${STAGES.bonen.opp.name}（${STAGES.bonen.opp.title}）${best.bonen?'　最短 '+best.bonen+'ターン':''}</small></button>`:`<button class="bb gray" disabled>？？？<small>花見と月見の両方で勝つと解放</small></button>`;})()}</div>`);
+ $('sh').onclick=()=>{snd('click');match('hana');};$('st').onclick=()=>{snd('click');match('tsuki');};if($('sb'))$('sb').onclick=()=>{snd('click');match('bonen');};
  if(window.tgAuto)setTimeout(()=>{if($('sh'))$('sh').click();},900);}
-window.addEventListener('tgauto',()=>{if(window.tgAuto){if(G)G.autoUsed=true;if($('sh'))$('sh').click();}});
+window.addEventListener('tgauto',()=>{if(window.tgAuto){if(G)G.autoUsed=true;if($('sh'))$('sh').click();if(pendingChoose){acts([]);pendingChoose();}if(storyLines)nextLine(true);if($('ot'))$('ot').click();}});
 setInterval(()=>{if(G&&window.tgAuto)G.autoUsed=true;},500);
 title();
 </script>
