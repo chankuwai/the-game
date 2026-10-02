@@ -33,6 +33,15 @@ html,body{margin:0;height:100%;background:#120a10;color:#fff;overflow:hidden;tou
 .tsuki{background:linear-gradient(#5a6ab0,#1e2650)}
 .gray{background:linear-gradient(#555,#2a2a2a)}
 .rules{text-align:left;font-size:12px;line-height:1.7;color:#e8d8c8;margin-top:10px;background:rgba(0,0,0,.25);border-radius:10px;padding:8px 10px}
+.story{position:fixed;left:0;right:0;bottom:0;z-index:70;padding:0 10px calc(14px + env(safe-area-inset-bottom));display:flex;justify-content:center}
+.story.hidden{display:none}
+.sbox{width:100%;max-width:460px;min-height:128px;background:linear-gradient(rgba(40,20,28,.96),rgba(20,10,16,.97));border:2px solid #f0d0a0;border-radius:16px;padding:12px 14px 16px;box-shadow:0 0 0 3px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.7);position:relative}
+.sname{display:inline-block;padding:2px 12px;border-radius:999px;font-weight:900;font-size:13px;margin-bottom:6px;color:#2a1018;background:#ffd75e}
+.stext{font-size:16px;line-height:1.65;min-height:52px;white-space:pre-wrap}
+.snarr{color:#e8d8c8;font-style:italic}
+.snext{position:absolute;right:14px;bottom:8px;font-size:12px;color:#f0d0a0;animation:bl 1s infinite}
+@keyframes bl{50%{opacity:.2}}
+.sskip{position:absolute;right:10px;top:-34px;padding:5px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.4);background:rgba(0,0,0,.55);color:#fff;font-size:12px;font-family:inherit}
 </style>
 </head>
 <body>
@@ -41,6 +50,7 @@ html,body{margin:0;height:100%;background:#120a10;color:#fff;overflow:hidden;tou
   <div id="acts"></div>
 </div>
 <div id="ov" class="hidden"></div>
+<div id="story" class="story hidden"><div class="sbox" id="sbox"><button class="sskip" id="sskip">スキップ</button><div class="sname" id="sname"></div><div class="stext" id="stext"></div><div class="snext">▼ タップ</div></div></div>
 <script>
 'use strict';
 /* ================= 基本 ================= */
@@ -228,6 +238,73 @@ function titleArt(g,t){const sk=g.createLinearGradient(0,0,0,H);sk.addColorStop(
  for(const p of petals){p.y+=p.v*.5;p.x+=Math.sin(t+p.a)*.4;p.a+=.02;if(p.y>H){p.y=-5;p.x=Math.random()*W;}g.save();g.translate(p.x,p.y);g.rotate(p.a);g.fillStyle='rgba(255,190,215,.85)';g.beginPath();g.ellipse(0,0,3.4*p.s,1.9*p.s,0,0,TAU);g.fill();g.restore();}}
 (function loop(){render();requestAnimationFrame(loop);})();
 
+/* ================= ストーリー ================= */
+const NAMEC={'部長':'#ffb0a0','おタマ':'#e0b0ff','あなた':'#a0c8ff','警備員':'#c0e0a0'};
+const STORY={
+ hana:{pre:[
+  ['','春。会社の花見で、新人のあなたは場所取りを命じられた。'],
+  ['部長','おう新人！ 場所取りご苦労！\n……で、ビールは冷えてるか？'],
+  ['あなた','はい！ 朝5時から並んで、ブルーシートと一緒に冷やしておきました！'],
+  ['部長','よし。うちの部には伝統がある。\n花見の席で部長に飲み勝った新人は……'],
+  ['部長','来期のボーナス査定が、ちょっとだけ甘くなる！'],
+  ['あなた','ちょっとだけ……！'],
+  ['部長','ただし負けたら、来年も場所取りだ。朝5時から。'],
+  ['','桜の下、絶対に負けられない戦いが始まる。']],
+ win:[
+  ['部長','ま、まいった……新人、お前……ヒック……大物になるぞ……'],
+  ['部長','ボーナスの件は……覚えてたら……な……zzz'],
+  ['あなた','部長！ 寝る前に一筆！ 一筆ください！'],
+  ['','翌朝、部長は何も覚えていなかった。'],
+  ['','ただ、ブルーシートの裏にマジックで\n「しんじん　つよい」と書いてあった。']],
+ lose:[
+  ['部長','わっはっは！ 若いな新人！\n来年の場所取りも頼んだぞ！'],
+  ['あなた','……朝5時……'],
+  ['部長','よし、二次会はカラオケだ！\nもちろん新人の十八番『乾杯』からな！'],
+  ['','その夜、あなたは『乾杯』を3回歌った。\n3回とも部長がタンバリンで乱入した。']],
+ draw:[
+  ['','二人そろって、桜の下で大の字。'],
+  ['警備員','あのー、閉園時間ですよー。\n……お二人とも、起きてくださーい。'],
+  ['部長','……新人……この勝負……来年に持ち越しだ……'],
+  ['あなた','……場所取りは……どっちが……'],
+  ['','結局、来年は二人で朝5時から並ぶことになった。']]},
+ tsuki:{pre:[
+  ['','秋。噂を頼りに、山奥の酒蔵「月見屋」を訪ねたあなた。'],
+  ['おタマ','@PRE'],
+  ['あなた','はい！ 噂の「幻の大吟醸」を飲ませてください！'],
+  ['おタマ','ふふ。あれはね、あたしに飲み勝った人にしか出さない決まりなのさ。'],
+  ['おタマ','今まで挑んだ男は37人。\nみんな朝には、縁側でお月さまと一緒に寝てたよ。'],
+  ['あなた','38人目にはなりません！'],
+  ['おタマ','いい度胸だねぇ。さ、熱燗が冷めないうちに始めようか。']],
+ win:[
+  ['おタマ','……やるじゃないか、坊や。\n38人目にして、初めての負けだよ。'],
+  ['おタマ','約束だ。幻の大吟醸「月見酒」、持っておいき。'],
+  ['あなた','ありがとうございます！ さっそくいただき……'],
+  ['おタマ','お待ち。それ以上飲んだら、あんたも縁側でお月さまと寝る羽目になるよ。'],
+  ['','翌朝、縁側で目を覚ますと、隣でなぜか部長が寝ていた。'],
+  ['','部長がどうやってここに来たのかは、誰にもわからない。']],
+ lose:[
+  ['おタマ','ふふ、38人目のお客さんだね。毛布、かけといてあげるよ。'],
+  ['あなた','まだ……まだ飲めま……zzz'],
+  ['','翌朝。縁側には、満足そうな寝顔がひとつ並んでいた。'],
+  ['おタマ','また来な。幻の酒は逃げやしないよ。\n……あんたのお財布の中身は、ちょっと逃げたけどね。']],
+ draw:[
+  ['おタマ','あたしと引き分けるなんて……何十年ぶりかねぇ……'],
+  ['','二人は朝まで月を眺め、なぜか最後は一緒に月見団子を全部食べていた。'],
+  ['おタマ','……団子代は、あんた持ちだよ。']]},
+};
+let storyRes=null,storyIdx=0,storyLines=null,storyTm=null,storyFull=false;
+function story(lines){return new Promise(res=>{storyLines=lines;storyIdx=0;storyRes=res;$('story').classList.remove('hidden');acts([]);showLine();});}
+function showLine(){const [nm,tx]=storyLines[storyIdx];const el=$('stext'),n=$('sname');n.style.display=nm?'inline-block':'none';n.textContent=nm;n.style.background=NAMEC[nm]||'#ffd75e';el.className='stext'+(nm?'':' snarr');
+ clearInterval(storyTm);let i=0;storyFull=false;el.textContent='';storyTm=setInterval(()=>{i++;el.textContent=tx.slice(0,i);if(i>=tx.length){clearInterval(storyTm);storyFull=true;}},28/(window.__speed||1));
+ const idx=storyIdx;if(window.tgAuto)setTimeout(()=>{if(storyLines&&storyIdx===idx)nextLine(true);},1400/(window.__speed||1));}
+function nextLine(force){if(!storyLines)return;if(!storyFull&&!force){clearInterval(storyTm);$('stext').textContent=storyLines[storyIdx][1];storyFull=true;return;}
+ snd('click');storyIdx++;if(storyIdx>=storyLines.length)endStory();else showLine();}
+function endStory(){clearInterval(storyTm);$('story').classList.add('hidden');const r=storyRes;storyLines=null;storyRes=null;r&&r();}
+$('sbox').addEventListener('click',e=>{if(e.target.id==='sskip')return;nextLine(false);});
+$('sskip').addEventListener('click',e=>{e.stopPropagation();snd('click');endStory();});
+function preLines(stage){const best=(()=>{try{return JSON.parse(localStorage.getItem('hebereke_rec')||'{}');}catch(e){return {};}})();
+ return STORY[stage].pre.map(([n,t])=>[n,t==='@PRE'?(best.hana?'あら、花見で部長さんを飲み負かしたっていう坊やかい？':'あら、見ない顔だね。……さては、幻の酒が目当てだね？'):t]);}
+
 /* ================= 進行 ================= */
 const ov=$('ov');function showOv(h){ov.className='';ov.innerHTML=h;}function hideOv(){ov.className='hidden';ov.innerHTML='';}
 function acts(list){const a=$('acts');a.innerHTML='';for(const b of list){const e=document.createElement('button');e.className=b.c;e.innerHTML=b.t;e.disabled=!!b.dis;e.onclick=()=>{snd('click');b.f();};a.appendChild(e);}}
@@ -281,11 +358,12 @@ async function turn(){const [A,B]=G.p;
   return {w,why};}
  if(A.pee>=100&&A.toilet===0)say(A,'も、もれる…！');if(B.pee>=100&&B.toilet===0)say(B,'も、もれる…！');
  G.turn++;G.prevQ=G.queue;G.queue=calcQueue(G.turn);return null;}
-async function match(stage){newGame(stage);hideOv();acts([]);await sleep(400);G.banner={txt:'乾杯！',t:0,d:1.2,col:'#ffd75e'};snd('good');await sleep(1200);
+async function match(stage){newGame(stage);hideOv();acts([]);await sleep(300);await story(preLines(stage));await sleep(200);G.banner={txt:'乾杯！',t:0,d:1.2,col:'#ffd75e'};snd('good');await sleep(1200);
  let r=null;while(!r)r=await turn();
  G.over=true;G.winner=r.w;await sleep(900);
  const A=G.p[0],B=G.p[1];const win=r.w===0;snd(win?'win':r.w===-1?'bad':'lose');
- G.banner={txt:win?'勝利！':r.w===-1?'引き分け':'敗北…',t:0,d:2.2,col:win?'#ffd75e':'#9ac0ff'};await sleep(1400);
+ G.banner={txt:win?'勝利！':r.w===-1?'引き分け':'敗北…',t:0,d:2.2,col:win?'#ffd75e':'#9ac0ff'};await sleep(1600);
+ await story(STORY[stage][win?'win':r.w===-1?'draw':'lose']);
  const best=(()=>{try{return JSON.parse(localStorage.getItem('hebereke_rec')||'{}');}catch(e){return {};}})();
  if(win&&!G.autoUsed){const k=stage;if(!best[k]||G.turn<best[k]){best[k]=G.turn;try{localStorage.setItem('hebereke_rec',JSON.stringify(best));}catch(e){}}}
  const other=stage==='hana'?'tsuki':'hana';
