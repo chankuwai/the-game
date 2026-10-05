@@ -140,6 +140,12 @@ button:focus-visible{outline:3px solid var(--ai);outline-offset:2px}
 @keyframes toast{0%{opacity:0;transform:translate(-50%,8px)}12%,80%{opacity:1;transform:translate(-50%,0)}100%{opacity:0}}
 @media (prefers-reduced-motion:reduce){.toast{animation:none}}
 </style>
+<script>/* tg-common: クリア記録・最近遊んだゲーム */
+(function(){var id=(location.pathname.split('/').pop()||'').replace(/\.html$/,'');window.__tgAutoEver=false;
+ addEventListener('tgauto',function(){if(window.tgAuto)window.__tgAutoEver=true;});
+ window.tgClear=function(gid,info){try{if(window.tgAuto||window.tgAutoUsed||window.__tgAutoEver)return;gid=gid||id;var o=JSON.parse(localStorage.getItem('tg_clear')||'{}');var r=o[gid]||{n:0};r.n=(r.n||0)+1;r.t=Date.now();if(info)r.info=info;o[gid]=r;localStorage.setItem('tg_clear',JSON.stringify(o));}catch(e){}};
+ try{var a=JSON.parse(localStorage.getItem('tg_recent')||'[]').filter(function(x){return x.id!==id;});a.unshift({id:id,t:Date.now()});localStorage.setItem('tg_recent',JSON.stringify(a.slice(0,10)));}catch(e){}})();
+</script>
 </head>
 <body>
 <div id="app"></div>
@@ -418,7 +424,7 @@ function endGame() {
   const fa = finalAssets();
   const isBest = !window.tgAuto && fa.total > best;
   if (isBest) { best = fa.total; try { localStorage.setItem(BEST_KEY, String(best)); } catch (e) {} }
-  UI.screen = 'result'; UI.result = { ...fa, isBest };
+  if(fa.total>=START_MONEY&&window.tgClear)tgClear('akindo');UI.screen = 'result'; UI.result = { ...fa, isBest };
   UI.modal = null;
   snd(fa.total >= START_MONEY ? 'win' : 'lose');
   render();

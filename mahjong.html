@@ -38,6 +38,12 @@ html,body{margin:0;height:100%;background:#0d0a08;color:#fff;overflow:hidden;tou
 .yaku{font-size:15px;line-height:1.7;margin:8px 0}
 .big{font-size:30px;font-weight:900;color:#ffd75e;margin:6px 0}
 </style>
+<script>/* tg-common: クリア記録・最近遊んだゲーム */
+(function(){var id=(location.pathname.split('/').pop()||'').replace(/\.html$/,'');window.__tgAutoEver=false;
+ addEventListener('tgauto',function(){if(window.tgAuto)window.__tgAutoEver=true;});
+ window.tgClear=function(gid,info){try{if(window.tgAuto||window.tgAutoUsed||window.__tgAutoEver)return;gid=gid||id;var o=JSON.parse(localStorage.getItem('tg_clear')||'{}');var r=o[gid]||{n:0};r.n=(r.n||0)+1;r.t=Date.now();if(info)r.info=info;o[gid]=r;localStorage.setItem('tg_clear',JSON.stringify(o));}catch(e){}};
+ try{var a=JSON.parse(localStorage.getItem('tg_recent')||'[]').filter(function(x){return x.id!==id;});a.unshift({id:id,t:Date.now()});localStorage.setItem('tg_recent',JSON.stringify(a.slice(0,10)));}catch(e){}})();
+</script>
 </head>
 <body>
 <div id="app">
@@ -358,7 +364,7 @@ async function ryukyoku(){S.handOver=true;if(!S.cheatedHand)S.sus=Math.max(0,S.s
 async function runGame(){newGame();
  for(S.hand=0;S.hand<4;S.hand++){const r=await playHand();if(r==='caught'||S.pts.some(p=>p<0))break;}
  S.over=true;const order=[0,1,2,3].sort((a,b)=>S.pts[b]-S.pts[a]);const rank=order.indexOf(0)+1;
- const bust=S.pts[0]<0;snd(rank===1&&!bust?'win':'lose');
+ const bust=S.pts[0]<0;snd(rank===1&&!bust?'win':'lose');if(rank===1&&!bust&&window.tgClear)tgClear('mahjong');
  const title=bust?(S.caught?'出入り禁止…':'飛んでしまった…'):rank===1?'トップ！ 大勝ちよ':rank===2?'2着。悪くないわ':rank===3?'3着…':'ラス…';
  showOv(`<div class="box"><h2>${title}</h2><p>最終結果</p>${order.map((s,i)=>`<div class="row"><span>${i+1}位　${s?NAMES[s]:'あなた'}</span><span>${S.pts[s]}</span></div>`).join('')}<p style="margin-top:10px">イカサマ ${S.cheats}回 ／ バレた回数 ${S.caught}回<br>${S.cheats===0?'一度もイカサマしなかった。真剣勝負ね。':S.caught===0?'一度もバレずにやり遂げた。悪い人ね。':'バレても懲りないのね…'}</p><button class="bb" id="again">もう一局</button><button class="bb" id="home">一覧へ</button></div>`);
  $('again').onclick=()=>{hideOv();runGame();};$('home').onclick=()=>{location.href='index.html';};}

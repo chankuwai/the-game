@@ -65,6 +65,12 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .final .list div{display:flex;justify-content:space-between;background:var(--panel);border-radius:10px;padding:8px 12px;font-weight:700}
 .final .list b{color:var(--gold);font-variant-numeric:tabular-nums}
 </style>
+<script>/* tg-common: クリア記録・最近遊んだゲーム */
+(function(){var id=(location.pathname.split('/').pop()||'').replace(/\.html$/,'');window.__tgAutoEver=false;
+ addEventListener('tgauto',function(){if(window.tgAuto)window.__tgAutoEver=true;});
+ window.tgClear=function(gid,info){try{if(window.tgAuto||window.tgAutoUsed||window.__tgAutoEver)return;gid=gid||id;var o=JSON.parse(localStorage.getItem('tg_clear')||'{}');var r=o[gid]||{n:0};r.n=(r.n||0)+1;r.t=Date.now();if(info)r.info=info;o[gid]=r;localStorage.setItem('tg_clear',JSON.stringify(o));}catch(e){}};
+ try{var a=JSON.parse(localStorage.getItem('tg_recent')||'[]').filter(function(x){return x.id!==id;});a.unshift({id:id,t:Date.now()});localStorage.setItem('tg_recent',JSON.stringify(a.slice(0,10)));}catch(e){}})();
+</script>
 </head>
 <body>
 <div id="app">
@@ -181,7 +187,7 @@ function serve() { if (scene !== 'tops') return; judge(); scene = 'eat'; sceneT 
 function afterVerdict() {
   G.i++;
   if (G.i >= DAY_LEN) {
-    scene = 'final'; sceneT = 0;
+    scene = 'final'; sceneT = 0;if(window.tgClear)tgClear('ramen');
     G.isBest = !window.tgAuto && G.total > best;
     if (G.isBest) { best = G.total; try { localStorage.setItem(BEST_KEY, String(best)); } catch (e) {} }
     snd('win'); renderUI(); return;

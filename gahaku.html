@@ -54,6 +54,12 @@ button:focus-visible{outline:3px solid var(--pen);outline-offset:3px}
 .legend{font-size:13px;color:var(--muted);margin:0}
 .legend i{display:inline-block;width:18px;height:4px;border-radius:2px;vertical-align:middle;margin:0 4px 0 10px}
 </style>
+<script>/* tg-common: クリア記録・最近遊んだゲーム */
+(function(){var id=(location.pathname.split('/').pop()||'').replace(/\.html$/,'');window.__tgAutoEver=false;
+ addEventListener('tgauto',function(){if(window.tgAuto)window.__tgAutoEver=true;});
+ window.tgClear=function(gid,info){try{if(window.tgAuto||window.tgAutoUsed||window.__tgAutoEver)return;gid=gid||id;var o=JSON.parse(localStorage.getItem('tg_clear')||'{}');var r=o[gid]||{n:0};r.n=(r.n||0)+1;r.t=Date.now();if(info)r.info=info;o[gid]=r;localStorage.setItem('tg_clear',JSON.stringify(o));}catch(e){}};
+ try{var a=JSON.parse(localStorage.getItem('tg_recent')||'[]').filter(function(x){return x.id!==id;});a.unshift({id:id,t:Date.now()});localStorage.setItem('tg_recent',JSON.stringify(a.slice(0,10)));}catch(e){}})();
+</script>
 </head>
 <body>
 <div id="app">
@@ -319,7 +325,7 @@ function finishDraw() {
   setButtons([{ label: last ? '結果を見る' : 'つぎへ', main: true, fn: () => { round++; last ? showEnd() : nextRound(); } }]);
 }
 
-function showEnd() {
+function showEnd() {if(window.tgClear)tgClear('gahaku');
   state = 'end';
   $('stage').hidden = true; $('end').hidden = false; $('barBox').hidden = true; $('msg').hidden = true;
   $('round').textContent = '結果';

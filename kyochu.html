@@ -39,6 +39,12 @@ h2.big{font-size:34px;margin:0 0 6px;letter-spacing:.08em}
 #rot{display:none;position:fixed;inset:0;z-index:99;background:#0b0710;align-items:center;justify-content:center;font-size:18px}
 @media (orientation:landscape) and (max-height:500px){#rot{display:flex}}
 </style>
+<script>/* tg-common: クリア記録・最近遊んだゲーム */
+(function(){var id=(location.pathname.split('/').pop()||'').replace(/\.html$/,'');window.__tgAutoEver=false;
+ addEventListener('tgauto',function(){if(window.tgAuto)window.__tgAutoEver=true;});
+ window.tgClear=function(gid,info){try{if(window.tgAuto||window.tgAutoUsed||window.__tgAutoEver)return;gid=gid||id;var o=JSON.parse(localStorage.getItem('tg_clear')||'{}');var r=o[gid]||{n:0};r.n=(r.n||0)+1;r.t=Date.now();if(info)r.info=info;o[gid]=r;localStorage.setItem('tg_clear',JSON.stringify(o));}catch(e){}};
+ try{var a=JSON.parse(localStorage.getItem('tg_recent')||'[]').filter(function(x){return x.id!==id;});a.unshift({id:id,t:Date.now()});localStorage.setItem('tg_recent',JSON.stringify(a.slice(0,10)));}catch(e){}})();
+</script>
 </head>
 <body>
 <div id="app">
@@ -642,7 +648,7 @@ function showChoice(){const nx=BNAME[bi+1];sfx('win');ov.className='dim';ov.inne
  $('cHeal').onclick=()=>{sfx('sel');P.hp=P.max;ov.onclick=null;startBoss(bi+1);};$('cAtk').onclick=()=>{sfx('sel');atkLv++;startBoss(bi+1);};ov.onclick=null;}
 function showOver(){sfx('lose');ov.className='dim';ov.innerHTML=`<h2 class="big" style="color:#ff6a7a">力尽きた…</h2><div class="msg">${boss.name}に敗れた<br>タイム ${fmtT(total)}</div><div class="ch"><button id="oRe">このボスからリトライ<small>HP全回復・強化はそのまま</small></button><button id="oTi">タイトルへ</button></div>`;
  $('oRe').onclick=()=>{sfx('sel');P.hp=P.max;startBoss(bi);};$('oTi').onclick=()=>{sfx('sel');showTitle();};}
-function showClear(){sfx('win');let rec='';if(!usedAuto){const b=bestTime();if(b===null||total<b){try{localStorage.setItem('kyochu_best',String(total));}catch(e){}rec='<div class="best">ベストタイム更新！</div>';}else rec=`<div class="best">ベスト ${fmtT(b)}</div>`;}else rec='<div class="best" style="color:#aaa">AUTOを使ったので記録は残りません</div>';
+function showClear(){sfx('win');if(!usedAuto&&window.tgClear)tgClear('kyochu');let rec='';if(!usedAuto){const b=bestTime();if(b===null||total<b){try{localStorage.setItem('kyochu_best',String(total));}catch(e){}rec='<div class="best">ベストタイム更新！</div>';}else rec=`<div class="best">ベスト ${fmtT(b)}</div>`;}else rec='<div class="best" style="color:#aaa">AUTOを使ったので記録は残りません</div>';
  ov.className='dim';ov.innerHTML=`<h2 class="big" style="color:#9be05a">全巨蟲討伐！</h2><div class="msg">5体すべての巨蟲を倒した<br>撃破タイム</div><div style="font-size:40px;font-weight:900;letter-spacing:.05em">${fmtT(total)}</div>${rec}<div class="ch" style="margin-top:20px"><button id="kAg">もう一度</button><button id="kTi">タイトルへ</button></div>`;
  $('kAg').onclick=()=>{sfx('sel');startRun();};$('kTi').onclick=()=>{sfx('sel');showTitle();};}
 

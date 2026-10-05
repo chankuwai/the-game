@@ -53,6 +53,12 @@ html,body{margin:0;height:100%;background:#0a0604;color:#f4e8d0;overflow:hidden;
 .sel small{display:block;font-size:11px;color:#c8a870;font-weight:bold}
 .sel i{margin-left:auto;font-style:normal;font-weight:900;font-size:20px;color:#ffd75e}
 </style>
+<script>/* tg-common: クリア記録・最近遊んだゲーム */
+(function(){var id=(location.pathname.split('/').pop()||'').replace(/\.html$/,'');window.__tgAutoEver=false;
+ addEventListener('tgauto',function(){if(window.tgAuto)window.__tgAutoEver=true;});
+ window.tgClear=function(gid,info){try{if(window.tgAuto||window.tgAutoUsed||window.__tgAutoEver)return;gid=gid||id;var o=JSON.parse(localStorage.getItem('tg_clear')||'{}');var r=o[gid]||{n:0};r.n=(r.n||0)+1;r.t=Date.now();if(info)r.info=info;o[gid]=r;localStorage.setItem('tg_clear',JSON.stringify(o));}catch(e){}};
+ try{var a=JSON.parse(localStorage.getItem('tg_recent')||'[]').filter(function(x){return x.id!==id;});a.unshift({id:id,t:Date.now()});localStorage.setItem('tg_recent',JSON.stringify(a.slice(0,10)));}catch(e){}})();
+</script>
 </head>
 <body>
 <div id="app">
@@ -825,7 +831,7 @@ async function bossSeq(){G.phase='pre';for(const f of foes)if(f.st!=='dead'){f.f
 async function stageWin(){G.phase='win';P.inv=99;setBgm('none');await wait(900);sfx('win');
  await story(STORY[G.stage].win);
  const sc=Math.round(1000-G.dmg*2.5-G.time*1.2+G.maxCombo*8);const rank=sc>=850?'S':sc>=700?'A':sc>=500?'B':'C';
- const prog=loadProg();if(!window.tgAutoUsed){prog.open=Math.max(prog.open,Math.min(5,G.stage+2));const old=prog.rank[G.stage];if(!old||'SABC'.indexOf(rank)<'SABC'.indexOf(old))prog.rank[G.stage]=rank;saveProg(prog);}
+ const prog=loadProg();if(G.stage===4&&window.tgClear)tgClear('gaoh');if(!window.tgAutoUsed){prog.open=Math.max(prog.open,Math.min(5,G.stage+2));const old=prog.rank[G.stage];if(!old||'SABC'.indexOf(rank)<'SABC'.indexOf(old))prog.rank[G.stage]=rank;saveProg(prog);}
  setBgm('clear');const last=G.stage===4;
  showOv(`<div class="panel"><h2>STAGE CLEAR</h2><p style="color:#e8c890;margin:0 0 8px">${STAGES[G.stage].name}　${STAGES[G.stage].sub}</p><div class="row"><span>タイム</span><span>${Math.floor(G.time/60)}分${String(Math.floor(G.time%60)).padStart(2,'0')}秒</span></div><div class="row"><span>被ダメージ</span><span>${Math.round(G.dmg)}</span></div><div class="row"><span>最大コンボ</span><span>${G.maxCombo} HIT</span></div><div class="rank">${rank}</div><p style="font-size:11px;color:#a88a5a">${window.tgAutoUsed?'（AUTO使用のため記録されません）':''}</p><button class="mbtn" id="nx">${last?'エンディングへ':'次のステージへ'}</button><button class="mbtn" id="ts">ステージセレクト</button></div>`);
  $('nx').onclick=()=>{sfx('click');if(last)ending();else playStage(G.stage+1);};$('ts').onclick=()=>{sfx('click');select();};

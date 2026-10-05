@@ -124,6 +124,12 @@ canvas{display:block; width:100%; aspect-ratio:3/4; border:3px solid var(--line)
 @media (prefers-reduced-motion: reduce){ .sp-main,.sp-sub{animation:none} #s-splash.out{animation:none; opacity:0} }
 @media (prefers-reduced-motion: reduce){ .fill{transition:none} .slot.landed .rank{animation:none} .act.ready{animation:none} }
 </style>
+<script>/* tg-common: クリア記録・最近遊んだゲーム */
+(function(){var id=(location.pathname.split('/').pop()||'').replace(/\.html$/,'');window.__tgAutoEver=false;
+ addEventListener('tgauto',function(){if(window.tgAuto)window.__tgAutoEver=true;});
+ window.tgClear=function(gid,info){try{if(window.tgAuto||window.tgAutoUsed||window.__tgAutoEver)return;gid=gid||id;var o=JSON.parse(localStorage.getItem('tg_clear')||'{}');var r=o[gid]||{n:0};r.n=(r.n||0)+1;r.t=Date.now();if(info)r.info=info;o[gid]=r;localStorage.setItem('tg_clear',JSON.stringify(o));}catch(e){}};
+ try{var a=JSON.parse(localStorage.getItem('tg_recent')||'[]').filter(function(x){return x.id!==id;});a.unshift({id:id,t:Date.now()});localStorage.setItem('tg_recent',JSON.stringify(a.slice(0,10)));}catch(e){}})();
+</script>
 </head>
 <body>
 <div id="app">
@@ -509,6 +515,7 @@ function step(dt){
 }
 
 function finish(win){
+  if(win&&S.idx>=STAGES.length-1&&window.tgClear)tgClear('armor');
   S.state=win?"clear":"lose";
   const L=win?S.f:S.p;
   burst(L.x,L.y,44,L.team==="foe"?C["--foe"]:C["--me"],210,.9);

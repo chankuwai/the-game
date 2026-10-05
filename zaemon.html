@@ -32,6 +32,12 @@ canvas{display:block;width:min(100%, calc((100dvh - 170px) * 16 / 9));max-width:
 @media (hover:hover) and (pointer:fine){ .pad{display:none} }
 </style>
 <style>*{box-sizing:border-box}body{margin:0}</style>
+<script>/* tg-common: クリア記録・最近遊んだゲーム */
+(function(){var id=(location.pathname.split('/').pop()||'').replace(/\.html$/,'');window.__tgAutoEver=false;
+ addEventListener('tgauto',function(){if(window.tgAuto)window.__tgAutoEver=true;});
+ window.tgClear=function(gid,info){try{if(window.tgAuto||window.tgAutoUsed||window.__tgAutoEver)return;gid=gid||id;var o=JSON.parse(localStorage.getItem('tg_clear')||'{}');var r=o[gid]||{n:0};r.n=(r.n||0)+1;r.t=Date.now();if(info)r.info=info;o[gid]=r;localStorage.setItem('tg_clear',JSON.stringify(o));}catch(e){}};
+ try{var a=JSON.parse(localStorage.getItem('tg_recent')||'[]').filter(function(x){return x.id!==id;});a.unshift({id:id,t:Date.now()});localStorage.setItem('tg_recent',JSON.stringify(a.slice(0,10)));}catch(e){}})();
+</script>
 </head>
 <body>
 
@@ -232,7 +238,7 @@ function update(){
   const ch=S.chest;
   if(ch){
     if(!ch.land){ ch.vy+=0.4; ch.y+=ch.vy; if(ch.y+ch.h>=GY){ ch.y=GY-ch.h; ch.land=true; S.shake=8; SFX.hit(); } }
-    else if(overlap(p,ch)){ S.score+=1000; state='clear'; stT=0; SFX.clear(); }
+    else if(overlap(p,ch)){ S.score+=1000; state='clear'; stT=0; SFX.clear();if(window.tgClear)tgClear('zaemon'); }
   }
 
   for(const q of S.parts){ q.x+=q.vx; q.y+=q.vy; if(!q.txt) q.vy+=0.15; q.life--; }
