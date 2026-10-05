@@ -69,6 +69,12 @@ html,body{margin:0;height:100%;background:#05080a;color:#d8e8e0;overflow:hidden;
 .credits{white-space:pre-line;line-height:2.1;font-size:14px;color:#cfe8d8;animation:crd 26s linear forwards}
 @keyframes crd{from{transform:translateY(60vh)}to{transform:translateY(-120%)}}
 </style>
+<script>/* tg-common: クリア記録・最近遊んだゲーム */
+(function(){var id=(location.pathname.split('/').pop()||'').replace(/\.html$/,'');window.__tgAutoEver=false;
+ addEventListener('tgauto',function(){if(window.tgAuto)window.__tgAutoEver=true;});
+ window.tgClear=function(gid,info){try{if(window.tgAuto||window.tgAutoUsed||window.__tgAutoEver)return;gid=gid||id;var o=JSON.parse(localStorage.getItem('tg_clear')||'{}');var r=o[gid]||{n:0};r.n=(r.n||0)+1;r.t=Date.now();if(info)r.info=info;o[gid]=r;localStorage.setItem('tg_clear',JSON.stringify(o));}catch(e){}};
+ try{var a=JSON.parse(localStorage.getItem('tg_recent')||'[]').filter(function(x){return x.id!==id;});a.unshift({id:id,t:Date.now()});localStorage.setItem('tg_recent',JSON.stringify(a.slice(0,10)));}catch(e){}})();
+</script>
 </head>
 <body>
 <div id="app">
@@ -1194,7 +1200,7 @@ async function ending(){state='ending';setBgm('ending');try{localStorage.removeI
  showOv(`<div style="height:100%;width:100%;overflow:hidden;position:relative"><div class="credits">メトロレッグ モヤット\n\n― CAST ―\nモヤット\nホーク司令官\n分析官ミラ\nリン博士\nブル\nミラージュ\nクロウ\nゼロ\n\n― STAFF ―\nゲームデザイン\nグラフィック\nサウンド\nシナリオ\n\nザ・ゲーム プレゼンツ\n\n${allF?'TRUE ENDING':'機密ファイルを12個すべて集めると\n真のエンディングが見られる……'}\n\nTHANK YOU FOR PLAYING</div><button class="rskip" id="cskip" style="top:12px;right:12px">スキップ</button></div>`);
  ov.style.background='#000';let done=false;const fin=()=>{if(done)return;done=true;results(allF);};$('cskip').onclick=fin;setTimeout(fin,(window.tgAuto?4000:26500)/SPD());}
 function results(allF){const st=S.stats;const [rank,sc]=calcRank();const rec=loadRec();const auto=!!window.tgAutoUsed;
- if(!auto){rec.clears=(rec.clears||0)+1;const prev=rec.best;if(!prev||sc>prev.sc)rec.best={rank,sc,time:st.time,diff:S.diff};if(allF)rec.trueEnd=1;saveRec(rec);}
+ if(!auto&&window.tgClear)tgClear('metroleg');if(!auto){rec.clears=(rec.clears||0)+1;const prev=rec.best;if(!prev||sc>prev.sc)rec.best={rank,sc,time:st.time,diff:S.diff};if(allF)rec.trueEnd=1;saveRec(rec);}
  showOv(`<div class="panel"><h2>MISSION COMPLETE</h2><div class="row"><span>難易度</span><span>${DIFF[S.diff].n}${S.camo?'（迷彩）':''}</span></div><div class="row"><span>プレイ時間</span><span>${fmtT(st.time)}</span></div><div class="row"><span>発見された回数</span><span>${st.alerts}</span></div><div class="row"><span>倒した敵 / 気絶させた敵</span><span>${st.kills} / ${st.ko}</span></div><div class="row"><span>コンティニュー</span><span>${st.conts}</span></div><div class="row"><span>レーション使用</span><span>${st.rations}</span></div><div class="row"><span>機密ファイル</span><span>${runFiles.size} / 12</span></div><p style="font-size:12px;color:#9ac0aa;margin:12px 0 0">コードネーム</p><p style="font-size:26px;color:#ffd75e;margin:2px 0 4px;font-weight:900;letter-spacing:.15em">${rank}</p><p style="font-size:11px;color:#7a9a8a">${auto?'（AUTO使用のため記録されません）':!rec.camoMsg&&rec.clears===1?'ステルス迷彩が解放された！':''}</p><button class="mbtn" id="tit">TITLE</button></div>`);
  ov.style.background='';if(!auto&&rec.clears===1){rec.camoMsg=1;saveRec(rec);}$('tit').onclick=()=>title();}
 function title(){state='title';A=null;boss=null;S=null;setBgm('title');updBtns();const s=loadCk();const rec=loadRec();

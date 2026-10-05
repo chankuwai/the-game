@@ -2,186 +2,164 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#121419">
 <title>クワイ プレゼンツ ザ・ゲーム</title>
 <style>
-  body {
-    margin: 0;
-    font-family: sans-serif;
-    background: #15171c;
-    color: #f2f2f2;
-  }
-  header {
-    text-align: center;
-    padding: 24px 16px 8px;
-  }
-  h1 {
-    margin: 4px 0 0;
-    font-size: 40px;
-    letter-spacing: 4px;
-    background: linear-gradient(90deg, #e53935, #1e88e5, #fdd835);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-  header p.presents { margin: 0; color: #f2f2f2; font-size: 14px; letter-spacing: 6px; }
-  header p { color: #9aa0aa; margin-top: 8px; font-size: 14px; }
-  main { max-width: 640px; margin: 0 auto; padding: 4px 12px 12px; }
-  .grp { margin-top: 14px; }
-  .gh { display: flex; align-items: center; gap: 6px; margin: 0 2px 8px; font-size: 15px; color: #f2f2f2; letter-spacing: 1px; }
-  .gh small { margin-left: auto; font-size: 11px; color: #8a909c; font-weight: normal; letter-spacing: 0; }
-  .gh small::after { content: '作品'; }
-  .list {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-  .card {
-    display: flex;
-    flex-direction: column;
-    padding: 10px 11px 11px;
-    border-radius: 12px;
-    background: #22262e;
-    color: inherit;
-    text-decoration: none;
-    border-left: 4px solid #555;
-    min-width: 0;
-  }
-  .card h2 { margin: 6px 0 4px; font-size: 15px; line-height: 1.3; }
-  .card p { margin: 0; color: #b8bdc7; font-size: 11.5px; line-height: 1.45;
-    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-  .card.play { border-left: 4px solid transparent;
-    border-image: linear-gradient(#e53935, #1e88e5, #fdd835) 1; }
-  .card.play:active { transform: scale(0.97); }
-  .genre {
-    align-self: flex-start;
-    font-size: 10.5px;
-    font-weight: bold;
-    padding: 2px 8px;
-    border-radius: 999px;
-    background: #353b47;
-    color: #ffd75e;
-  }
-  footer { text-align: center; color: #666; font-size: 12px; padding: 24px; }
+  :root{--bg:#121419;--card:#1f232b;--card2:#272c36;--line:#323846;--text:#f2f2f2;--sub:#a4abb8;--gold:#ffd75e;--r:#e53935;--b:#1e88e5;--y:#fdd835}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic",sans-serif;background:var(--bg);color:var(--text)}
+  header{position:relative;text-align:center;padding:26px 16px 10px;overflow:hidden}
+  header::before{content:'';position:absolute;inset:-40% -20% auto;height:260px;background:radial-gradient(closest-side,rgba(229,57,53,.22),transparent),radial-gradient(closest-side at 30% 60%,rgba(30,136,229,.2),transparent),radial-gradient(closest-side at 70% 60%,rgba(253,216,53,.16),transparent);pointer-events:none}
+  .logo{position:relative;display:inline-flex;align-items:center;gap:10px}
+  .logo svg{width:46px;height:46px;flex:none;filter:drop-shadow(0 3px 6px rgba(0,0,0,.5))}
+  .presents{position:relative;margin:0;font-size:12px;letter-spacing:6px;color:#d8dbe2}
+  h1{margin:2px 0 0;font-size:40px;letter-spacing:4px;line-height:1.1;background:linear-gradient(90deg,var(--r),var(--b),var(--y));-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:900}
+  .stats{position:relative;display:flex;justify-content:center;gap:8px;margin:14px auto 0;max-width:420px}
+  .stat{flex:1;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:12px;padding:8px 4px}
+  .stat b{display:block;font-size:20px;font-weight:900}
+  .stat span{font-size:10.5px;color:var(--sub)}
+  .stat.clear b{color:var(--gold)}
+  .bar{position:relative;height:6px;border-radius:9px;background:#2a2f3a;margin:10px auto 0;max-width:420px;overflow:hidden}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,#ffb300,var(--gold));border-radius:9px;transition:width .6s}
+  main{max-width:660px;margin:0 auto;padding:4px 12px 12px}
+  .filters{position:sticky;top:0;z-index:5;display:flex;gap:6px;overflow-x:auto;padding:10px 2px;margin:0 -12px;padding-left:12px;padding-right:12px;background:linear-gradient(var(--bg) 80%,rgba(18,20,25,0));scrollbar-width:none}
+  .filters::-webkit-scrollbar{display:none}
+  .chip{flex:none;border:1px solid var(--line);background:var(--card);color:#d8dbe2;font:inherit;font-size:12.5px;font-weight:bold;padding:7px 12px;border-radius:999px;white-space:nowrap}
+  .chip.on{background:linear-gradient(90deg,var(--r),var(--b));border-color:transparent;color:#fff}
+  .sec{margin-top:16px}
+  .sh{display:flex;align-items:center;gap:7px;margin:0 2px 9px;font-size:15px;font-weight:900;letter-spacing:1px}
+  .sh .em{font-size:18px}
+  .sh small{margin-left:auto;font-size:11px;color:var(--sub);font-weight:normal;letter-spacing:0}
+  .sh small b{color:var(--gold)}
+  .recent{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 8px;scrollbar-width:none;scroll-snap-type:x mandatory}
+  .recent::-webkit-scrollbar{display:none}
+  .rc{flex:none;width:108px;scroll-snap-align:start;display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:10px 6px 9px;border-radius:14px;background:var(--card);border:1px solid var(--line);color:inherit;text-decoration:none;position:relative}
+  .rc .ic{width:56px;height:56px;font-size:30px;border-radius:16px}
+  .rc b{font-size:11.5px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:29px}
+  .rc small{font-size:10px;color:var(--sub)}
+  .rc:active,.card:active{transform:scale(.97)}
+  .empty{font-size:12px;color:var(--sub);padding:12px;border:1px dashed var(--line);border-radius:12px;text-align:center}
+  .list{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .card{position:relative;display:flex;flex-direction:column;gap:6px;padding:11px 11px 10px;border-radius:14px;background:linear-gradient(160deg,var(--card2),var(--card) 55%);color:inherit;text-decoration:none;min-width:0;border:1px solid var(--line);overflow:hidden}
+  .card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--c1)}
+  .card.cleared{padding-top:24px;border-color:rgba(255,215,94,.55);box-shadow:0 0 0 1px rgba(255,215,94,.15),0 6px 18px rgba(255,190,40,.08)}
+  .top{display:flex;align-items:flex-start;gap:9px}
+  .ic{flex:none;width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:25px;background:linear-gradient(145deg,var(--c1),var(--c2));box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 3px 8px rgba(0,0,0,.35);position:relative}
+  .ic .no{position:absolute;right:-3px;bottom:-3px;font-size:10px;font-weight:900;background:#111;color:#fff;border-radius:6px;padding:0 4px;border:1px solid rgba(255,255,255,.3)}
+  .ttl{min-width:0;flex:1}
+  .card h2{margin:1px 0 4px;font-size:14.5px;line-height:1.28;font-weight:900}
+  .tags{display:flex;flex-wrap:wrap;gap:4px}
+  .tag{font-size:9.5px;font-weight:bold;padding:2px 7px;border-radius:999px;background:#353b47;color:#d8dbe2}
+  .tag.g{color:var(--c1);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}
+  .tag.new{background:var(--r);color:#fff}
+  .tag.played{background:#24405a;color:#9ad0ff}
+  .card p{margin:0;color:#b8bdc7;font-size:11.5px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .crown{position:absolute;top:0;right:0;padding:3px 8px 3px 10px;font-size:10px;font-weight:900;color:#3a2800;background:linear-gradient(90deg,#ffe28a,#ffb300);border-bottom-left-radius:10px;letter-spacing:.05em}
+  .rc .crown{border-top-right-radius:13px}
+  .hidden{display:none!important}
+  footer{text-align:center;color:#666;font-size:12px;padding:24px}
+  .reset{display:block;margin:8px auto 0;background:none;border:1px solid #333;color:#777;border-radius:999px;font:inherit;font-size:11px;padding:5px 12px}
 </style>
 </head>
 <body>
   <header>
     <p class="presents">クワイ プレゼンツ</p>
-    <h1>ザ・ゲーム</h1>
-    <p>遊びたいゲームを選んでね</p>
+    <div class="logo">
+      <svg viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="lg" x1="0" x2="1"><stop offset="0" stop-color="#e53935"/><stop offset=".5" stop-color="#1e88e5"/><stop offset="1" stop-color="#fdd835"/></linearGradient></defs><rect x="4" y="16" width="56" height="34" rx="17" fill="url(#lg)"/><rect x="7" y="19" width="50" height="28" rx="14" fill="#1b1e25"/><rect x="15" y="30" width="12" height="4" rx="2" fill="#fff"/><rect x="19" y="26" width="4" height="12" rx="2" fill="#fff"/><circle cx="43" cy="29" r="3.2" fill="#e53935"/><circle cx="49" cy="34" r="3.2" fill="#fdd835"/><circle cx="37" cy="34" r="3.2" fill="#1e88e5"/><circle cx="43" cy="39" r="3.2" fill="#43a047"/></svg>
+      <h1>ザ・ゲーム</h1>
+    </div>
+    <div class="stats">
+      <div class="stat"><b id="sAll">0</b><span>作品</span></div>
+      <div class="stat"><b id="sPlay">0</b><span>遊んだ</span></div>
+      <div class="stat clear"><b id="sClear">0</b><span>👑 クリア</span></div>
+    </div>
+    <div class="bar"><i id="pbar" style="width:0"></i></div>
   </header>
 
   <main>
-  <section class="grp">
-    <h3 class="gh"><span>⚡</span>アクション<small>8</small></h3>
-    <div class="list">
-    <a class="card play" href="gaoh.html">
-      <h2>金獅子 牙王 -GAOH-</h2>
-      <p>悪の秘密結社スリラーに改造された虎鮫蒼牙が、黄金の鎧へ変身して蛇・蜘蛛・蝙蝠の改造人間と戦う格闘アクション。</p>
-    </a>
-    <a class="card play" href="metroleg.html">
-      <h2>メトロレッグ モヤット</h2>
-      <p>テロ組織に占拠された洋上基地へ単独潜入。CQC・ダンボール・ダクトを駆使し、4体のボスと多脚戦車メトロレッグに挑むステルスアクション。</p>
-    </a>
-    <a class="card play" href="kyochu.html">
-      <h2>巨蟲討伐</h2>
-      <p>巨大でキモい蟲たちに小さな戦士が挑むボスラッシュ。弱点を撃ち抜け。</p>
-    </a>
-    <a class="card play" href="hyperman.html">
-      <h2>三色！ハイパーマン</h2>
-      <p>赤・青・黄にカラーチェンジして怪獣や宇宙人と戦え。</p>
-    </a>
-    <a class="card play" href="hyperman2.html">
-      <h2>三色！ハイパーマン2</h2>
-      <p>全5ステージに強化。光線技、後ろ入力のガード、色ごとに違う大ジャンプで戦え。</p>
-    </a>
-    <a class="card play" href="zaemon.html">
-      <h2>てやんでえ！ザエモン</h2>
-      <p>小判を投げて千両箱をいただく、歌舞伎者の泥棒アクション。</p>
-    </a>
-    <a class="card play" href="kimetsu.html">
-      <h2>木滅の刃</h2>
-      <p>若手木こりが斧と呼吸と奥義を磨き、木の始祖・木舞辻 散々を切り倒す伐採アクション。</p>
-    </a>
-    <a class="card play" href="kingyo.html">
-      <h2>ぽいっと金魚すくい</h2>
-      <p>紙が破れる前にすくい上げろ。90秒・ポイ3本の縁日アクション。</p>
-    </a>
-    </div>
-  </section>
-  <section class="grp">
-    <h3 class="gh"><span>⚔️</span>RPG・バトル<small>3</small></h3>
-    <div class="list">
-    <a class="card play" href="jouka.html">
-      <h2>浄化！不良シティー</h2>
-      <p>荒れた町の不良校4校に、説教と勉強で立ち向かえ。更生させた不良を仲間にして番長を倒すRPG。</p>
-    </a>
-    <a class="card play" href="ikai.html">
-      <h2>異界契約録</h2>
-      <p>妖怪・悪魔・幻獣と契約し、育て、戦わせ、合体させるRPG。</p>
-    </a>
-    <a class="card play" href="armor.html">
-      <h2>アーマーを、ほら</h2>
-      <p>ルーレットでパーツを引いてロボを組み立て、全3ステージで戦う。</p>
-    </a>
-    </div>
-  </section>
-  <section class="grp">
-    <h3 class="gh"><span>🧪</span>育成・クラフト<small>2</small></h3>
-    <div class="list">
-    <a class="card play" href="golem.html">
-      <h2>ゴーレム工房</h2>
-      <p>土を掘り、素材を練り込み、魂を込めてゴーレムを作る。闘技場の頂・原初のゴーレムを倒せ。</p>
-    </a>
-    <a class="card play" href="chimera.html">
-      <h2>錬成キメラ研究所</h2>
-      <p>生き物を掛け合わせて人語を解すキメラを作れ。人も混ぜられるが、勘のいい子供にご用心。</p>
-    </a>
-    </div>
-  </section>
-  <section class="grp">
-    <h3 class="gh"><span>💰</span>シミュレーション・経営<small>2</small></h3>
-    <div class="list">
-    <a class="card play" href="akindo.html">
-      <h2>あきんど道中記</h2>
-      <p>安く買って高く売れ。六十日で町を渡り歩き、天下の大商人を目指す行商シミュレーション。</p>
-    </a>
-    <a class="card play" href="ramen.html">
-      <h2>俺のラーメン道</h2>
-      <p>夜の屋台に来る五人の客に一杯ずつ。注文を聞いて、スープ・麺・茹で加減・具を決めろ。</p>
-    </a>
-    </div>
-  </section>
-  <section class="grp">
-    <h3 class="gh"><span>🀄</span>テーブル・対戦<small>2</small></h3>
-    <div class="list">
-    <a class="card play" href="hebereke.html">
-      <h2>へべれけ！</h2>
-      <p>花見と月見で飲み比べ。「せーの！」で同時に行動し、酔いとおしっこを読み合って先に20杯。</p>
-    </a>
-    <a class="card play" href="mahjong.html">
-      <h2>イカサマ雀荘</h2>
-      <p>イカサマ技で勝ちを拾う4人打ち麻雀。使うほど相手の怪しみゲージが溜まり、100%でバレる。</p>
-    </a>
-    </div>
-  </section>
-  <section class="grp">
-    <h3 class="gh"><span>🎨</span>ホラー・お絵描き<small>2</small></h3>
-    <div class="list">
-    <a class="card play" href="okaeri.html">
-      <h2>おかえりさま</h2>
-      <p>名前を呼ばれても振り返るな。サイコロで進むホラーゲームブック。</p>
-    </a>
-    <a class="card play" href="gahaku.html">
-      <h2>うろおぼえ画伯</h2>
-      <p>一瞬だけ見えたお手本を、記憶だけで描き写す。全5問のお絵描き採点。</p>
-    </a>
-    </div>
-  </section>
+    <nav class="filters" id="filters"></nav>
+    <section class="sec" id="recentSec">
+      <h3 class="sh"><span class="em">🕒</span>最近遊んだゲーム</h3>
+      <div class="recent" id="recent"></div>
+    </section>
+    <div id="groups"></div>
+    <button class="reset" id="reset">プレイ記録をリセット</button>
   </main>
-
   <footer>© chankuwai</footer>
+
+<script>
+const GENRES=[
+ {id:'act',em:'⚡',name:'アクション'},
+ {id:'rpg',em:'⚔️',name:'RPG・バトル'},
+ {id:'craft',em:'🧪',name:'育成・クラフト'},
+ {id:'sim',em:'💰',name:'シミュレーション・経営'},
+ {id:'table',em:'🀄',name:'テーブル・対戦'},
+ {id:'art',em:'🎨',name:'ホラー・お絵描き'},
+];
+// id, タイトル, ジャンル, アイコン, 色1, 色2, 説明, 新作
+const GAMES=[
+ ['gaoh','金獅子 牙王 -GAOH-','act','🦁','#ffb300','#7a3a00','悪の秘密結社スリラーに改造された虎鮫蒼牙が、黄金の鎧へ変身して蛇・蜘蛛・蝙蝠の改造人間と戦う格闘アクション。',1],
+ ['metroleg','メトロレッグ モヤット','act','🦿','#3fae7a','#0c3a2a','テロ組織に占拠された洋上基地へ単独潜入。CQC・ダンボール・ダクトを駆使し、4体のボスと多脚戦車メトロレッグに挑むステルスアクション。',1],
+ ['kyochu','巨蟲討伐','act','🐛','#9be05a','#2a4a10','巨大でキモい蟲たちに小さな戦士が挑むボスラッシュ。弱点を撃ち抜け。'],
+ ['hyperman','三色！ハイパーマン','act','🦸','#e53935','#1e3a8a','赤・青・黄にカラーチェンジして怪獣や宇宙人と戦え。'],
+ ['hyperman2','三色！ハイパーマン2','act','🌈','#1e88e5','#6a1b9a','全5ステージに強化。光線技、後ろ入力のガード、色ごとに違う大ジャンプで戦え。'],
+ ['zaemon','てやんでえ！ザエモン','act','🎭','#e8b73a','#6b1410','小判を投げて千両箱をいただく、歌舞伎者の泥棒アクション。'],
+ ['kimetsu','木滅の刃','act','🪓','#7cb342','#33402a','若手木こりが斧と呼吸と奥義を磨き、木の始祖・木舞辻 散々を切り倒す伐採アクション。'],
+ ['kingyo','ぽいっと金魚すくい','act','🐠','#ff7043','#1565c0','紙が破れる前にすくい上げろ。90秒・ポイ3本の縁日アクション。'],
+ ['jouka','浄化！不良シティー','rpg','🏫','#ab47bc','#283593','荒れた町の不良校4校に、説教と勉強で立ち向かえ。更生させた不良を仲間にして番長を倒すRPG。'],
+ ['ikai','異界契約録','rpg','👹','#ef5350','#311b92','妖怪・悪魔・幻獣と契約し、育て、戦わせ、合体させるRPG。'],
+ ['armor','アーマーを、ほら','rpg','🤖','#90a4ae','#37474f','ルーレットでパーツを引いてロボを組み立て、全3ステージで戦う。'],
+ ['golem','ゴーレム工房','craft','🗿','#a1887f','#3e2723','土を掘り、素材を練り込み、魂を込めてゴーレムを作る。闘技場の頂・原初のゴーレムを倒せ。'],
+ ['chimera','錬成キメラ研究所','craft','🧬','#26a69a','#4a148c','生き物を掛け合わせて人語を解すキメラを作れ。人も混ぜられるが、勘のいい子供にご用心。'],
+ ['akindo','あきんど道中記','sim','🪙','#ffca28','#795548','安く買って高く売れ。六十日で町を渡り歩き、天下の大商人を目指す行商シミュレーション。'],
+ ['ramen','俺のラーメン道','sim','🍜','#ff8f00','#b71c1c','夜の屋台に来る五人の客に一杯ずつ。注文を聞いて、スープ・麺・茹で加減・具を決めろ。'],
+ ['hebereke','へべれけ！','table','🍶','#f48fb1','#6d4c41','花見と月見で飲み比べ。「せーの！」で同時に行動し、酔いとおしっこを読み合って先に20杯。'],
+ ['mahjong','イカサマ雀荘','table','🀄','#43a047','#1b3a1b','イカサマ技で勝ちを拾う4人打ち麻雀。使うほど相手の怪しみゲージが溜まり、100%でバレる。'],
+ ['okaeri','おかえりさま','art','🏮','#e65100','#1a0d0d','名前を呼ばれても振り返るな。サイコロで進むホラーゲームブック。'],
+ ['gahaku','うろおぼえ画伯','art','🎨','#ec407a','#00838f','一瞬だけ見えたお手本を、記憶だけで描き写す。全5問のお絵描き採点。'],
+].map(([id,title,genre,icon,c1,c2,desc,isNew])=>({id,title,genre,icon,c1,c2,desc,isNew:!!isNew}));
+const J=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}};
+// クリア判定：共通の記録＋各ゲームの既存の記録
+function clearMap(){const m=Object.assign({},J('tg_clear',{}));const set=(id)=>{if(!m[id])m[id]={n:1,legacy:1};};
+ const hw=J('hebereke_won',{});if(hw.hana&&hw.tsuki)set('hebereke');
+ const mr=J('metroleg_rec',{});if(mr.clears)set('metroleg');
+ const gp=J('gaoh_prog',{});if(gp.rank&&gp.rank[4])set('gaoh');
+ try{if(localStorage.getItem('kyochu_best'))set('kyochu');}catch(e){}
+ const oe=J('okaerisama-ends',[]);if(Array.isArray(oe)&&oe.some(i=>[96,97,250].includes(i)))set('okaeri');
+ const js=J('jokaFuryoCity_v1',null);if(js&&js.cleared)set('jouka');
+ const ks=J('kimetsu_save_v1',null);if(ks&&ks.cleared)set('kimetsu');
+ const gs=J('golem_save_v1',null);if(gs&&gs.stats&&gs.stats.clearAt)set('golem');
+ const is=J('ikai-keiyaku-save-v1',null);if(is&&is.boss)set('ikai');
+ return m;}
+function ago(t){const s=(Date.now()-t)/1000;if(s<60)return 'たった今';if(s<3600)return Math.floor(s/60)+'分前';if(s<86400)return Math.floor(s/3600)+'時間前';if(s<86400*30)return Math.floor(s/86400)+'日前';return Math.floor(s/86400/30)+'か月前';}
+let filter='all';
+function render(){const clr=clearMap(),rec=J('tg_recent',[]);const played=new Set(rec.map(r=>r.id));Object.keys(clr).forEach(k=>played.add(k));
+ const byId=Object.fromEntries(GAMES.map(g=>[g.id,g]));
+ const nClear=GAMES.filter(g=>clr[g.id]).length,nPlay=GAMES.filter(g=>played.has(g.id)).length;
+ document.getElementById('sAll').textContent=GAMES.length;document.getElementById('sPlay').textContent=nPlay;document.getElementById('sClear').textContent=nClear;
+ document.getElementById('pbar').style.width=(nClear/GAMES.length*100)+'%';
+ // フィルター
+ const F=[['all','すべて'],...GENRES.map(g=>[g.id,g.em+' '+g.name]),['clear','👑 クリア済み'],['todo','🎯 未クリア'],['new','🆕 新作']];
+ document.getElementById('filters').innerHTML=F.map(([k,n])=>`<button class="chip${k===filter?' on':''}" data-f="${k}">${n}</button>`).join('');
+ // 最近遊んだ
+ const rlist=rec.filter(r=>byId[r.id]).slice(0,8);
+ document.getElementById('recentSec').classList.toggle('hidden',filter!=='all');
+ document.getElementById('recent').innerHTML=rlist.length?rlist.map(r=>{const g=byId[r.id];return `<a class="rc" href="${g.id}.html" style="--c1:${g.c1};--c2:${g.c2}">${clr[g.id]?'<span class="crown">👑</span>':''}<span class="ic">${g.icon}</span><b>${g.title}</b><small>${ago(r.t)}</small></a>`;}).join(''):'<div class="empty">まだ遊んだゲームはないよ。気になるゲームを選んでね</div>';
+ // ジャンル別
+ const ok=g=>filter==='all'||filter===g.genre||(filter==='clear'&&clr[g.id])||(filter==='todo'&&!clr[g.id])||(filter==='new'&&g.isNew);
+ const showGenre=['clear','todo','new'].includes(filter);const card=g=>{const c=clr[g.id];const gn=GENRES.find(x=>x.id===g.genre);return `<a class="card${c?' cleared':''}" href="${g.id}.html" style="--c1:${g.c1};--c2:${g.c2}">${c?`<span class="crown">👑 CLEAR${c.n>1?' ×'+c.n:''}</span>`:''}<div class="top"><span class="ic">${g.icon}</span><div class="ttl"><h2>${g.title}</h2><div class="tags">${g.isNew?'<span class="tag new">NEW</span>':''}${showGenre?`<span class="tag g">${gn.name}</span>`:''}${played.has(g.id)&&!c?'<span class="tag played">プレイ済</span>':''}</div></div></div><p>${g.desc}</p></a>`;};
+ let html='';
+ if(['clear','todo','new'].includes(filter)){const list=GAMES.filter(ok);html=`<section class="sec"><h3 class="sh"><span class="em">${filter==='clear'?'👑':filter==='new'?'🆕':'🎯'}</span>${filter==='clear'?'クリア済み':filter==='new'?'新作':'まだクリアしていないゲーム'}<small>${list.length}作品</small></h3>${list.length?`<div class="list">${list.map(card).join('')}</div>`:'<div class="empty">該当するゲームはまだないよ</div>'}</section>`;}
+ else for(const gn of GENRES){if(filter!=='all'&&filter!==gn.id)continue;const list=GAMES.filter(g=>g.genre===gn.id);const cc=list.filter(g=>clr[g.id]).length;
+  html+=`<section class="sec"><h3 class="sh"><span class="em">${gn.em}</span>${gn.name}<small>${list.length}作品・クリア <b>${cc}</b></small></h3><div class="list">${list.map(card).join('')}</div></section>`;}
+ document.getElementById('groups').innerHTML=html;
+ document.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{filter=b.dataset.f;try{sessionStorage.setItem('tg_filter',filter);}catch(e){}render();});}
+try{filter=sessionStorage.getItem('tg_filter')||'all';}catch(e){}
+document.getElementById('reset').onclick=()=>{if(confirm('「最近遊んだ」と「クリア」の記録を消しますか？\n（各ゲームのセーブデータは消えません）')){try{localStorage.removeItem('tg_recent');localStorage.removeItem('tg_clear');}catch(e){}render();}};
+render();
+addEventListener('pageshow',render);
+</script>
 <!-- tg-swipe-guard: スワイプでの更新・戻るを防ぐ -->
 <style>html,body{overscroll-behavior:none}</style>
 <script>

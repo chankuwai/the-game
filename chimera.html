@@ -117,6 +117,12 @@ button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;font-weight:900;font-size:14px;z-index:200;pointer-events:none;animation:toast 1.8s ease forwards;max-width:calc(100% - 32px)}
 @keyframes toast{0%{opacity:0}12%,80%{opacity:1}100%{opacity:0}}
 </style>
+<script>/* tg-common: クリア記録・最近遊んだゲーム */
+(function(){var id=(location.pathname.split('/').pop()||'').replace(/\.html$/,'');window.__tgAutoEver=false;
+ addEventListener('tgauto',function(){if(window.tgAuto)window.__tgAutoEver=true;});
+ window.tgClear=function(gid,info){try{if(window.tgAuto||window.tgAutoUsed||window.__tgAutoEver)return;gid=gid||id;var o=JSON.parse(localStorage.getItem('tg_clear')||'{}');var r=o[gid]||{n:0};r.n=(r.n||0)+1;r.t=Date.now();if(info)r.info=info;o[gid]=r;localStorage.setItem('tg_clear',JSON.stringify(o));}catch(e){}};
+ try{var a=JSON.parse(localStorage.getItem('tg_recent')||'[]').filter(function(x){return x.id!==id;});a.unshift({id:id,t:Date.now()});localStorage.setItem('tg_recent',JSON.stringify(a.slice(0,10)));}catch(e){}})();
+</script>
 </head>
 <body>
 <div id="app"></div>
@@ -394,7 +400,7 @@ function startJudge() {
   const score = gd + (pass ? 300 : 0);
   const isBest = !window.tgAuto && score > best;
   if (isBest) { best = score; try { localStorage.setItem(SAVE_KEY, String(best)); } catch (e) {} }
-  UI.screen = 'judge'; UI.result = { c, rank, pass, line, gd, score, isBest };
+  if(pass&&window.tgClear)tgClear('chimera');UI.screen = 'judge'; UI.result = { c, rank, pass, line, gd, score, isBest };
   snd(pass ? 'win' : 'lose'); render();
 }
 

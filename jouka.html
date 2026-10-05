@@ -141,6 +141,12 @@ button{font-family:inherit;touch-action:manipulation}
 .tg-inline{position:static!important;margin:0!important}
 #top .tbx{display:flex;gap:6px;align-items:center}
 </style>
+<script>/* tg-common: クリア記録・最近遊んだゲーム */
+(function(){var id=(location.pathname.split('/').pop()||'').replace(/\.html$/,'');window.__tgAutoEver=false;
+ addEventListener('tgauto',function(){if(window.tgAuto)window.__tgAutoEver=true;});
+ window.tgClear=function(gid,info){try{if(window.tgAuto||window.tgAutoUsed||window.__tgAutoEver)return;gid=gid||id;var o=JSON.parse(localStorage.getItem('tg_clear')||'{}');var r=o[gid]||{n:0};r.n=(r.n||0)+1;r.t=Date.now();if(info)r.info=info;o[gid]=r;localStorage.setItem('tg_clear',JSON.stringify(o));}catch(e){}};
+ try{var a=JSON.parse(localStorage.getItem('tg_recent')||'[]').filter(function(x){return x.id!==id;});a.unshift({id:id,t:Date.now()});localStorage.setItem('tg_recent',JSON.stringify(a.slice(0,10)));}catch(e){}})();
+</script>
 </head>
 <body>
 <div id="app">
@@ -1047,7 +1053,7 @@ async function intro(){
  await say([['','ここは荒川市。日本一荒れた高校が4つも集まる、通称「不良シティー」。'],['正','荒川市…噂以上に薄汚れた街だ。'],['正','清水財閥の跡取りであるこの俺が、わざわざこんな街の高校に転校してきた理由はひとつ。'],['正','「帝王学の仕上げだ。荒れ果てた街をひとつ、お前の手で平定してみせろ」――父上の命令だ。'],['正','フッ…いいだろう。校則も、規律も、正しさも――すべて俺の武器だ。'],['正','この薄汚い街を浄化し、俺の帝国を築き上げてやる。手始めは、最弱の弱木高校からだ。'],['','目標：町の不良たちを更生させ、「優等生の町」にしよう！'],['','まずは北西の弱木高校へ。左の「わが家」で休憩とセーブができるよ。']]);
 }
 async function ending(){
- S.cleared=true;saveGame();
+ S.cleared=true;saveGame();if(window.tgClear)tgClear('jouka');
  await say([['','こうして、荒川市の4つの不良校はすべて浄化された。'],['','町には花が咲き、朝には「おはようございます！」の声が響く。'],['','かつての不良シティーは、今や日本一の「優等生の町」だ。'],['正','フッ…計画通りだ。この街は今日から、俺の帝国だ。']]);
  mode='ending';
  const el=$('ending');el.classList.remove('hidden');

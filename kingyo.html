@@ -24,6 +24,12 @@ header a{color:var(--muted);text-decoration:none;font-size:14px}
 canvas{display:block;width:min(100%, calc((100dvh - 96px) * 1.5));max-width:100%;aspect-ratio:3/2;margin-inline:auto;border-radius:8px;background:#000;outline:1px solid var(--line);touch-action:none;cursor:none}
 .hint{margin:0;color:var(--muted);font-size:13px;text-align:center}
 </style>
+<script>/* tg-common: クリア記録・最近遊んだゲーム */
+(function(){var id=(location.pathname.split('/').pop()||'').replace(/\.html$/,'');window.__tgAutoEver=false;
+ addEventListener('tgauto',function(){if(window.tgAuto)window.__tgAutoEver=true;});
+ window.tgClear=function(gid,info){try{if(window.tgAuto||window.tgAutoUsed||window.__tgAutoEver)return;gid=gid||id;var o=JSON.parse(localStorage.getItem('tg_clear')||'{}');var r=o[gid]||{n:0};r.n=(r.n||0)+1;r.t=Date.now();if(info)r.info=info;o[gid]=r;localStorage.setItem('tg_clear',JSON.stringify(o));}catch(e){}};
+ try{var a=JSON.parse(localStorage.getItem('tg_recent')||'[]').filter(function(x){return x.id!==id;});a.unshift({id:id,t:Date.now()});localStorage.setItem('tg_recent',JSON.stringify(a.slice(0,10)));}catch(e){}})();
+</script>
 </head>
 <body>
 <div id="wrap">
@@ -175,7 +181,7 @@ function endGame() {
   score += bonus;
   const isBest = !window.tgAuto && score > best;
   if (isBest) { best = score; try { localStorage.setItem(BEST_KEY, String(best)); } catch (e) {} }
-  endInfo = { bonus, left, isBest, timeUp: timeLeft <= 0 };
+  if(window.tgClear)tgClear('kingyo');endInfo = { bonus, left, isBest, timeUp: timeLeft <= 0 };
   state = 'result'; resultAt = performance.now();
   sfx.gong();
 }

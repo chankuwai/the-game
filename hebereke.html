@@ -45,6 +45,12 @@ html,body{margin:0;height:100%;background:#120a10;color:#fff;overflow:hidden;tou
 @keyframes bl{50%{opacity:.2}}
 .sskip{position:absolute;right:10px;top:-34px;padding:5px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.4);background:rgba(0,0,0,.55);color:#fff;font-size:12px;font-family:inherit}
 </style>
+<script>/* tg-common: クリア記録・最近遊んだゲーム */
+(function(){var id=(location.pathname.split('/').pop()||'').replace(/\.html$/,'');window.__tgAutoEver=false;
+ addEventListener('tgauto',function(){if(window.tgAuto)window.__tgAutoEver=true;});
+ window.tgClear=function(gid,info){try{if(window.tgAuto||window.tgAutoUsed||window.__tgAutoEver)return;gid=gid||id;var o=JSON.parse(localStorage.getItem('tg_clear')||'{}');var r=o[gid]||{n:0};r.n=(r.n||0)+1;r.t=Date.now();if(info)r.info=info;o[gid]=r;localStorage.setItem('tg_clear',JSON.stringify(o));}catch(e){}};
+ try{var a=JSON.parse(localStorage.getItem('tg_recent')||'[]').filter(function(x){return x.id!==id;});a.unshift({id:id,t:Date.now()});localStorage.setItem('tg_recent',JSON.stringify(a.slice(0,10)));}catch(e){}})();
+</script>
 </head>
 <body>
 <div id="app">
@@ -527,7 +533,7 @@ async function match(stage){newGame(stage);hideOv();acts([]);await sleep(300);aw
  const best=(()=>{try{return JSON.parse(localStorage.getItem('hebereke_rec')||'{}');}catch(e){return {};}})();
  if(win&&!G.autoUsed){const k=stage;if(!best[k]||G.turn<best[k]){best[k]=G.turn;try{localStorage.setItem('hebereke_rec',JSON.stringify(best));}catch(e){}}}
  const won=(()=>{try{return JSON.parse(localStorage.getItem('hebereke_won')||'{}');}catch(e){return {};}})();const wasOpen=!!(won.hana&&won.tsuki);
- if(win){won[stage]=true;try{localStorage.setItem('hebereke_won',JSON.stringify(won));}catch(e){}}
+ if(win){won[stage]=true;if(won.hana&&won.tsuki&&window.tgClear)tgClear('hebereke');try{localStorage.setItem('hebereke_won',JSON.stringify(won));}catch(e){}}
  const open=!!(won.hana&&won.tsuki),newly=open&&!wasOpen;
  const other=stage==='hana'?'tsuki':stage==='tsuki'?(open?'bonen':'hana'):'hana';
  const cls=k=>k==='hana'?'hana':k==='tsuki'?'tsuki':'bonen';

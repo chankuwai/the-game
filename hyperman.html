@@ -45,6 +45,12 @@ canvas{display:block;width:100%;max-width:100%;aspect-ratio:16/9;border-radius:6
 @media (prefers-reduced-motion:reduce){.acts .sp.ready{animation:none}}
 </style>
 <style>*,*::before,*::after{box-sizing:border-box}[hidden]{display:none!important}body{margin:0}</style>
+<script>/* tg-common: クリア記録・最近遊んだゲーム */
+(function(){var id=(location.pathname.split('/').pop()||'').replace(/\.html$/,'');window.__tgAutoEver=false;
+ addEventListener('tgauto',function(){if(window.tgAuto)window.__tgAutoEver=true;});
+ window.tgClear=function(gid,info){try{if(window.tgAuto||window.tgAutoUsed||window.__tgAutoEver)return;gid=gid||id;var o=JSON.parse(localStorage.getItem('tg_clear')||'{}');var r=o[gid]||{n:0};r.n=(r.n||0)+1;r.t=Date.now();if(info)r.info=info;o[gid]=r;localStorage.setItem('tg_clear',JSON.stringify(o));}catch(e){}};
+ try{var a=JSON.parse(localStorage.getItem('tg_recent')||'[]').filter(function(x){return x.id!==id;});a.unshift({id:id,t:Date.now()});localStorage.setItem('tg_recent',JSON.stringify(a.slice(0,10)));}catch(e){}})();
+</script>
 </head>
 <body>
 <main class="wrap">
@@ -376,7 +382,7 @@ function update(){
     case 'ko':
       if(game.t>70||game.t%3===0)world();
       if(game.t===80&&game.loser===enemy){hero.st='win';hero.atk=null;hero.sp=null;hero.vx=0;}
-      if(game.t>180){game.phase=game.loser===enemy?(game.stage<2?'clear':'ending'):'gameover';game.t=0;}
+      if(game.t>180){game.phase=game.loser===enemy?(game.stage<2?'clear':'ending'):'gameover';game.t=0;if(e.phase==='ending'&&window.tgClear)tgClear('hyperman');}
       break;
     default:stepFX();
       if(game.t>40&&anyPress()){
