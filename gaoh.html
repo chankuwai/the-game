@@ -201,31 +201,31 @@ function drawHuman(g,J,p,t,e){const sk='#e8b890',sk2='#c8946a',sh='#e6e0d4',pn='
 function boot(g,k,f,c){const a=Math.atan2(f.y-k.y,f.x-k.x);g.fillStyle=c;g.save();g.translate(f.x,f.y);g.rotate(0);g.beginPath();g.ellipse(2.5,0,5.5,3,0,0,TAU);g.fill();g.restore();}
 
 /* ================= 金獅子 牙王 ================= */
-const GOLD=['#fff3b0','#ffd75e','#d8a020','#8a5a08'];
-function goldGrad(g,x0,y0,x1,y1){const gr=g.createLinearGradient(x0,y0,x1,y1);gr.addColorStop(0,GOLD[0]);gr.addColorStop(.35,GOLD[1]);gr.addColorStop(.75,GOLD[2]);gr.addColorStop(1,GOLD[3]);return gr;}
-function armorSeg(g,a,b,w){seg(g,a,b,w+2,'#100c0a');const ax=lerp(a.x,b.x,.15),ay=lerp(a.y,b.y,.15),bx=lerp(a.x,b.x,.85),by=lerp(a.y,b.y,.85);g.strokeStyle=goldGrad(g,ax-w,ay-w,bx+w,by+w);g.lineWidth=w;g.lineCap='round';g.beginPath();g.moveTo(ax,ay);g.lineTo(bx,by);g.stroke();g.strokeStyle='rgba(255,255,230,.6)';g.lineWidth=1.2;g.beginPath();g.moveTo(ax-1,ay-1);g.lineTo(bx-1,by-1);g.stroke();}
+const GOLD=['#fff3b0','#ffd75e','#d8a020','#8a5a08'],DARK=['#d0b0f0','#6a3a8a','#2a1a3a','#0a060e'];let PAL=GOLD;
+function goldGrad(g,x0,y0,x1,y1){const gr=g.createLinearGradient(x0,y0,x1,y1);gr.addColorStop(0,PAL[0]);gr.addColorStop(.35,PAL[1]);gr.addColorStop(.75,PAL[2]);gr.addColorStop(1,PAL[3]);return gr;}
+function armorSeg(g,a,b,w){seg(g,a,b,w+2,'#100c0a');const ax=lerp(a.x,b.x,.15),ay=lerp(a.y,b.y,.15),bx=lerp(a.x,b.x,.85),by=lerp(a.y,b.y,.85);g.strokeStyle=goldGrad(g,ax-w,ay-w,bx+w,by+w);g.lineWidth=w;g.lineCap='round';g.beginPath();g.moveTo(ax,ay);g.lineTo(bx,by);g.stroke();g.strokeStyle=PAL===DARK?'rgba(220,160,255,.55)':'rgba(255,255,230,.6)';g.lineWidth=1.2;g.beginPath();g.moveTo(ax-1,ay-1);g.lineTo(bx-1,by-1);g.stroke();}
 function drawSword(g,h,ang,t,glow){g.save();g.translate(h.x,h.y);g.rotate(-ang);// 刃は+y方向
- if(glow){g.shadowColor='#ffd75e';g.shadowBlur=12;}
- g.fillStyle='#2a1a0a';g.fillRect(-1.6,-9,3.2,9);g.fillStyle=GOLD[1];g.beginPath();g.arc(0,-10,2.6,0,TAU);g.fill();
+ if(glow){g.shadowColor=PAL===DARK?'#a02ad0':'#ffd75e';g.shadowBlur=12;}
+ g.fillStyle='#2a1a0a';g.fillRect(-1.6,-9,3.2,9);g.fillStyle=PAL[1];g.beginPath();g.arc(0,-10,2.6,0,TAU);g.fill();
  g.fillStyle=goldGrad(g,-9,0,9,4);g.beginPath();g.moveTo(-10,1);g.quadraticCurveTo(0,-3,10,1);g.lineTo(8,4);g.quadraticCurveTo(0,2,-8,4);g.closePath();g.fill();
  g.fillStyle='#c83a1a';g.beginPath();g.arc(0,1.5,1.8,0,TAU);g.fill();
- const bg=g.createLinearGradient(-4,0,4,0);bg.addColorStop(0,'#8a9aa8');bg.addColorStop(.45,'#f4f8ff');bg.addColorStop(.55,'#c8d4e0');bg.addColorStop(1,'#6a7a88');g.fillStyle=bg;g.beginPath();g.moveTo(-3.6,4);g.lineTo(-3.2,40);g.lineTo(0,48);g.lineTo(3.2,40);g.lineTo(3.6,4);g.closePath();g.fill();
- g.strokeStyle='rgba(255,215,94,.8)';g.lineWidth=1;g.beginPath();g.moveTo(0,6);g.lineTo(0,40);g.stroke();
+ const bg=g.createLinearGradient(-4,0,4,0);if(PAL===DARK){bg.addColorStop(0,'#14081c');bg.addColorStop(.45,'#6a4a8a');bg.addColorStop(.55,'#3a2a4a');bg.addColorStop(1,'#0a0610');}else{bg.addColorStop(0,'#8a9aa8');bg.addColorStop(.45,'#f4f8ff');bg.addColorStop(.55,'#c8d4e0');bg.addColorStop(1,'#6a7a88');}g.fillStyle=bg;g.beginPath();g.moveTo(-3.6,4);g.lineTo(-3.2,40);g.lineTo(0,48);g.lineTo(3.2,40);g.lineTo(3.6,4);g.closePath();g.fill();
+ g.strokeStyle=PAL===DARK?'rgba(255,40,60,.9)':'rgba(255,215,94,.8)';g.lineWidth=1;g.beginPath();g.moveTo(0,6);g.lineTo(0,40);g.stroke();
  g.restore();}
-function drawGaoh(g,J,p,t,e){const suit='#14100e';
+function drawGaoh(g,J,p,t,e){PAL=e&&e.dark?DARK:GOLD;const dk=PAL===DARK;const suit=dk?'#060308':'#14100e';
  // マント（赤いスカーフ）
- {const sp=Math.min(1,Math.abs((e&&e.vx)||0)/150);g.strokeStyle='#b81e14';g.lineWidth=4;g.lineCap='round';g.beginPath();g.moveTo(J.neck.x,J.neck.y+2);for(let i=1;i<8;i++){g.lineTo(J.neck.x-i*4.2*(.7+sp*.6),J.neck.y+2+i*(2.6-sp*1.8)+Math.sin(t*11+i)*1.3*(1+sp));}g.stroke();g.strokeStyle='#e8402a';g.lineWidth=1.5;g.stroke();}
+ {const sp=Math.min(1,Math.abs((e&&e.vx)||0)/150);g.strokeStyle=dk?'#3a0a4a':'#b81e14';g.lineWidth=4;g.lineCap='round';g.beginPath();g.moveTo(J.neck.x,J.neck.y+2);for(let i=1;i<8;i++){g.lineTo(J.neck.x-i*4.2*(.7+sp*.6),J.neck.y+2+i*(2.6-sp*1.8)+Math.sin(t*11+i)*1.3*(1+sp));}g.stroke();g.strokeStyle=dk?'#a02ad0':'#e8402a';g.lineWidth=1.5;g.stroke();}
  seg(g,J.sh,J.eB,7,suit);seg(g,J.eB,J.hB,6,suit);armorSeg(g,J.eB,J.hB,4.6);
- seg(g,J.hip,J.kB,9,suit);seg(g,J.kB,J.fB,8,suit);armorSeg(g,J.kB,J.fB,6);g.fillStyle=GOLD[2];g.beginPath();g.ellipse(J.fB.x+2.5,J.fB.y,6,3.2,0,0,TAU);g.fill();
+ seg(g,J.hip,J.kB,9,suit);seg(g,J.kB,J.fB,8,suit);armorSeg(g,J.kB,J.fB,6);g.fillStyle=PAL[2];g.beginPath();g.ellipse(J.fB.x+2.5,J.fB.y,6,3.2,0,0,TAU);g.fill();
  torso(g,J,p,20,14,suit);
  // 胸当て
  g.save();g.translate(lerp(J.hip.x,J.neck.x,.62),lerp(J.hip.y,J.neck.y,.62));g.rotate(p.lean);g.fillStyle=goldGrad(g,-8,-8,8,8);g.beginPath();g.moveTo(-9,-7);g.lineTo(9,-7);g.lineTo(7,4);g.lineTo(0,9);g.lineTo(-7,4);g.closePath();g.fill();
- g.fillStyle='#6a3a08';g.beginPath();g.arc(0,0,3.6,0,TAU);g.fill();g.fillStyle=GOLD[0];g.beginPath();g.arc(0,0,2.2,0,TAU);g.fill();g.strokeStyle='#8a5a08';g.lineWidth=1;g.beginPath();g.moveTo(-6,-4);g.lineTo(-2,-2);g.moveTo(6,-4);g.lineTo(2,-2);g.stroke();g.restore();
+ g.fillStyle='#6a3a08';g.beginPath();g.arc(0,0,3.6,0,TAU);g.fill();g.fillStyle=PAL[0];g.beginPath();g.arc(0,0,2.2,0,TAU);g.fill();g.strokeStyle='#8a5a08';g.lineWidth=1;g.beginPath();g.moveTo(-6,-4);g.lineTo(-2,-2);g.moveTo(6,-4);g.lineTo(2,-2);g.stroke();g.restore();
  // ベルト
- g.save();g.translate(J.hip.x,J.hip.y-2);g.rotate(p.lean);g.fillStyle='#2a1a0a';g.fillRect(-9,-3,18,6);g.fillStyle=GOLD[1];g.beginPath();g.arc(1,0,4.2,0,TAU);g.fill();g.fillStyle='#ff3a1a';g.shadowColor='#ff5a2a';g.shadowBlur=8;g.beginPath();g.arc(1,0,2.2,0,TAU);g.fill();g.restore();
- seg(g,J.hip,J.kF,10,suit);seg(g,J.kF,J.fF,9,suit);armorSeg(g,J.hip,J.kF,6.5);armorSeg(g,J.kF,J.fF,7);g.fillStyle=goldGrad(g,J.kF.x-4,J.kF.y-4,J.kF.x+4,J.kF.y+4);g.beginPath();g.arc(J.kF.x,J.kF.y,4.5,0,TAU);g.fill();g.fillStyle=GOLD[2];g.beginPath();g.ellipse(J.fF.x+2.5,J.fF.y,6.5,3.4,0,0,TAU);g.fill();
+ g.save();g.translate(J.hip.x,J.hip.y-2);g.rotate(p.lean);g.fillStyle='#2a1a0a';g.fillRect(-9,-3,18,6);g.fillStyle=PAL[1];g.beginPath();g.arc(1,0,4.2,0,TAU);g.fill();g.fillStyle='#ff3a1a';g.shadowColor='#ff5a2a';g.shadowBlur=8;g.beginPath();g.arc(1,0,2.2,0,TAU);g.fill();g.restore();
+ seg(g,J.hip,J.kF,10,suit);seg(g,J.kF,J.fF,9,suit);armorSeg(g,J.hip,J.kF,6.5);armorSeg(g,J.kF,J.fF,7);g.fillStyle=goldGrad(g,J.kF.x-4,J.kF.y-4,J.kF.x+4,J.kF.y+4);g.beginPath();g.arc(J.kF.x,J.kF.y,4.5,0,TAU);g.fill();g.fillStyle=PAL[2];g.beginPath();g.ellipse(J.fF.x+2.5,J.fF.y,6.5,3.4,0,0,TAU);g.fill();
  // 鬣（たてがみ）
- const hx=J.head.x,hy=J.head.y;for(let i=0;i<9;i++){const a=Math.PI*.6+i*.2+Math.sin(t*6+i)*.05;const r1=7,r2=15+(i%2)*4+Math.sin(t*8+i*2)*1.5;g.fillStyle=i%2?'#ff8a1a':'#ffb030';g.beginPath();g.moveTo(hx+Math.cos(a-.16)*r1,hy+Math.sin(a-.16)*r1);g.lineTo(hx+Math.cos(a)*r2-3,hy+Math.sin(a)*r2);g.lineTo(hx+Math.cos(a+.16)*r1,hy+Math.sin(a+.16)*r1);g.fill();}
+ const hx=J.head.x,hy=J.head.y;for(let i=0;i<9;i++){const a=Math.PI*.6+i*.2+Math.sin(t*6+i)*.05;const r1=7,r2=15+(i%2)*4+Math.sin(t*8+i*2)*1.5;g.fillStyle=i%2?(dk?'#5a0a7a':'#ff8a1a'):(dk?'#a02ad0':'#ffb030');g.beginPath();g.moveTo(hx+Math.cos(a-.16)*r1,hy+Math.sin(a-.16)*r1);g.lineTo(hx+Math.cos(a)*r2-3,hy+Math.sin(a)*r2);g.lineTo(hx+Math.cos(a+.16)*r1,hy+Math.sin(a+.16)*r1);g.fill();}
  // 兜
  g.fillStyle=goldGrad(g,hx-8,hy-8,hx+8,hy+8);g.beginPath();g.arc(hx,hy,8,0,TAU);g.fill();
  // 角
@@ -234,13 +234,13 @@ function drawGaoh(g,J,p,t,e){const suit='#14100e';
  g.fillStyle='#1a0c08';g.beginPath();g.moveTo(hx+1,hy-3);g.lineTo(hx+8.5,hy-2);g.lineTo(hx+8,hy+5);g.lineTo(hx+2,hy+6);g.closePath();g.fill();
  g.fillStyle='#ff2a1a';g.shadowColor='#ff3a1a';g.shadowBlur=8;g.beginPath();g.moveTo(hx+3,hy-1.5);g.lineTo(hx+8,hy-1);g.lineTo(hx+7,hy+.6);g.lineTo(hx+3.5,hy+.3);g.fill();g.shadowBlur=0;
  g.fillStyle='#fff8e0';for(let i=0;i<3;i++){g.beginPath();g.moveTo(hx+3+i*1.8,hy+3);g.lineTo(hx+3.9+i*1.8,hy+5.4);g.lineTo(hx+4.8+i*1.8,hy+3);g.fill();}
- g.strokeStyle=GOLD[3];g.lineWidth=1;g.beginPath();g.arc(hx,hy,8,0,TAU);g.stroke();
+ g.strokeStyle=PAL[3];g.lineWidth=1;g.beginPath();g.arc(hx,hy,8,0,TAU);g.stroke();
  // 肩当て
  for(const [s,el] of [[J.sh,J.eB]]){}
  seg(g,J.sh,J.eF,7.5,suit);seg(g,J.eF,J.hF,7,suit);armorSeg(g,J.eF,J.hF,5.5);
- g.fillStyle=goldGrad(g,J.sh.x-7,J.sh.y-7,J.sh.x+7,J.sh.y+7);g.beginPath();g.arc(J.sh.x+1,J.sh.y+1,7,Math.PI*.9,Math.PI*2.4);g.fill();g.fillStyle=GOLD[3];for(let i=0;i<3;i++){g.beginPath();const a=Math.PI*1.1+i*.45;g.moveTo(J.sh.x+Math.cos(a)*6,J.sh.y+Math.sin(a)*6);g.lineTo(J.sh.x+Math.cos(a+.1)*11,J.sh.y+Math.sin(a+.1)*11);g.lineTo(J.sh.x+Math.cos(a+.25)*6,J.sh.y+Math.sin(a+.25)*6);g.fill();}
- g.fillStyle=GOLD[1];g.beginPath();g.arc(J.hF.x,J.hF.y,4,0,TAU);g.fill();
- if(!e||!e.noSword)drawSword(g,J.hF,p.sw,t,e&&e.swordGlow);}
+ g.fillStyle=goldGrad(g,J.sh.x-7,J.sh.y-7,J.sh.x+7,J.sh.y+7);g.beginPath();g.arc(J.sh.x+1,J.sh.y+1,7,Math.PI*.9,Math.PI*2.4);g.fill();g.fillStyle=PAL[3];for(let i=0;i<3;i++){g.beginPath();const a=Math.PI*1.1+i*.45;g.moveTo(J.sh.x+Math.cos(a)*6,J.sh.y+Math.sin(a)*6);g.lineTo(J.sh.x+Math.cos(a+.1)*11,J.sh.y+Math.sin(a+.1)*11);g.lineTo(J.sh.x+Math.cos(a+.25)*6,J.sh.y+Math.sin(a+.25)*6);g.fill();}
+ g.fillStyle=PAL[1];g.beginPath();g.arc(J.hF.x,J.hF.y,4,0,TAU);g.fill();
+ if(!e||!e.noSword)drawSword(g,J.hF,p.sw,t,e&&e.swordGlow);PAL=GOLD;}
 
 /* ================= 戦闘員 ================= */
 function drawGrunt(g,J,p,t,e){const suit=e.type==='heavy'?'#2a2a30':'#141418',bone='#d8d4c8';
@@ -290,13 +290,13 @@ function bossHit(dmg,kb,isSp){const b=boss;if(!b||b.dying||b.morph>0||b.entering
  let m=1;if(b.stun>0)m=1.5;if(b.id==='bat'&&b.att&&b.att.k==='land')m=1.5;
  b.hp-=dmg*m;b.flash=.1;b.hurtT=.12;if(!b.att||b.att.ph!=='go'){b.x+=kb*.15*Math.sign(b.x-P.x||1);}
  numFx(b.x,b.y+b.h+6,Math.round(dmg*m),m>1?'#ff9a3a':'#ffd75e');
- if(!b.ph2&&b.hp<b.max/2){b.ph2=true;if(b.id==='leader'){b.morph=2.6;b.att=null;sfx('roar');shake(10);}else{bossSay(b,b.ph2line||'グゥオオォ……！');sfx('roar');}}
+ if(!b.ph2&&b.hp<b.max/2){b.ph2=true;if(b.id==='leader'){b.morph=2.6;b.att=null;sfx('roar');shake(10);morphStart(b);}else{bossSay(b,b.ph2line||'グゥオオォ……！');sfx('roar');}}
  if(b.hp<=0){b.hp=0;b.dying=.01;b.att=null;sfx('boom');shake(14);hitstop=.35;flashW=.6;}
  return true;}
 function bossUpdate(dt){const b=boss;b.flash=Math.max(0,b.flash-dt);b.hurtT=Math.max(0,b.hurtT-dt);if(b.say&&(b.say.t-=dt)<=0)b.say=null;b.t+=dt;
  if(b.dying>0){b.dying+=dt;if(Math.random()<dt*10)burst(b.x+rnd(-b.w,b.w),b.y+rnd(10,b.h),'#ffb050',10);if(b.id==='bat'&&b.y>0)b.y=Math.max(0,b.y-120*dt);return;}
  if(b.entering){const tx=CAM.x+VW*.72;b.dir=-1;b.x=Math.max(tx,b.x-120*dt);b.walk+=dt*6;if(b.x<=tx){b.entering=false;}return;}
- if(b.morph>0){b.morph-=dt;shake(3);if(Math.random()<dt*20)burst(b.x+rnd(-40,40),rnd(10,120),'#a03aff',6);if(b.morph<=0){b.form2=true;b.w=64;b.h=120;bossSay(b,'見よ！ これが完全なる進化だ！',2.5);}return;}
+ if(b.morph>0){b.morph-=dt;shake(3);if(Math.random()<dt*20)burst(b.x+rnd(-40,40),rnd(10,120),'#a03aff',6);if(b.morph<=0){b.form2=true;b.w=40;b.h=100;b.name='闇王 黒牙';b.title='グラン・スリラー 真の姿';flashW=.7;sfx('flash');sfx('roar');morphEnd(b);}return;}
  if(b.stun>0){b.stun-=dt;return;}
  ({snake:snakeAI,spider:spiderAI,bat:batAI,mantis:mantisAI,leader:leaderAI})[b.id](b,dt);
  b.x=clamp(b.x,LOCK.l+20,LOCK.r-20);}
@@ -432,20 +432,22 @@ function drawMantis(g,b,t){const sx=b.sx,sy=b.sy;g.save();g.translate(sx,sy);g.s
 /* ===== 5 大首領 ===== */
 function leaderAI(b,dt){const tf=b.ph2?.8:1;
  if(!b.att){faceP(b);const d=Math.abs(dxP(b));const want=b.form2?110:160;if(d>want+30)moveTo(b,P.x-b.dir*want,b.form2?75:50,dt);b.cd-=dt;
-  if(b.cd<=0){const k=b.form2?pick(['tail','web','charge','beam','charge','swarm']):pick(['orb','thunder','warp','orb']);bTele(b,k,{orb:.5,thunder:.8,warp:.3,tail:.55,web:.35,charge:.55,beam:1.0,swarm:.5}[k]*tf);if(k==='thunder'){b.att.xs=[P.x,P.x-80,P.x+80];}if(k==='beam')sfx('charge');else sfx('orb',200);}return;}
+  if(b.cd<=0){const k=b.form2?pick(['combo','darkwave','dash','combo','darkwave','thunder']):pick(['orb','thunder','warp','orb']);bTele(b,k,{orb:.5,thunder:.8,warp:.3,combo:.35,darkwave:.5,dash:.5}[k]*tf);if(k==='thunder'){b.att.xs=[P.x,P.x-80,P.x+80];}if(k==='beam')sfx('charge');else sfx('orb',200);}return;}
  const a=b.att;a.t+=dt;if(a.ph==='tele'){if(a.k==='warp'&&a.t>.15)b.fade=Math.min(1,(a.t-.15)/.15);if(a.t>=a.dur){startAtt(b);if(a.k==='warp'){b.x=clamp(P.x-P.dir*55,LOCK.l+20,LOCK.r-20);faceP(b);b.fade=0;a.ph='tele2';a.t=0;}}return;}
  if(a.ph==='tele2'){if(a.t>.35){a.ph='go';a.t=0;}return;}
  if(a.k==='orb'){if(!a.done){a.done=1;sfx('orb');for(let i=0;i<3;i++)projs.push({x:b.x+b.dir*20,y:70,vx:b.dir*(100+i*30),vy:(i-1)*60,g:0,r:9,dmg:12,kind:'orb',home:1,life:3.2});}if(a.t>.5)endAtt(b,1.2);}
  else if(a.k==='thunder'){if(!a.done){a.done=1;sfx('thunder');shake(8);for(const x of a.xs){bolts.push({x,t:.35});if(Math.abs(P.x-x)<24)hurtP(18,x,true);}}if(a.t>.5)endAtt(b,1.2);}
  else if(a.k==='warp'){if(!a.hit&&a.t<.15&&inFront(b,60)){a.hit=1;hurtP(16,b.x,true);}if(a.t>.35)endAtt(b,1.1);}
+ else if(a.k==='combo'){const n=Math.min(2,Math.floor(a.t/.22));if(n!==a.n){a.n=n;b.cpose=n;sfx('slash');if(inFront(b,96))hurtP(n===2?14:10,b.x,n===2);}if(a.t>.75){b.cpose=-1;endAtt(b,1.5);}}
+ else if(a.k==='darkwave'){if(!a.done){a.done=1;sfx('special');shake(5);projs.push({x:b.x+b.dir*30,y:30,vx:b.dir*380,vy:0,g:0,r:18,dmg:16,kind:'darkwave',dir:b.dir,life:2.2});}if(a.t>.5)endAtt(b,1.4);}
+ else if(a.k==='dash'){b.x+=b.dir*600*dt;if(!a.hit&&contact(b,18,36,{hi:100}))a.hit=1;if(a.t>.4){faceP(b);endAtt(b,1.4);}}
  else if(a.k==='tail'){b.tailA=Math.min(1,a.t/.2);if(!a.hit&&a.t>.1&&inFront(b,170,30)&&P.y<26){a.hit=1;hurtP(18,b.x,true);}if(a.t>.45){b.tailA=0;endAtt(b,1.1);}}
  else if(a.k==='web'){if(!a.done){a.done=1;sfx('web');projs.push({x:b.x+b.dir*30,y:50,vx:b.dir*320,vy:0,g:0,r:10,dmg:6,kind:'web',bind:1.2,life:2});}if(a.t>.35)endAtt(b,1);}
  else if(a.k==='charge'){b.x+=b.dir*560*dt;if(!a.hit&&contact(b,22,40,{hi:90})){a.hit=1;}if(a.t>.45){faceP(b);endAtt(b,1.3);}}
  else if(a.k==='beam'){b.beam=a.t<.7?1:0;if(b.beam&&inFront(b,420,0)&&P.y<46)hurtP(30*dt,b.x,false,{noInv:true,cont:true});if(Math.random()<.4)shake(3);if(a.t>.85){b.beam=0;endAtt(b,1.5);}}
  else if(a.k==='swarm'){if(!a.done){a.done=1;for(let i=0;i<5;i++)projs.push({x:b.x,y:100,vx:b.dir*rnd(120,200),vy:rnd(-50,50),g:0,r:6,dmg:6,kind:'minibat',home:1,life:3,delay:i*.12});}if(a.t>.7)endAtt(b,1.2);}}
-function drawLeader(g,b,t){const sx=b.sx,sy=b.sy;g.save();g.translate(sx,sy);g.scale(b.dir,1);if(b.fade)g.globalAlpha=1-b.fade;const tele=b.att&&(b.att.ph==='tele'||b.att.ph==='tele2');
- if(b.form2)return drawChimera(g,b,t,tele);
- if(b.morph>0){g.translate(rnd(-2,2),0);}
+function drawLeader(g,b,t){if(b.form2)return drawDark(g,b,t);const sx=b.sx,sy=b.sy;g.save();g.translate(sx,sy);g.scale(b.dir,1);if(b.fade)g.globalAlpha=1-b.fade;const tele=b.att&&(b.att.ph==='tele'||b.att.ph==='tele2');
+ if(b.morph>0){g.translate(rnd(-2,2),0);const k=1-b.morph/2.6;g.save();g.globalCompositeOperation='lighter';for(let i=0;i<8;i++){const a=i/8*TAU+t*3;g.fillStyle=`rgba(140,40,220,${.25*k})`;g.beginPath();g.ellipse(Math.cos(a)*14*k,-50+Math.sin(a)*40*k,10+k*14,24+k*20,a,0,TAU);g.fill();}g.restore();}
  // マント
  g.fillStyle='#3a0a10';g.beginPath();g.moveTo(-6,-84);g.quadraticCurveTo(-30,-40,-26+Math.sin(t*2)*4,0);g.lineTo(18,0);g.quadraticCurveTo(14,-40,6,-84);g.fill();
  const rg=g.createLinearGradient(-14,-80,14,0);rg.addColorStop(0,'#8a1a22');rg.addColorStop(1,'#3a060c');g.fillStyle=rg;g.beginPath();g.moveTo(-10,-84);g.lineTo(10,-84);g.quadraticCurveTo(18,-40,16,0);g.lineTo(-16,0);g.quadraticCurveTo(-18,-40,-10,-84);g.fill();
@@ -482,6 +484,20 @@ function drawChimera(g,b,t,tele){
 function drawBoss(g,b,t){({snake:drawSnake,spider:drawSpider,bat:drawBat,mantis:drawMantis,leader:drawLeader})[b.id](g,b,t);
  if(b.att&&(b.att.ph==='tele'||b.att.ph==='tele2')&&!b.dying){g.fillStyle='#ff3a2a';g.font='900 18px sans-serif';g.textAlign='center';g.lineWidth=3;g.strokeStyle='#000';const yy=b.sy-b.h-(b.form2?40:24);g.strokeText('!',b.sx,yy);g.fillText('!',b.sx,yy);g.textAlign='left';}
  if(b.say){bubble(g,b.sx,b.sy-b.h-(b.form2?44:30),b.say.s,true);}}
+
+async function morphStart(b){if(G.retry)return;await story([['グラン・スリラー','グ……ゥ……よもや、ここまでとは……'],['グラン・スリラー','ならば見せてやろう。金獅子の牙を模し、我が肉体に宿した……もう一つの鎧を！'],['グラン・スリラー','ぬぅおおおおおおっ！！']]);}
+async function morphEnd(b){bossCard={name:'闇王 黒牙',title:'グラン・スリラー 真の姿',t:0,d:2.4};if(G.retry)return;await wait(400);await story([['黒牙','我が名は闇王、黒牙。……金獅子よ、闇に喰われるがいい。'],['蒼牙','黒い……牙王……！？'],['鳴海','蒼牙くん、気をつけて！ あなたと同じ力……いえ、それ以上よ！'],['蒼牙','同じ力なら……心で負けるわけにはいかない！']]);}
+function darkPose(b,t){const a=b.att;const base=PS({fu:.55,ff:1.25,sw:2.3,bu:.7,bf:2.2,lean:.12});
+ if(b.hurtT>0)return PS({lean:-.35,fu:2.2,ff:1.8,sw:1.4,bu:1.6,bf:1.2});
+ if(a){const k=a.t;if(a.ph==='tele'){if(a.k==='darkwave'||a.k==='thunder')return PS({fu:3.0,ff:3.1,sw:3.14,bu:2.8,bf:3.0,fh:.45,bh:-.45});if(a.k==='dash')return PS({fu:-.5,ff:-.3,sw:-.8,lean:.5,fh:.8,fs:.3,bh:-.7,bs:-.8});return PS({fu:2.7,ff:3.0,sw:3.5,lean:-.1});}
+  if(a.k==='combo'){const n=b.cpose;return n===0?PS({fu:1.1,ff:.7,sw:.35,lean:.35,fh:.5,bh:-.5}):n===1?PS({fu:2.6,ff:2.8,sw:3.05,lean:-.1}):PS({fu:1.6,ff:1.57,sw:1.57,lean:.45,fh:.75,fs:.2,bh:-.6,bs:-.7});}
+  if(a.k==='dash')return PS({fu:1.6,ff:1.57,sw:1.57,lean:.6,fh:.9,fs:.3,bh:-.8,bs:-.9});
+  if(a.k==='darkwave')return PS({fu:1.0,ff:.8,sw:.6,lean:.35,fh:.6,fs:.2,bh:-.5,bs:-.6});}
+ return walkP(base,b.walk,.8);}
+function drawDark(g,b,t){const sx=b.sx,sy=b.sy;g.save();g.globalCompositeOperation='lighter';const ag=g.createRadialGradient(sx,sy-55,6,sx,sy-55,70);ag.addColorStop(0,'rgba(150,40,220,.35)');ag.addColorStop(1,'rgba(80,0,120,0)');g.fillStyle=ag;g.beginPath();g.arc(sx,sy-55,70,0,TAU);g.fill();
+ for(let i=0;i<6;i++){const ph=(t*1.5+i/6)%1;g.fillStyle=`rgba(170,60,255,${.5*(1-ph)})`;g.beginPath();g.ellipse(sx+Math.sin(i*2.3+t)*18,sy-ph*110,4,9,0,0,TAU);g.fill();}g.restore();
+ drawFighter(g,{kind:'hero',form:'gaoh',dark:true,dir:b.dir,sx,sy,scale:1.35,pose:darkPose(b,t),vx:b.att&&b.att.k==='dash'?600:0,swordGlow:true},t);
+ if(b.flash>0){g.fillStyle='rgba(255,255,255,.35)';g.beginPath();g.ellipse(sx,sy-50,26,54,0,0,TAU);g.fill();}}
 
 /* ================= データ ================= */
 const W=1100;
@@ -682,6 +698,7 @@ function render(){const g=ctx;g.setTransform(SC*DPR,0,0,SC*DPR,0,0);const t=perf
   else if(p.kind==='sonic'){g.strokeStyle=`rgba(200,160,255,.85)`;g.lineWidth=3;g.beginPath();g.ellipse(sx,sy,6,p.r+Math.sin(t*20)*2,0,0,TAU);g.stroke();g.beginPath();g.ellipse(sx-p.vx*.03,sy,4,p.r*.7,0,0,TAU);g.stroke();}
   else if(p.kind==='minibat'){g.fillStyle='#1a0e10';const f=Math.sin(t*20+p.x)*4;g.beginPath();g.moveTo(sx,sy);g.lineTo(sx-8,sy-4-f);g.lineTo(sx-3,sy+2);g.lineTo(sx+3,sy+2);g.lineTo(sx+8,sy-4-f);g.fill();g.fillStyle='#ff2a2a';g.fillRect(sx-1.5,sy-1,1,1);g.fillRect(sx+.5,sy-1,1,1);}
   else if(p.kind==='scythe'){g.save();g.translate(sx,sy);g.rotate(t*20);g.fillStyle='#d8ffe8';g.beginPath();g.moveTo(-14,0);g.quadraticCurveTo(0,-12,14,0);g.quadraticCurveTo(0,-6,-14,0);g.fill();g.restore();}
+  else if(p.kind==='darkwave'){g.save();g.translate(sx,sy);g.scale(p.dir,1);g.globalCompositeOperation='lighter';g.fillStyle='rgba(150,40,230,.75)';g.beginPath();g.moveTo(-40,-34);g.quadraticCurveTo(24,0,-40,34);g.quadraticCurveTo(-4,0,-40,-34);g.fill();g.fillStyle='rgba(255,60,90,.85)';g.beginPath();g.moveTo(-14,-24);g.quadraticCurveTo(18,0,-14,24);g.quadraticCurveTo(6,0,-14,-24);g.fill();g.restore();}
   else if(p.kind==='orb'){const og=g.createRadialGradient(sx,sy,1,sx,sy,p.r+4);og.addColorStop(0,'#fff');og.addColorStop(.4,'#c84aff');og.addColorStop(1,'rgba(100,0,160,0)');g.fillStyle=og;g.beginPath();g.arc(sx,sy,p.r+4,0,TAU);g.fill();}
   else{g.fillStyle='#ffe08a';g.fillRect(sx-4,sy-1.5,8,3);}}
  for(const p of pprojs){const sx=p.x-CAM.x,sy=GY-p.y;g.save();g.translate(sx,sy);g.scale(p.dir,1);g.globalCompositeOperation='lighter';const wg=g.createLinearGradient(-60,0,20,0);wg.addColorStop(0,'rgba(255,200,60,0)');wg.addColorStop(1,'rgba(255,230,140,.9)');g.fillStyle=wg;g.beginPath();g.moveTo(-60,-50);g.quadraticCurveTo(30,0,-60,50);g.quadraticCurveTo(0,0,-60,-50);g.fill();g.fillStyle='rgba(255,255,220,.95)';g.beginPath();g.moveTo(-20,-40);g.quadraticCurveTo(26,0,-20,40);g.quadraticCurveTo(10,0,-20,-40);g.fill();g.restore();drawLionHead(g,sx-p.dir*20,sy-6,.5,p.dir,.55);}
@@ -752,23 +769,23 @@ function endHenshin(){if(!H)return;const r=H.res;H=null;G.seenHenshin=true;P.for
 cv.addEventListener('pointerdown',()=>{if(state==='henshin'&&H&&H.skip&&H.t>.8)endHenshin();});
 
 /* ================= ストーリー ================= */
-const NC={'蒼牙':'#ffd75e','鳴海':'#ff9ac0','博士':'#a0c8ff','ジャドウ':'#9aff6a','アラクネラ':'#d8a0ff','バットルガ':'#ff8a8a','カマギラス':'#a8ffb0','汐里':'#9ad8ff','グラン・スリラー':'#ff6a6a'};
+const NC={'蒼牙':'#ffd75e','鳴海':'#ff9ac0','博士':'#a0c8ff','ジャドウ':'#9aff6a','アラクネラ':'#d8a0ff','バットルガ':'#ff8a8a','カマギラス':'#a8ffb0','黒牙':'#c88aff','汐里':'#9ad8ff','グラン・スリラー':'#ff6a6a'};
 const STORY=[
  {pre:[['','秘密結社スリラー。世界の裏で人間を改造し、怪人の軍団を作り上げる悪の組織。'],['','青年・虎鮫蒼牙は、その実験体として捕らえられた。'],['','体に埋め込まれたのは、古代の秘宝「金獅子の牙」。'],['博士','……適合率100％。成功だ。あとは脳改造を施せば、最強の改造人間の完成だ。'],['','――その時。'],['鳴海','蒼牙くん、目を覚まして！ 今のうちに逃げるのよ！'],['蒼牙','……ここは……俺の体に、何をした……！'],['鳴海','私は鳴海。スリラーの研究員……でも、もうこんなことには耐えられない。'],['鳴海','あなたの中の「金獅子の牙」が変身の鍵。追手が来たら、ベルトに意志を込めて。'],['','警報が鳴り響く。戦闘員たちが押し寄せてくる。'],['鳴海','出口はこの先よ！ 戦闘員を蹴散らして！']],
   boss:[['','――シャアアァ……'],['ジャドウ','逃がさんぞ、実験体0号。お前の体は首領さまのものだ。'],['蒼牙','俺の体は……俺のものだ！'],['鳴海','蒼牙くん、今よ！ ベルトに意志を込めて！'],['蒼牙','……うおおおおっ！']],
   win:[['ジャドウ','ば、馬鹿な……首領さま……スリラーに……栄光あれぇ……！'],['','毒蛇男は、緑の炎に包まれて崩れ落ちた。'],['蒼牙','……これが、俺の力……'],['鳴海','「金獅子 牙王」。それが、あなたの新しい名前よ。'],['蒼牙','金獅子……牙王……']]},
  {pre:[['','研究所を脱出した二人は、山中の廃坑へと逃げ込んだ。'],['鳴海','このトンネルを抜ければ街に出られるわ。……でも気をつけて。嫌な気配がする。'],['蒼牙','ああ。……蜘蛛の巣だらけだな。']],
-  boss:[['アラクネラ','ウフフ……糸に絡まった獲物ほど、美しいものはないわ。'],['蒼牙','悪いが、俺は獲物じゃない。'],['アラクネラ','あら、強がり。すぐに繭にしてあげる……'],['蒼牙','……変身ッ！']],
+  boss:[['アラクネラ','ウフフ……糸に絡まった獲物ほど、美しいものはないわ。'],['蒼牙','悪いが、俺は獲物じゃない。'],['アラクネラ','あら、強がり。すぐに繭にしてあげる……'],['蒼牙','……うおおおおおおっ！！']],
   win:[['アラクネラ','あたしの……巣が……あぁ……'],['','蜘蛛女は、自らの糸に絡まりながら消えていった。'],['蒼牙','鳴海さん。スリラーの目的は、いったい何なんだ。'],['鳴海','「完全なる進化」……全人類を、首領に従う改造人間に変えることよ。'],['蒼牙','……そんなこと、させるか。']]},
  {pre:[['','街に戻った夜。鳴海の姿が消えた。'],['','残されていたのは、一枚のメモ。'],['バットルガ','（キキキ……裏切り者の女はいただいた。返してほしけりゃ、時計塔まで来い）'],['蒼牙','鳴海さん……！ 待っていろ！']],
-  boss:[['バットルガ','キキキッ！ よく来たな、金獅子！'],['鳴海','蒼牙くん！ 来ちゃだめ、罠よ！'],['蒼牙','罠でもいい。あんたを置いていけるか！'],['バットルガ','その女の血は後でいただく。まずはお前からだァ！'],['蒼牙','……変身ッ！']],
+  boss:[['バットルガ','キキキッ！ よく来たな、金獅子！'],['鳴海','蒼牙くん！ 来ちゃだめ、罠よ！'],['蒼牙','罠でもいい。あんたを置いていけるか！'],['バットルガ','その女の血は後でいただく。まずはお前からだァ！'],['蒼牙','鳴海さんを……返せぇぇぇっ！ うおおおおおおっ！！']],
   win:[['バットルガ','ギ……ギギ……月が……遠い……'],['','吸血蝙蝠は、時計塔から夜の闇へと墜ちていった。'],['鳴海','ごめんなさい……私のせいで、危ない目に……'],['蒼牙','あんたがいなければ、俺は今ごろ怪物だった。礼を言うのは俺の方だ。'],['鳴海','……蒼牙くん。']]},
  {pre:[['','夕暮れの竹林。スリラー本部へと続く、隠された道。'],['鳴海','この先に本部の入口があるはずよ。'],['蒼牙','……誰かいる。殺気だ。']],
-  boss:[['カマギラス','待っていたぞ、金獅子。'],['カマギラス','俺もかつては人間だった。剣の道を極めんとした、ただの男だ。'],['カマギラス','だが力を得た今、人の心など邪魔なだけ。お前を斬り、俺こそが最強だと証明する！'],['蒼牙','力に呑まれたか……なら、俺が止める！'],['蒼牙','変身ッ！']],
+  boss:[['カマギラス','待っていたぞ、金獅子。'],['カマギラス','俺もかつては人間だった。剣の道を極めんとした、ただの男だ。'],['カマギラス','だが力を得た今、人の心など邪魔なだけ。お前を斬り、俺こそが最強だと証明する！'],['蒼牙','力に呑まれたか……なら、俺が止める！'],['蒼牙','うおおおおおおおおっ！！']],
   win:[['カマギラス','見事……だ……'],['カマギラス','お前は……その力を持ちながら……人の心を……失わなかったのか……'],['カマギラス','羨ましい……な……'],['','鎌鬼は、穏やかな顔で竹林に散った。'],['蒼牙','……俺は、ああはならない。絶対に。']]},
  {pre:[['','秘密結社スリラー本部。地下深くの大祭壇。'],['鳴海','首領の部屋はこの奥よ。……これが、最後の戦いね。'],['蒼牙','ああ。終わらせよう、全部。']],
-  boss:[['グラン・スリラー','待っていたぞ、実験体0号……いや、牙王。'],['グラン・スリラー','金獅子の牙は、我が完全なる肉体の、最後の欠片。大人しく我が身に還るがよい。'],['蒼牙','お前がすべての元凶か。……人の命を、何だと思っている！'],['グラン・スリラー','人とは、進化の途中の出来損ないにすぎぬ。'],['蒼牙','その出来損ないの力、見せてやる！ ……変身ッ！']],
-  win:[['グラン・スリラー','ば……かな……人間の……心……ごときに……'],['','大首領の体が崩れ、本部が激しく揺れ始めた。'],['鳴海','蒼牙くん、早く外へ！']]},
+  boss:[['グラン・スリラー','待っていたぞ、実験体0号……いや、牙王。'],['グラン・スリラー','金獅子の牙は、我が完全なる肉体の、最後の欠片。大人しく我が身に還るがよい。'],['蒼牙','お前がすべての元凶か。……人の命を、何だと思っている！'],['グラン・スリラー','人とは、進化の途中の出来損ないにすぎぬ。'],['蒼牙','その出来損ないの力、見せてやる！ ……うおおおおおおおおおっ！！']],
+  win:[['黒牙','ば……かな……人間の……心……ごときに……'],['','大首領の体が崩れ、本部が激しく揺れ始めた。'],['鳴海','蒼牙くん、早く外へ！']]},
 ];
 const MID=[
  [['','（館内放送）実験体0号が逃走！ 全戦闘員は直ちに捕獲せよ！ 生け捕りにしろ！'],['鳴海','蒼牙くん、聞こえる？ さっき渡した通信機よ。'],['蒼牙','ああ。……この体、妙に軽い。拳も、まるで自分のものじゃないみたいだ。'],['鳴海','改造の影響よ。でも人間の姿のままじゃ、本当の力は出せない。無理はしないで。'],['蒼牙','分かってる。……今は、ここを出ることだけ考える。']],
@@ -875,7 +892,7 @@ function aiInput(dt){const I={mx:0,atk:false,jump:false,sp:false,guard:false};ai
   if(a&&boss.id==='mantis'&&a.k==='counter'){I.mx=-dir*.6;return I;}
   if(a&&a.ph==='tele'){if(['tail','beam'].includes(a.k)&&ad<200){if(a.t>a.dur-.12&&P.y<=0&&ai.jt<=0){I.jump=true;ai.jt=.8;}return I;}if(a.k==='drop'||a.k==='thunder'){I.mx=-dir;return I;}if(ad<170){I.mx=dir*.01;I.guard=true;return I;}}
   if(a&&a.ph==='go'&&['tail','beam'].includes(a.k)&&P.y<=0&&ai.jt<=0&&ad<220){I.jump=true;ai.jt=.8;}
-  if(a&&a.ph==='go'&&['lunge','dash','charge','swoop','drain','legs','double'].includes(a.k)&&ad<150){I.mx=dir*.01;I.guard=true;return I;}
+  if(a&&a.ph==='go'&&['lunge','dash','charge','swoop','drain','legs','double','combo'].includes(a.k)&&ad<150){I.mx=dir*.01;I.guard=true;return I;}
   if(a&&a.k==='drop'&&a.s==='hang'){I.mx=dx>0?-1:1;return I;}
   if(boss.id==='bat'&&boss.y>40){if(ad>30)I.mx=dir;else{I.mx=dir*.01;if(P.y<=0&&ai.jt<=0){I.jump=true;ai.jt=.5;}}if(P.y>40&&ai.t<=0){I.atk=true;ai.t=.12;}return I;}}
  if(P.sp>=100&&ad<220){I.mx=dir*.01;I.sp=true;return I;}
