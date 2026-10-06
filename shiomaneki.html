@@ -37,7 +37,7 @@ button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px so
 main{position:relative;z-index:1}
 
 /* タイトル */
-.title-screen{min-height:100%;display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:center;padding-block:56px 40px}
+.title-screen{min-height:100%;display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:center;padding-block:32px 40px}
 .vtitle{writing-mode:vertical-rl;font-family:var(--f-brush);font-size:clamp(52px,14vw,92px);line-height:1.05;letter-spacing:.08em;color:var(--paper);text-shadow:0 0 24px rgba(0,0,0,.8);margin:0}
 .vtitle small{display:block;font-family:var(--f-disp);font-size:.2em;letter-spacing:.4em;color:var(--brass);margin-left:.9em;font-weight:700}
 .title-side{display:flex;flex-direction:column;gap:18px;min-width:0}
@@ -237,6 +237,7 @@ main{position:relative;z-index:1}
 /* 狂気の表現 */
 body.warp .story p{animation:warp 7s infinite}
 @keyframes warp{0%,92%,100%{transform:none;filter:none}93%{transform:translateX(1px) skewX(-1deg);filter:blur(.4px)}95%{transform:translateX(-2px);text-shadow:2px 0 rgba(168,50,31,.35)}}
+.home-link{display:inline-block;text-decoration:none;padding-block:14px 0}
 .back{background:none;border:0;color:var(--foam);font-family:var(--f-mono);font-size:12px;letter-spacing:.14em;padding:14px 0}
 
 @media (max-width:480px){
@@ -1045,7 +1046,7 @@ function updateDread(){
 }
 function renderTitle(app){
   const sv=LS.get(SAVE_KEY);const seen=LS.get(END_KEY)||{};const nSeen=Object.keys(seen).length;
-  app.innerHTML=`<div class="wrap"><section class="title-screen">
+  app.innerHTML=`<div class="wrap"><a class="back home-link" href="./">← ゲーム一覧へ</a><section class="title-screen">
    <h1 class="vtitle">潮招きの夜<small>${SERIES}　第一章</small></h1>
    <div class="title-side">
     <div class="era">SHOWA 7 / 1932 — 百面骰子の怪奇探索</div>
@@ -1138,7 +1139,7 @@ function meter(cls,label,v,max,key){return`<div class="meter ${cls} ${flashKey==
 function renderGame(app){
   const n=N[S.node];
   const hud=`<div class="hud"><div class="hud-top"><div class="hud-name">${esc(S.name)}<span>${OCC[S.occ].n}</span></div>
-    <div class="toolbar"><span class="hud-time">${S.node.startsWith('p')?'昭和七年・東京':TIMES[Math.min(S.slot,5)]}</span><button class="tbtn ${AUD.on?'on':''}" id="bSnd" aria-pressed="${AUD.on}">音</button></div></div>
+    <div class="toolbar"><span class="hud-time">${S.node.startsWith('p')?'昭和七年・東京':TIMES[Math.min(S.slot,5)]}</span><button class="tbtn ${AUD.on?'on':''}" id="bSnd" aria-pressed="${AUD.on}">音</button><button class="tbtn" id="bHome">表紙</button></div></div>
     <div class="meters">${meter('hp','耐久力',S.hp,S.hpMax,'hp')}${meter('san','正気度',S.san,S.sanStart,'san')}${meter('luck','幸運',S.luck,S.luckStart,'luck')}</div>
     ${(S.bout&&S.pen>0)||S.indef?`<div class="chips">${S.bout&&S.pen>0?`<span class="chip">一時的狂気</span>`:''}${S.indef?`<span class="chip">不定の狂気</span>`:''}</div>`:''}
     <div class="tabs"><button class="tab ${UI.tab==='story'?'on':''}" data-tab="story">物語</button><button class="tab ${UI.tab==='notes'?'on':''}" data-tab="notes">手帳<span class="n">${S.clues.length}</span></button><button class="tab ${UI.tab==='sheet'?'on':''}" data-tab="sheet">探索者</button></div></div>`;
@@ -1148,6 +1149,7 @@ function renderGame(app){
   app.innerHTML=`<div class="wrap">${hud}${body}</div>`;
   app.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{UI.tab=b.dataset.tab;render()});
   $('#bSnd').onclick=()=>{AUD.toggle();render()};
+  $('#bHome').onclick=()=>{save();UI.screen='title';render()};
   bindNode(n);
 }
 function renderNode(n){
