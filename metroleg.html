@@ -77,20 +77,12 @@ html,body{margin:0;height:100%;background:#05080a;color:#d8e8e0;overflow:hidden;
  window.tgClear=function(gid,info){try{if(window.tgAuto||window.tgAutoUsed||window.__tgAutoEver)return;gid=gid||id;var o=JSON.parse(localStorage.getItem('tg_clear')||'{}');var r=o[gid]||{n:0};r.n=(r.n||0)+1;r.t=Date.now();if(info)r.info=info;o[gid]=r;localStorage.setItem('tg_clear',JSON.stringify(o));}catch(e){}};
  try{var a=JSON.parse(localStorage.getItem('tg_recent')||'[]').filter(function(x){return x.id!==id;});a.unshift({id:id,t:Date.now()});localStorage.setItem('tg_recent',JSON.stringify(a.slice(0,10)));}catch(e){}})();
 </script>
+<script src="tg-pad.js"></script>
 </head>
 <body>
 <div id="app">
   <canvas id="cv"></canvas>
-  <div id="pad">
-    <div id="bMenu">MENU</div>
-    <div id="stick"><div id="knob"></div></div>
-    <div class="btn" id="bGog">ゴーグル</div>
-    <div class="btn" id="bBox">箱</div>
-    <div class="btn" id="bRation">回復<br><span id="rc">0</span></div>
-    <div class="btn" id="bCrouch">しゃがむ</div>
-    <div class="btn" id="bFire">撃つ</div>
-    <div class="btn" id="bWeap">武器</div>
-  </div>
+  <div id="pad"></div>
 </div>
 <div id="ov" class="hidden"></div>
 <div id="wsel" class="hidden"><div class="wgrid" id="wgrid"></div></div>
@@ -191,25 +183,12 @@ setInterval(()=>{if(!AC||!sndOn()||!BG[BGM.mode])return;const m=BG[BGM.mode],sp=
 
 /* ================= 入力 ================= */
 const hum={sx:0,sy:0,fire:false,weapQ:false,crouchQ:false,rationQ:false,boxQ:false,gogQ:false};
-const stick=$('stick'),knob=$('knob');let stickId=null;
-function stickSet(e){const r=stick.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let dx=e.clientX-cx,dy=e.clientY-cy;const m=hyp(dx,dy),R=r.width/2;if(m>R){dx*=R/m;dy*=R/m;}hum.sx=dx/R;hum.sy=dy/R;knob.style.transform=`translate(${dx}px,${dy}px)`;}
-function stickOff(){stickId=null;hum.sx=hum.sy=0;knob.style.transform='';}
-$('pad').addEventListener('pointerdown',e=>{if(e.target.closest('.btn')||e.target.id==='bMenu')return;const r=$('pad').getBoundingClientRect();if(e.clientX-r.left<r.width*.5&&stickId===null){stickId=e.pointerId;stickSet(e);}});
-addEventListener('pointermove',e=>{if(e.pointerId===stickId)stickSet(e);});
-addEventListener('pointerup',e=>{if(e.pointerId===stickId)stickOff();});
-addEventListener('pointercancel',e=>{if(e.pointerId===stickId)stickOff();});
-function bindBtn(id,down,up){const b=$(id);b.addEventListener('pointerdown',e=>{e.preventDefault();try{b.setPointerCapture(e.pointerId);}catch(_){}b.classList.add('on');down();});const off=()=>{b.classList.remove('on');up&&up();};b.addEventListener('pointerup',off);b.addEventListener('pointercancel',off);b.addEventListener('lostpointercapture',off);}
-bindBtn('bFire',()=>{hum.fire=true;},()=>{hum.fire=false;});
-bindBtn('bWeap',()=>{openWsel();});
-bindBtn('bCrouch',()=>{hum.crouchQ=true;});
-bindBtn('bRation',()=>{hum.rationQ=true;});
-bindBtn('bBox',()=>{hum.boxQ=true;});
-bindBtn('bGog',()=>{hum.gogQ=true;});
-$('bMenu').addEventListener('click',()=>openPause());
+TGPad.mount('#pad',{keys:false,labels:{A:'撃つ',B:'しゃがむ',X:'武器',Y:'箱',L:'ゴーグル',R:'回復',START:''}});
+TGPad.on('A',d=>{hum.fire=d;});TGPad.on('B',d=>{if(d)hum.crouchQ=true;});TGPad.on('X',d=>{if(d)openWsel();});TGPad.on('Y',d=>{if(d)hum.boxQ=true;});TGPad.on('L',d=>{if(d)hum.gogQ=true;});TGPad.on('R',d=>{if(d)hum.rationQ=true;});TGPad.on('START',d=>{if(d)openPause();});
 const keys={};
 addEventListener('keydown',e=>{if(e.repeat)return;keys[e.key]=true;if(e.key==='j'||e.key===' ')hum.fire=true;if(e.key==='k')hum.weapQ=true;if(e.key==='c'||e.key==='Shift')hum.crouchQ=true;if(e.key==='r')hum.rationQ=true;if(e.key==='b')hum.boxQ=true;if(e.key==='g')hum.gogQ=true;if(e.key==='Escape'||e.key==='p')openPause();});
 addEventListener('keyup',e=>{keys[e.key]=false;if(e.key==='j'||e.key===' ')hum.fire=false;});
-function humanInput(){let sx=hum.sx,sy=hum.sy;if(keys.ArrowLeft||keys.a)sx=-1;if(keys.ArrowRight||keys.d)sx=1;if(keys.ArrowUp||keys.w)sy=-1;if(keys.ArrowDown||keys.s)sy=1;
+function humanInput(){hum.sx=TGPad.stick.x;hum.sy=TGPad.stick.y;let sx=hum.sx,sy=hum.sy;if(keys.ArrowLeft||keys.a)sx=-1;if(keys.ArrowRight||keys.d)sx=1;if(keys.ArrowUp||keys.w)sy=-1;if(keys.ArrowDown||keys.s)sy=1;
  const I={mx:sx,my:sy,fire:hum.fire,weap:hum.weapQ,crouch:hum.crouchQ,ration:hum.rationQ,box:hum.boxQ,gog:hum.gogQ};hum.weapQ=hum.crouchQ=hum.rationQ=hum.boxQ=hum.gogQ=false;return I;}
 
 /* ================= データ ================= */
@@ -283,7 +262,7 @@ const TUT={
  J:[['mira','監視カメラよ。青い扇に映ると、すぐに警報が鳴る。'],['mira','カメラは撃てば壊せる。でも銃声は響くから、実戦では周りに注意して。箱をかぶってやり過ごすのも手よ。']],
  I:[['mira','あの見張りは、向こうを向いているわね。'],['mira','背後から近づくと「CQC」と表示される。そこで「撃つ」を押せば、音を立てずに気絶させられるわ。']],
  M:[['mira','赤外線センサーよ。赤いレーザーに触れると警報が鳴る。'],['mira','このレーザーは点滅しているわ。消えた瞬間に抜けて。']],
- U:[['mira','最後に、出口の緑のマスへ。'],['mira','ステージをクリアすると、弾薬が補給されるわ。困ったら「MENU」から私に通信して。'],['mira','……訓練は以上よ。お疲れさま、モヤット。']],
+ U:[['mira','最後に、出口の緑のマスへ。'],['mira','ステージをクリアすると、弾薬が補給されるわ。困ったら「START」ボタンのメニューから私に通信して。'],['mira','……訓練は以上よ。お疲れさま、モヤット。']],
 };
 const HAWKOBJ={tut:'訓練だからといって気を抜くな。基本動作を体に叩き込め。',dock:'まずはカードキーLv1を手に入れ、北東のゲートから倉庫区画へ向かえ。',ware:'倉庫を抜け、南東の搬入ベイへ向かえ。',bull:'ブルを無力化しろ。',peri:'外周を抜けて北の研究棟へ。犬と探照灯に注意しろ。',lab:'リン博士を救出しろ。博士はメトロレッグの開発者だ。',mirage:'ミラージュを排除しろ。',comm:'カードキーLv3とロケットランチャーを手に入れ、屋上へ向かえ。',heli:'ヘリを撃墜しろ。それしか道はない。',hangar:'格納庫の最深部へ。メトロレッグはそこだ。',metro:'メトロレッグを破壊しろ。何としてもだ。',escape:'脱出艇まで走れ！'};
 
@@ -504,7 +483,7 @@ function pickup(it){const k=it.k,am=diff.ammo;let msg=(ITEMS[k]||'')+'を手に�
  else if(k==='1'||k==='2'||k==='3'){S.keys[+k]=true;sfx('key');toast(msg,'#ffd75e');return;}
  sfx('pick');toast(msg,'#9affc0');updBtns();}
 function giveW(k,n){const first=!S.own[k];S.own[k]=true;S.ammo[k]=Math.min(WPN[k].max,S.ammo[k]+n);if(first&&!window.tgAuto)setTimeout(()=>{if(state==='play')toast('「武器」ボタンで切り替え','#9ac0aa');},900);}
-function updBtns(){$('bBox').style.display=S&&S.box?'flex':'none';$('bGog').style.display=S&&S.gog?'flex':'none';$('bBox').classList.toggle('act',!!(P&&P.box));$('bGog').classList.toggle('act',!!(P&&P.gog));$('bCrouch').classList.toggle('act',!!(P&&P.crouch));$('rc').textContent=S?S.rations:0;}
+function updBtns(){TGPad.enable('Y',!!(S&&S.box));TGPad.enable('L',!!(S&&S.gog));TGPad.glow('Y',!!(P&&P.box));TGPad.glow('L',!!(P&&P.gog));TGPad.glow('B',!!(P&&P.crouch));TGPad.label('R','回復×'+(S?S.rations:0));}
 
 /* ================= 戦闘 ================= */
 function aimTarget(maxD){let best=null,bd=maxD||260;const cand=[];for(const g of A.guards)if(alive(g))cand.push(g);for(const c of A.cams)if(c.hp>0)cand.push(c);if(boss&&boss.targetable())cand.push(boss);
@@ -1007,7 +986,7 @@ function hud(g,t){
  if(boss&&!boss.dying&&state!=='cine'){g.fillStyle='rgba(0,0,0,.6)';g.fillRect(30,VH-66,300,16);g.fillStyle='#4a1a12';g.fillRect(32,VH-64,296,12);const bc=boss.ph>=2?'#ff5a3a':'#e8a03a';g.fillStyle=bc;g.fillRect(32,VH-64,296*clamp(boss.hp/boss.max,0,1),12);g.fillStyle='rgba(255,255,255,.25)';g.fillRect(32,VH-64,296*clamp(boss.hp/boss.max,0,1),3);g.fillStyle='#fff';g.font='bold 9px sans-serif';g.fillText(boss.name,34,VH-69);
   if(boss.kind==='metro'){let lx=250;for(const l of boss.legs){g.fillStyle=l.broken?'#5a1a12':l.hp<80?'#ff8a3a':'#9affc0';g.fillRect(lx,VH-75,16,5);lx+=19;}}}
  let ty=VH-82;for(const tt of toasts.slice(-3).reverse()){g.globalAlpha=Math.min(1,tt.life*2);g.font='bold 11px sans-serif';const w=g.measureText(tt.s).width+16;g.fillStyle='rgba(0,0,0,.72)';g.fillRect(VW/2-w/2,ty-14,w,19);g.fillStyle=tt.c;g.textAlign='center';g.fillText(tt.s,VW/2,ty);g.textAlign='left';g.globalAlpha=1;ty-=22;}
- $('rc').textContent=S.rations;}
+ TGPad.label('R','回復×'+S.rations);}
 function drawCards(g,t){if(letter>0){const h=letter*42;g.fillStyle='#000';g.fillRect(0,0,VW,h);g.fillRect(0,VH-h,VW,h);}
  if(areaCard){const a=areaCard,k=a.t;const al=Math.min(1,k*3,(a.d-k)*2);g.globalAlpha=Math.max(0,al);g.fillStyle='rgba(0,0,0,.55)';g.fillRect(0,VH*.36,VW,60);g.fillStyle='#7affb0';g.font='bold 11px sans-serif';g.textAlign='center';g.fillText(a.name,VW/2,VH*.36+22);g.fillStyle='#e8fff0';g.font='900 20px sans-serif';const s=a.sub.slice(0,Math.floor(k*14));g.fillText(s,VW/2,VH*.36+46);g.textAlign='left';g.globalAlpha=1;}
  if(bossCard){const a=bossCard,k=a.t;const al=Math.min(1,k*3,(a.d-k)*2);g.globalAlpha=Math.max(0,al);const sl=Math.min(1,k*4);g.fillStyle='rgba(30,0,0,.8)';g.fillRect(VW*(1-sl),VH*.4,VW,64);g.fillStyle='#ff3a2a';g.fillRect(0,VH*.4,VW*sl,2);g.fillRect(0,VH*.4+62,VW*sl,2);g.textAlign='center';g.fillStyle='#ffb0a0';g.font='bold 10px sans-serif';g.fillText(a.title,VW/2,VH*.4+20);g.fillStyle='#fff';g.font='900 26px sans-serif';g.fillText(a.name,VW/2+(1-sl)*60,VH*.4+50);g.textAlign='left';g.globalAlpha=1;}}
@@ -1061,7 +1040,7 @@ function portrait(cnv,who,talk,blink){const g=cnv.getContext('2d');g.setTransfor
  if(who==='bull'&&!talk){g.fillStyle='#eee';g.fillRect(32,45,8,2);}
  g.fillStyle='rgba(120,255,170,.1)';g.fillRect(0,0,72,72);g.fillStyle='rgba(0,0,0,.18)';for(let y=0;y<72;y+=3)g.fillRect(0,y,72,1);}
 const STORY={
- intro:[['nar','20XX年。北海洋上、兵器開発基地「アイアンベイ」。'],['nar','48時間前、武装組織「ゼロライン」が基地を占拠した。'],['hawk','モヤット、聞こえるか。こちらホーク。'],['moyat','感度良好だ。……海水が冷たい。'],['hawk','我慢しろ。ゼロラインは開発中の多脚戦車《メトロレッグ》を奪い、核弾頭搭載ミサイルの発射準備を進めている。'],['hawk','要求は全世界への声明の生中継。期限は明朝6時だ。'],['mira','分析官のミラよ。今回の作戦をサポートするわ。'],['mira','メトロレッグの装甲は厚くて、通常弾はほとんど効かない。現地で対戦車兵器を調達する必要があるわ。'],['moyat','装備は？'],['hawk','ハンドガンだけだ。単独潜入。敵に発見されるな。'],['moyat','……いつものことだ。'],['hawk','それと、ゼロラインのリーダー“ゼロ”についてだ。'],['hawk','奴は元特殊部隊《ハウンド》の隊長。……お前の、かつての上官だ。'],['moyat','……知っている。'],['mira','見張りの視界は扇形で見えるわ。扇に入ると気づかれる。しゃがめば見つかりにくくなるし、足音も消せる。'],['mira','スティックを少しだけ倒せば静かに歩ける。敵の背後で「撃つ」を押せばCQC。音を立てずに気絶させられるわ。'],['mira','困ったら「MENU」から私に通信して。ヒントを出すわ。'],['hawk','まずはドック北西の詰所でカードキーを探せ。健闘を祈る。']],
+ intro:[['nar','20XX年。北海洋上、兵器開発基地「アイアンベイ」。'],['nar','48時間前、武装組織「ゼロライン」が基地を占拠した。'],['hawk','モヤット、聞こえるか。こちらホーク。'],['moyat','感度良好だ。……海水が冷たい。'],['hawk','我慢しろ。ゼロラインは開発中の多脚戦車《メトロレッグ》を奪い、核弾頭搭載ミサイルの発射準備を進めている。'],['hawk','要求は全世界への声明の生中継。期限は明朝6時だ。'],['mira','分析官のミラよ。今回の作戦をサポートするわ。'],['mira','メトロレッグの装甲は厚くて、通常弾はほとんど効かない。現地で対戦車兵器を調達する必要があるわ。'],['moyat','装備は？'],['hawk','ハンドガンだけだ。単独潜入。敵に発見されるな。'],['moyat','……いつものことだ。'],['hawk','それと、ゼロラインのリーダー“ゼロ”についてだ。'],['hawk','奴は元特殊部隊《ハウンド》の隊長。……お前の、かつての上官だ。'],['moyat','……知っている。'],['mira','見張りの視界は扇形で見えるわ。扇に入ると気づかれる。しゃがめば見つかりにくくなるし、足音も消せる。'],['mira','スティックを少しだけ倒せば静かに歩ける。敵の背後で「撃つ」を押せばCQC。音を立てずに気絶させられるわ。'],['mira','困ったら「START」ボタンのメニューから私に通信して。ヒントを出すわ。'],['hawk','まずはドック北西の詰所でカードキーを探せ。健闘を祈る。']],
  a_tut:[['mira','こちらミラ。潜入前の最終チェックよ。VR訓練プログラムを起動するわ。'],['hawk','基本動作を確認しておけ。実戦では、一度のミスが命取りになる。'],['mira','この訓練では、敵に見つかっても撃たれないわ。最後に通過したポイントからやり直しになるだけ。']],
  a_ware:[['hawk','ドックを抜けたな。そこは貨物倉庫だ。'],['mira','倉庫の中には監視カメラがあるわ。カメラに映ると、すぐ警報が鳴る。'],['mira','カメラは撃てば壊せる。でも銃声には気をつけて。'],['moyat','了解。'],['hawk','倉庫の先の搬入ベイに、ゼロライン幹部の反応がある。用心しろ。']],
  b_bull:[['bull','ハッハァ！ ネズミが一匹、迷い込んだか！'],['moyat','ゼロラインの幹部か。'],['bull','俺はブル！ 隊長の命令だ、誰一人この先には通さねぇ。'],['bull','俺のバルカンは一分間に六千発。数えてる暇もねぇぞ！'],['mira','モヤット、木箱を盾にして！ 正面から撃ち合っちゃだめ。背中の弾薬ドラムを狙うのよ。']],
@@ -1142,7 +1121,7 @@ function updFx(dt){for(const f of fx){f.life-=dt;if(f.vx!==undefined){f.x+=f.vx*
  for(const c of casings){c.life-=dt;if(c.z>0||c.vz>0){c.x+=c.vx*dt;c.y+=c.vy*dt;c.z+=c.vz*dt;c.vz-=260*dt;if(c.z<0){c.z=0;c.vz=-c.vz*.35;c.vx*=.5;c.vy*=.5;if(Math.abs(c.vz)<10)c.vz=0;}}}casings=casings.filter(c=>c.life>0);if(casings.length>80)casings.splice(0,casings.length-80);
  for(const t of toasts)t.life-=dt;toasts=toasts.filter(t=>t.life>0);
  shk=Math.max(0,shk-dt*25);flashRed=Math.max(0,flashRed-dt);}
-function camUpdate(dt){let bx=P.x,by=P.y;if(boss&&!boss.dying&&cam.fx==null){const k=boss.kind==='heli'?.35:.25;bx=P.x+clamp((boss.x-P.x)*k,-90,90);by=P.y+clamp((boss.y-P.y)*k,-110,110);}const tx=cam.fx!=null?cam.fx:bx,ty=cam.fy!=null?cam.fy:by;$('bMenu').style.visibility=state==='play'?'visible':'hidden';cam.x=lerp(cam.x,tx,Math.min(1,dt*(cam.fx!=null?3:6)));cam.y=lerp(cam.y,ty,Math.min(1,dt*(cam.fx!=null?3:6)));}
+function camUpdate(dt){let bx=P.x,by=P.y;if(boss&&!boss.dying&&cam.fx==null){const k=boss.kind==='heli'?.35:.25;bx=P.x+clamp((boss.x-P.x)*k,-90,90);by=P.y+clamp((boss.y-P.y)*k,-110,110);}const tx=cam.fx!=null?cam.fx:bx,ty=cam.fy!=null?cam.fy:by;TGPad.enable('START',state==='play');cam.x=lerp(cam.x,tx,Math.min(1,dt*(cam.fx!=null?3:6)));cam.y=lerp(cam.y,ty,Math.min(1,dt*(cam.fx!=null?3:6)));}
 function hitCrate(tx,ty,d){const k=tx+','+ty;A.chp[k]=(A.chp[k]==null?70:A.chp[k])-d;if(A.chp[k]<=0&&A.g[ty][tx]==='C'){A.g[ty][tx]='.';delete tileCache[A.i];sfx('crate');A.decals.push({k:'debris',x:tx*T+12,y:ty*T+12});for(let i=0;i<8;i++)fx.push({t:'deb',x:tx*T+12,y:ty*T+12,vx:rnd(-80,80),vy:rnd(-80,80),z:0,vz:rnd(40,100),life:1,c:'#8a6a3a'});}}
 function flashbang(x,y){sfx('flash');booms.push({x,y,r:30,t:.2});if(hyp(P.x-x,P.y-y)<130&&los(P.x,P.y,x,y))flashWhite=Math.max(flashWhite,.5);
  for(const g of A.guards){if(alive(g)&&hyp(g.x-x,g.y-y)<84&&los(g.x,g.y,x,y)){koGuard(g,30);S.stats.ko++;fx.push({t:'txt',x:g.x,y:g.y-14,s:'気絶',c:'#9ac0ff',life:.9});}}

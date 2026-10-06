@@ -37,7 +37,7 @@ const W=360,H=220;const cv=document.getElementById('cv'),g=cv.getContext('2d');c
 function resize(){const w=Math.min(innerWidth-24,460);const s=w/W;cv.style.width=w+'px';cv.style.height=H*s+'px';cv.width=W*s*DPR;cv.height=H*s*DPR;g.setTransform(s*DPR,0,0,s*DPR,0,0);}
 addEventListener('resize',resize);resize();
 document.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
-TGPad.mount('#pad',{labels:{A:'ジャンプ',B:'ダッシュ',X:'ショット',Y:'シールド',L:'色←',R:'色→'}});
+TGPad.mount('#pad',{labels:{A:'ジャンプ',B:'ダッシュ',X:'ショット',Y:'シールド',L:'色←',R:'色→',SELECT:'リセット',START:'ポーズ'}});
 let paused=false;
 TGPad.on('START',d=>{if(d){paused=!paused;beep(paused?440:880,.12);}});
 TGPad.on('SELECT',d=>{if(d){P.x=W/2;P.y=H/2;P.col=0;shots.length=0;beep(330,.12);}});

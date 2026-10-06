@@ -62,17 +62,12 @@ html,body{margin:0;height:100%;background:#070a1a;color:#eef2ff;overflow:hidden;
  window.tgClear=function(gid,info){try{if(window.tgAuto||window.tgAutoUsed||window.__tgAutoEver)return;gid=gid||id;var o=JSON.parse(localStorage.getItem('tg_clear')||'{}');var r=o[gid]||{n:0};r.n=(r.n||0)+1;r.t=Date.now();if(info)r.info=info;o[gid]=r;localStorage.setItem('tg_clear',JSON.stringify(o));}catch(e){}};
  try{var a=JSON.parse(localStorage.getItem('tg_recent')||'[]').filter(function(x){return x.id!==id;});a.unshift({id:id,t:Date.now()});localStorage.setItem('tg_recent',JSON.stringify(a.slice(0,10)));}catch(e){}})();
 </script>
+<script src="tg-pad.js"></script>
 </head>
 <body>
 <div id="app">
   <canvas id="cv"></canvas>
-  <div id="pad">
-    <div id="stick"><div id="knob"></div></div>
-    <div class="btn" id="bSp">箒星</div>
-    <div class="btn" id="bDash">ダッシュ</div>
-    <div class="btn" id="bAtk">かみつき</div>
-    <div class="btn" id="bJump">ジャンプ</div>
-  </div>
+  <div id="pad"></div>
 </div>
 <div id="ov" class="hidden"></div>
 <div id="story" class="hidden"><div class="sbox" id="sbox"><button class="sskip" id="sskip">スキップ ▶▶</button><div class="sname" id="sname"></div><div class="stext" id="stext"></div><div class="snext">▼ タップ</div></div></div>
@@ -147,19 +142,12 @@ setInterval(()=>{if(!AC||!sndOn()||!BG[BGM.mode])return;const m=BG[BGM.mode],sp=
 
 /* ================= 入力 ================= */
 const hum={sx:0,sy:0,atkQ:false,jumpQ:false,spQ:false,dashQ:false,upLatch:false};
-const stick=$('stick'),knob=$('knob');let stickId=null;
-function stickSet(e){const r=stick.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let dx=e.clientX-cx,dy=e.clientY-cy;const m=Math.hypot(dx,dy),R=r.width/2;if(m>R){dx*=R/m;dy*=R/m;}hum.sx=dx/R;hum.sy=dy/R;knob.style.transform=`translate(${dx}px,${dy}px)`;if(hum.sy<-.65&&!hum.upLatch){hum.upLatch=true;hum.jumpQ=true;}if(hum.sy>-.4)hum.upLatch=false;}
-function stickOff(){stickId=null;hum.sx=hum.sy=0;hum.upLatch=false;knob.style.transform='';}
-$('pad').addEventListener('pointerdown',e=>{if(e.target.closest('.btn'))return;const r=$('pad').getBoundingClientRect();if(e.clientX-r.left<r.width*.5&&stickId===null){stickId=e.pointerId;stickSet(e);}});
-addEventListener('pointermove',e=>{if(e.pointerId===stickId)stickSet(e);});
-addEventListener('pointerup',e=>{if(e.pointerId===stickId)stickOff();});
-addEventListener('pointercancel',e=>{if(e.pointerId===stickId)stickOff();});
-function bindBtn(id,down,up){const b=$(id);b.addEventListener('pointerdown',e=>{e.preventDefault();try{b.setPointerCapture(e.pointerId);}catch(_){}b.classList.add('on');down();});const off=()=>{b.classList.remove('on');up&&up();};b.addEventListener('pointerup',off);b.addEventListener('pointercancel',off);b.addEventListener('lostpointercapture',off);}
-bindBtn('bAtk',()=>{hum.atkQ=true;});bindBtn('bJump',()=>{hum.jumpQ=true;});bindBtn('bSp',()=>{hum.spQ=true;});bindBtn('bDash',()=>{hum.dashQ=true;});
+TGPad.mount('#pad',{keys:false,labels:{A:'かみつき',B:'ジャンプ',X:'箒星',Y:'ダッシュ'}});
+TGPad.on('A',d=>{if(d)hum.atkQ=true;});TGPad.on('B',d=>{if(d)hum.jumpQ=true;});TGPad.on('X',d=>{if(d)hum.spQ=true;});TGPad.on('Y',d=>{if(d)hum.dashQ=true;});
 const keys={};
 addEventListener('keydown',e=>{if(e.repeat)return;keys[e.key]=true;if(e.key==='j'||e.key==='z')hum.atkQ=true;if(e.key==='k'||e.key==='x'||e.key===' '||e.key==='ArrowUp'||e.key==='w')hum.jumpQ=true;if(e.key==='i'||e.key==='c')hum.spQ=true;if(e.key==='l'||e.key==='Shift'||e.key==='v')hum.dashQ=true;});
 addEventListener('keyup',e=>{keys[e.key]=false;});
-function humanInput(){let mx=hum.sx;if(Math.abs(mx)<.2)mx=0;if(keys.ArrowLeft||keys.a)mx=-1;if(keys.ArrowRight||keys.d)mx=1;
+function humanInput(){hum.sx=TGPad.stick.x;hum.sy=TGPad.stick.y;if(hum.sy<-.65&&!hum.upLatch){hum.upLatch=true;hum.jumpQ=true;}if(hum.sy>-.4)hum.upLatch=false;let mx=hum.sx;if(Math.abs(mx)<.2)mx=0;if(keys.ArrowLeft||keys.a)mx=-1;if(keys.ArrowRight||keys.d)mx=1;
  const I={mx,atk:hum.atkQ,jump:hum.jumpQ,sp:hum.spQ,dash:hum.dashQ};hum.atkQ=hum.jumpQ=hum.spQ=hum.dashQ=false;return I;}
 
 /* ================= データ ================= */
@@ -764,7 +752,7 @@ function hud(g,t){if(!P)return;
   else if(card.big){g.font='bold 24px sans-serif';g.strokeStyle='#402000';g.lineWidth=5;g.strokeText(card.s,VW/2,VH*.33);g.fillStyle='#fff3a0';g.fillText(card.s,VW/2,VH*.33);}
   else{g.fillStyle='rgba(0,0,0,.5)';g.fillRect(0,VH*.36,VW,60);g.fillStyle='#fff3a0';g.font='bold 14px sans-serif';g.fillText(card.s,VW/2,VH*.36+22);g.fillStyle='#fff';g.font='bold 22px sans-serif';g.fillText(card.s2,VW/2,VH*.36+48);}
   g.globalAlpha=1;g.textAlign='left';}
- const bs=$('bSp');const rd=P.star>=100;if(bs.classList.contains('ready')!==rd)bs.classList.toggle('ready',rd);const bd=$('bDash');const cd=P.dashCD>0;if(bd.classList.contains('cd')!==cd)bd.classList.toggle('cd',cd);}
+ TGPad.glow('X',P.star>=100);TGPad.enable('Y',!(P.dashCD>0));}
 function stageText(s,d){stageCard={s,t:0,d:d||1.4,big:1};}
 function drawTitle(g,t){const sky=g.createLinearGradient(0,0,0,VH);sky.addColorStop(0,'#060a24');sky.addColorStop(.7,'#24306a');sky.addColorStop(1,'#4a3a7a');g.fillStyle=sky;g.fillRect(0,0,VW,VH);skyStars(g,t,110,1);
  const cx=(t*14)%600;cometSky(g,t,440-cx*.3,30+cx*.05,2);

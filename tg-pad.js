@@ -12,6 +12,8 @@
        TGPad.pressed('A')          // 押した瞬間だけ true（読むと消える）
        TGPad.released('A')         // 離した瞬間だけ true
        TGPad.on('A', down=>{})     // 押した/離したときのコールバック
+     TGPad.glow('X',true)        // ボタンを光らせる（必殺技OKなど）
+   mount のオプション: labels(ラベル。書かれていないボタンは薄く表示) / off / hide / keys:false(キーボード割当を使わない)
    キーボード: 矢印/WASD=スティック  K=A  J=B  I=X  U=Y  Q=L  E=R  Enter=START  Shift=SELECT
    ゲームパッド: 標準配置（右=A 下=B 上=X 左=Y LB/LT=L RB/RT=R START SELECT(BACK) 左スティック/十字キー）
    ============================================================ */
@@ -54,6 +56,9 @@
 .tgp-s.on i{transform:translateY(2px);box-shadow:0 1px 0 #101118,0 0 10px rgba(160,180,255,.5)}
 .tgp-s.on{color:#dfe4ff}
 .tgp-hide{display:none!important}
+.tgp-off{opacity:.28;filter:grayscale(.6)}
+.tgp-glow{animation:tgpglow .55s ease-in-out infinite alternate}
+@keyframes tgpglow{to{box-shadow:0 5px 0 var(--sh),0 0 20px var(--c),0 0 6px #fff,inset 0 2px 0 rgba(255,255,255,.35);filter:brightness(1.25)}}
 @media (max-height:700px){.tgp-base{width:96px;height:96px;bottom:calc(26px + env(safe-area-inset-bottom))}.tgp-face{width:132px;height:132px}.tgp-face .tgp-b{width:46px;height:46px}.tgp-A,.tgp-Y{top:43px}.tgp-B,.tgp-X{left:43px}.tgp-sh{height:28px;bottom:calc(162px + env(safe-area-inset-bottom))}.tgp-face{bottom:calc(24px + env(safe-area-inset-bottom))}}`;
  function shadeHex(c,k){const n=parseInt(c.slice(1),16);let r=n>>16,g=n>>8&255,b=n&255;const f=x=>Math.max(0,Math.min(255,Math.round(k<0?x*(1+k):x+(255-x)*k)));return `rgb(${f(r)},${f(g)},${f(b)})`;}
  let root=null,knob=null,base=null,stickId=null,opts={};const els={};
@@ -63,11 +68,11 @@
   const s=[stick.touch,stick.gp,stick.key].find(v=>Math.hypot(v.x,v.y)>0.01)||{x:0,y:0};stick.x=s.x;stick.y=s.y;}
  function mount(sel,o){opts=o||{};const host=typeof sel==='string'?document.querySelector(sel):sel;if(!host)return;
   if(!document.getElementById('tgp-css')){const s=document.createElement('style');s.id='tgp-css';s.textContent=css;document.head.appendChild(s);}
-  const lb=Object.assign({A:'',B:'',X:'',Y:'',L:'',R:'',START:'',SELECT:''},opts.labels||{});const hide=new Set(opts.hide||[]);
+  const lb=Object.assign({A:'',B:'',X:'',Y:'',L:'',R:'',START:'',SELECT:''},opts.labels||{});const hide=new Set(opts.hide||[]);const off=new Set(opts.off||(opts.labels?BTN.filter(b=>!(b in opts.labels)):[]));
   root=document.createElement('div');root.className='tgp';
-  root.innerHTML=`<div class="tgp-zone"></div><div class="tgp-base"><div class="tgp-knob"></div></div><div class="tgp-face">${['X','Y','A','B'].map(b=>`<div class="tgp-b tgp-${b}" data-b="${b}"><b>${b}</b>${lb[b]?`<small>${lb[b]}</small>`:''}</div>`).join('')}</div>${['L','R'].map(b=>`<div class="tgp-sh tgp-${b}" data-b="${b}"><b>${b}</b>${lb[b]?`<small>${lb[b]}</small>`:''}</div>`).join('')}<div class="tgp-sys">${['SELECT','START'].map(b=>`<div class="tgp-s" data-b="${b}"><i></i><span>${lb[b]||b}</span></div>`).join('')}</div>`;
+  root.innerHTML=`<div class="tgp-zone"></div><div class="tgp-base"><div class="tgp-knob"></div></div><div class="tgp-face">${['X','Y','A','B'].map(b=>`<div class="tgp-b tgp-${b}" data-b="${b}"><b>${b}</b>${lb[b]?`<small>${lb[b]}</small>`:''}</div>`).join('')}</div>${['L','R'].map(b=>`<div class="tgp-sh tgp-${b}" data-b="${b}"><b>${b}</b>${lb[b]?`<small>${lb[b]}</small>`:''}</div>`).join('')}<div class="tgp-sys">${['SELECT','START'].map(b=>`<div class="tgp-s" data-b="${b}"><i></i><span>${b}</span></div>`).join('')}</div>`;
   host.innerHTML='';host.appendChild(root);knob=root.querySelector('.tgp-knob');base=root.querySelector('.tgp-base');
-  root.querySelectorAll('[data-b]').forEach(el=>{const b=el.dataset.b;els[b]=el;if(hide.has(b))el.classList.add('tgp-hide');
+  root.querySelectorAll('[data-b]').forEach(el=>{const b=el.dataset.b;els[b]=el;if(hide.has(b))el.classList.add('tgp-hide');if(off.has(b))el.classList.add('tgp-off');
    const c=COL[b]||'#5a5e70';el.style.setProperty('--c',c);el.style.setProperty('--hl',shadeHex(c,.45));el.style.setProperty('--dk',shadeHex(c,-.35));el.style.setProperty('--sh',shadeHex(c,-.6));
    const ids=new Set();
    el.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();try{el.setPointerCapture(e.pointerId);}catch(_){}ids.add(e.pointerId);setBtn(b,'touch',true);sync();});
@@ -83,8 +88,8 @@
  // キーボード
  const kd={};
  function keyStick(){let x=0,y=0;if(kd.ArrowLeft||kd.a||kd.A)x-=1;if(kd.ArrowRight||kd.d||kd.D)x+=1;if(kd.ArrowUp||kd.w||kd.W)y-=1;if(kd.ArrowDown||kd.s||kd.S)y+=1;const m=Math.hypot(x,y)||1;stick.key.x=x/m;stick.key.y=y/m;}
- addEventListener('keydown',e=>{if(e.target&&/INPUT|TEXTAREA/.test(e.target.tagName))return;kd[e.key]=true;if(KEYS[e.key]){setBtn(KEYS[e.key],'key',true);}keyStick();sync();if(KEYS[e.key]||/^Arrow/.test(e.key))e.preventDefault();});
- addEventListener('keyup',e=>{kd[e.key]=false;if(KEYS[e.key])setBtn(KEYS[e.key],'key',false);keyStick();sync();});
+ addEventListener('keydown',e=>{if(opts.keys===false)return;if(e.target&&/INPUT|TEXTAREA/.test(e.target.tagName))return;kd[e.key]=true;if(KEYS[e.key]){setBtn(KEYS[e.key],'key',true);}keyStick();sync();if(KEYS[e.key]||/^Arrow/.test(e.key))e.preventDefault();});
+ addEventListener('keyup',e=>{if(opts.keys===false)return;kd[e.key]=false;if(KEYS[e.key])setBtn(KEYS[e.key],'key',false);keyStick();sync();});
  addEventListener('blur',()=>{for(const k in kd)kd[k]=false;for(const b of BTN)st.key[b]=false;keyStick();sync();});
  // ゲームパッド
  function pollGP(){const pads=navigator.getGamepads?navigator.getGamepads():[];let p=null;for(const g of pads)if(g&&g.connected){p=g;break;}
@@ -99,6 +104,8 @@
   on:(b,f)=>{(cbs[b]=cbs[b]||[]).push(f);},
   label:(b,s)=>{const el=els[b];if(!el)return;if(b==='START'||b==='SELECT'){el.querySelector('span').textContent=s||b;return;}let sm=el.querySelector('small');if(!s){if(sm)sm.remove();return;}if(!sm){sm=document.createElement('small');el.appendChild(sm);}sm.textContent=s;},
   show:(b,v)=>{if(els[b])els[b].classList.toggle('tgp-hide',!v);},
+  enable:(b,v)=>{if(els[b])els[b].classList.toggle('tgp-off',!v);},
+  glow:(b,v)=>{const el=els[b];if(el&&el.classList.contains('tgp-glow')!==!!v)el.classList.toggle('tgp-glow',!!v);},
   dir8:()=>{const m=Math.hypot(stick.x,stick.y);if(m<.3)return -1;return Math.round(((Math.atan2(stick.y,stick.x)+Math.PI*2)%(Math.PI*2))/(Math.PI/4))%8;},
   reset:()=>{for(const s of ['touch','key','gp'])for(const b of BTN)st[s][b]=false;stick.touch.x=stick.touch.y=0;sync();}};
  window.TGPad=api;})();
