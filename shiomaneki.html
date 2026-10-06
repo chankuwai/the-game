@@ -1,0 +1,1329 @@
+<!doctype html><html><head><meta charset=utf8><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#0a1315;color:#e6d9bc}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><script>/* tg-common: クリア記録・最近遊んだゲーム */
+(function(){var id=(location.pathname.split('/').pop()||'').replace(/\.html$/,'');window.__tgAutoEver=false;
+ addEventListener('tgauto',function(){if(window.tgAuto)window.__tgAutoEver=true;});
+ window.tgClear=function(gid,info){try{if(window.tgAuto||window.tgAutoUsed||window.__tgAutoEver)return;gid=gid||id;var o=JSON.parse(localStorage.getItem('tg_clear')||'{}');var r=o[gid]||{n:0};r.n=(r.n||0)+1;r.t=Date.now();if(info)r.info=info;o[gid]=r;localStorage.setItem('tg_clear',JSON.stringify(o));}catch(e){}};
+ try{var a=JSON.parse(localStorage.getItem('tg_recent')||'[]').filter(function(x){return x.id!==id;});a.unshift({id:id,t:Date.now()});localStorage.setItem('tg_recent',JSON.stringify(a.slice(0,10)));}catch(e){}})();
+</script>
+</head><body>
+<title>潮招きの夜</title>
+<meta name="description" content="昭和七年の漁村を舞台にした、百面骰子と正気度で進むひとり用の怪奇探索ゲーム。御蔭浦怪異譚 第一章。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700;800&family=Zen+Old+Mincho:wght@400;700&family=Yuji+Syuku&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* 夜の海に浮かぶ和紙の手記。ヘッダーに探索者の容態、中央に一枚の紙。判定は朱の判子で下る。 */
+:root{
+  --sea:#0a1315; --sea2:#11201f; --sea3:#1b2f2e; --foam:#93aca5;
+  --paper:#e6d9bc; --paper2:#d6c49f; --paper3:#c7b18a;
+  --ink:#221b14; --ink2:#5a4c3b; --ink3:#857257;
+  --brass:#c39b56; --rust:#a8321f; --blood:#7a1d13; --kelp:#3f5b45;
+  --f-disp:"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho",serif;
+  --f-body:"Zen Old Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
+  --f-brush:"Yuji Syuku","Shippori Mincho B1","Yu Mincho",serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --dread:0;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--sea);color:var(--paper);font-family:var(--f-body);font-size:16px;line-height:1.9;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+.wrap{max-width:720px;margin:0 auto;padding-inline:16px;padding-block:0 48px}
+
+/* 背景の海 */
+#bgsea{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+#vignette{position:fixed;inset:0;pointer-events:none;z-index:40;background:radial-gradient(ellipse at center,transparent 35%,rgba(60,6,4,.55) 100%);opacity:var(--dread);transition:opacity 1.2s}
+main{position:relative;z-index:1}
+
+/* タイトル */
+.title-screen{min-height:100%;display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:center;padding-block:56px 40px}
+.vtitle{writing-mode:vertical-rl;font-family:var(--f-brush);font-size:clamp(52px,14vw,92px);line-height:1.05;letter-spacing:.08em;color:var(--paper);text-shadow:0 0 24px rgba(0,0,0,.8);margin:0}
+.vtitle small{display:block;font-family:var(--f-disp);font-size:.2em;letter-spacing:.4em;color:var(--brass);margin-left:.9em;font-weight:700}
+.title-side{display:flex;flex-direction:column;gap:18px;min-width:0}
+.title-side p{margin:0;color:var(--foam);font-size:15px;max-width:30em}
+.title-side .era{font-family:var(--f-mono);font-size:11px;letter-spacing:.2em;color:var(--brass);text-transform:uppercase}
+.menu{display:flex;flex-direction:column;gap:10px;margin-top:8px}
+.btn{background:transparent;border:1px solid rgba(195,155,86,.55);color:var(--paper);padding:12px 18px;text-align:left;font-family:var(--f-disp);font-weight:700;letter-spacing:.12em;font-size:16px;transition:background .2s,border-color .2s}
+.btn:hover{background:rgba(195,155,86,.12);border-color:var(--brass)}
+.btn.primary{background:var(--paper);color:var(--ink);border-color:var(--paper)}
+.btn.primary:hover{background:var(--paper2)}
+.btn[disabled]{opacity:.35;cursor:default}
+.btn small{display:block;font-family:var(--f-body);font-weight:400;font-size:12px;letter-spacing:.04em;opacity:.75}
+
+/* 紙 */
+.paper{position:relative;background:var(--paper);color:var(--ink);padding:28px 24px 26px;box-shadow:inset 0 0 70px rgba(110,78,30,.38),0 18px 50px rgba(0,0,0,.55);
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .45  0 0 0 0 .33  0 0 0 0 .18  0 0 0 .16 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+.paper::before{content:"";position:absolute;inset:8px;border:1px solid rgba(90,76,59,.28);pointer-events:none}
+.paper h2{font-family:var(--f-disp);font-weight:800;font-size:clamp(24px,6vw,32px);letter-spacing:.08em;margin:0 0 4px;line-height:1.4;text-wrap:balance}
+.paper .place{font-family:var(--f-mono);font-size:11px;letter-spacing:.22em;color:var(--ink3);text-transform:uppercase;margin-bottom:14px;display:flex;gap:12px;flex-wrap:wrap}
+.story p{margin:0 0 1.05em;font-size:16.5px;max-width:34em}
+.story p.fade{animation:inkin .7s both}
+@keyframes inkin{from{opacity:0;filter:blur(3px)}to{opacity:1;filter:none}}
+.doc{margin:6px 0 18px;padding:14px 16px;background:rgba(199,177,138,.45);border-left:3px solid var(--ink3);font-family:var(--f-brush);font-size:17px;line-height:1.85;color:#2c2318}
+.msgs{display:flex;flex-direction:column;gap:6px;margin:4px 0 16px}
+.msg{font-size:13px;padding:6px 10px;border:1px dashed var(--ink3);color:var(--ink2);font-family:var(--f-body)}
+.msg.clue{border-color:var(--kelp);color:var(--kelp)}
+.msg.bad{border-color:var(--rust);color:var(--blood)}
+.msg.item{border-color:var(--brass);color:#6b4f1d}
+
+.choices{display:flex;flex-direction:column;margin-top:10px;border-top:1px solid rgba(90,76,59,.35)}
+.choice{display:flex;justify-content:space-between;align-items:center;gap:12px;background:none;border:0;border-bottom:1px solid rgba(90,76,59,.35);padding:13px 4px;text-align:left;color:var(--ink);font-family:var(--f-body);font-size:16px;font-weight:700;transition:background .15s,padding .15s}
+.choice:hover:not([disabled]){background:rgba(168,50,31,.07);padding-left:10px}
+.choice .lab{min-width:0}
+.choice .lab::before{content:"一 ";color:var(--rust);font-weight:400}
+.choice .badge{flex:none;font-family:var(--f-mono);font-size:11.5px;font-weight:600;color:var(--paper);background:var(--ink);padding:3px 8px;letter-spacing:.04em;white-space:nowrap}
+.choice .badge.h{background:var(--blood)}
+.choice .badge.e{background:#4a0d07}
+.choice .badge.san{background:var(--kelp)}
+.choice[disabled]{opacity:.42;cursor:default}
+.choice[disabled] .badge{background:var(--ink3)}
+.choice.forced{justify-content:center;background:var(--ink);color:var(--paper);margin-top:6px;border:0}
+.choice.forced .lab::before{content:""}
+.choice.forced:hover{background:#3a2e22;padding-left:4px}
+
+/* ヘッダー */
+.hud{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:linear-gradient(var(--sea) 70%,rgba(10,19,21,0));padding-block:10px 14px;margin-bottom:6px}
+.hud-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.hud-name{font-family:var(--f-disp);font-weight:700;letter-spacing:.08em;font-size:15px}
+.hud-name span{font-family:var(--f-body);font-weight:400;color:var(--foam);font-size:12px;margin-left:8px}
+.hud-time{font-family:var(--f-mono);font-size:11px;letter-spacing:.14em;color:var(--brass)}
+.meters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:8px}
+.meter{min-width:0}
+.meter .ml{display:flex;justify-content:space-between;font-size:11px;font-family:var(--f-mono);color:var(--foam);letter-spacing:.06em}
+.meter .ml b{color:var(--paper);font-weight:600;font-variant-numeric:tabular-nums}
+.bar{height:4px;background:var(--sea3);margin-top:3px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--paper2);transition:width .6s}
+.meter.hp .bar i{background:#b5523c}
+.meter.san .bar i{background:#7fa396}
+.meter.luck .bar i{background:var(--brass)}
+.meter.flash .ml b{animation:flash .9s 2}
+@keyframes flash{50%{color:var(--rust)}}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.chip{font-size:11px;padding:1px 8px;border:1px solid var(--rust);color:#e19a8a;letter-spacing:.05em}
+.tabs{display:flex;gap:0;margin-top:10px;border-bottom:1px solid var(--sea3)}
+.tab{flex:1;background:none;border:0;border-bottom:2px solid transparent;padding:6px 4px 7px;font-family:var(--f-disp);font-weight:700;letter-spacing:.2em;font-size:13px;color:var(--foam)}
+.tab.on{color:var(--paper);border-bottom-color:var(--brass)}
+.tab .n{font-family:var(--f-mono);font-size:10px;margin-left:4px;color:var(--brass);letter-spacing:0}
+.toolbar{display:flex;gap:8px}
+.tbtn{background:none;border:1px solid var(--sea3);color:var(--foam);font-size:11px;padding:2px 8px;font-family:var(--f-mono);letter-spacing:.08em}
+.tbtn.on{border-color:var(--brass);color:var(--brass)}
+
+/* 地図 */
+.map{margin:6px 0 10px;border:1px solid rgba(90,76,59,.4);background:rgba(199,177,138,.35);overflow:hidden}
+.map svg{display:block;width:100%;height:auto}
+.pin{cursor:pointer}
+.pin circle.dot{fill:var(--ink);transition:r .2s}
+.pin:hover circle.dot,.pin:focus circle.dot{fill:var(--rust)}
+.pin text{font-family:var(--f-disp);font-weight:700;font-size:12px;fill:var(--ink);paint-order:stroke;stroke:var(--paper);stroke-width:3px}
+.pin .seen{fill:none;stroke:var(--rust);stroke-width:1.4;opacity:.8}
+.loc-sub{font-size:12px;font-weight:400;color:var(--ink2);display:block}
+.left{font-family:var(--f-mono);font-size:12px;color:var(--ink2);margin-bottom:6px}
+
+/* 戦闘 */
+.combat{margin:6px 0 4px;padding:14px;border:1px solid var(--ink);background:rgba(34,27,20,.06)}
+.combat .foe{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
+.combat .foe b{font-family:var(--f-disp);font-size:20px;letter-spacing:.1em}
+.combat .state{font-size:12px;font-family:var(--f-mono);color:var(--blood)}
+.clog{list-style:none;padding:0;margin:10px 0;font-size:13.5px;line-height:1.7;max-height:220px;overflow-y:auto}
+.clog li{padding:3px 0;border-bottom:1px dotted rgba(90,76,59,.35)}
+.clog li.you{color:var(--ink)}
+.clog li.foe{color:var(--blood)}
+.clog .r{font-family:var(--f-mono);font-size:11.5px;color:var(--ink2)}
+.cbtns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.cbtn{background:var(--ink);color:var(--paper);border:0;padding:10px 8px;font-family:var(--f-disp);font-weight:700;letter-spacing:.06em;font-size:14px}
+.cbtn small{display:block;font-family:var(--f-mono);font-weight:400;font-size:10.5px;opacity:.75}
+.cbtn:hover{background:var(--blood)}
+.cbtn[disabled]{opacity:.4}
+
+/* ダイス */
+#ov{position:fixed;inset:0;z-index:60;background:rgba(5,10,11,.82);display:grid;place-items:center;padding:16px;backdrop-filter:blur(2px)}
+.ovp{width:min(420px,100%);text-align:center;padding:26px 20px 20px}
+.ov-title{font-family:var(--f-disp);font-weight:800;font-size:22px;letter-spacing:.12em}
+.ov-sub{font-size:13px;color:var(--ink2);margin-top:2px}
+.ov-target{font-family:var(--f-mono);font-size:12.5px;margin-top:10px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.ov-target b{color:var(--ink)}
+.dice{display:flex;justify-content:center;gap:12px;margin:20px 0 6px}
+.die{width:64px;height:72px;display:grid;place-items:center;background:var(--ink);color:var(--paper);font-family:var(--f-mono);font-weight:600;font-size:28px;clip-path:polygon(50% 0,100% 38%,82% 100%,18% 100%,0 38%);font-variant-numeric:tabular-nums}
+.die.pen{background:var(--blood)}
+.die.dim{opacity:.35}
+.die.spin{animation:wob .12s infinite alternate}
+@keyframes wob{from{transform:rotate(-6deg) translateY(-2px)}to{transform:rotate(6deg) translateY(2px)}}
+.ov-total{font-family:var(--f-mono);font-weight:600;font-size:40px;line-height:1.2;min-height:50px;font-variant-numeric:tabular-nums}
+.stamp-holder{height:96px;display:grid;place-items:center;margin:4px 0 8px}
+.stamp{font-family:var(--f-brush);font-size:30px;color:var(--rust);border:3px solid var(--rust);padding:6px 18px;border-radius:6px;transform:rotate(-8deg);letter-spacing:.1em;opacity:.92;mix-blend-mode:multiply;animation:stampin .32s cubic-bezier(.2,1.6,.4,1) both}
+.stamp.fail{color:#3d3428;border-color:#3d3428}
+.stamp.fumble{color:#fff;background:var(--blood);border-color:var(--blood);mix-blend-mode:normal}
+.stamp.crit{border-width:5px;border-style:double;font-size:34px}
+@keyframes stampin{from{transform:rotate(-8deg) scale(2.2);opacity:0}to{transform:rotate(-8deg) scale(1);opacity:.92}}
+.ov-note{font-size:14px;min-height:1.6em;color:var(--ink);margin-bottom:12px}
+.ov-btns{display:flex;flex-direction:column;gap:8px}
+.ov-btns .btn{color:var(--ink);border-color:var(--ink3);text-align:center}
+.ov-btns .btn.primary{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+
+/* 作成 */
+.sect{margin:22px 0 10px;font-family:var(--f-disp);font-weight:800;letter-spacing:.16em;font-size:15px;display:flex;align-items:baseline;gap:10px}
+.sect::after{content:"";flex:1;border-bottom:1px solid rgba(90,76,59,.4)}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:12px;color:var(--ink2);letter-spacing:.1em}
+.field input{background:rgba(255,255,255,.35);border:0;border-bottom:2px solid var(--ink);padding:8px 6px;font-family:var(--f-disp);font-weight:700;font-size:20px;color:var(--ink);letter-spacing:.08em}
+.occs{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px}
+.occ{background:transparent;border:1px solid rgba(90,76,59,.45);padding:10px 12px;text-align:left;color:var(--ink);min-width:0}
+.occ b{font-family:var(--f-disp);font-size:16px;letter-spacing:.08em}
+.occ span{display:block;font-size:12px;color:var(--ink2);line-height:1.6;margin-top:2px}
+.occ.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.occ.on span{color:var(--paper3)}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.stat{border:1px solid rgba(90,76,59,.4);padding:6px 4px;text-align:center;min-width:0}
+.stat .k{font-family:var(--f-mono);font-size:11px;color:var(--ink2);letter-spacing:.1em}
+.stat .v{font-family:var(--f-mono);font-weight:600;font-size:22px;font-variant-numeric:tabular-nums}
+.stat .j{font-size:10.5px;color:var(--ink3)}
+.derived{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:8px}
+.derived div{font-size:13px;display:flex;justify-content:space-between;border-bottom:1px dotted rgba(90,76,59,.45);padding:2px 2px}
+.derived b{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.hobbies{display:flex;flex-wrap:wrap;gap:6px}
+.hob{background:transparent;border:1px solid rgba(90,76,59,.5);padding:4px 10px;font-size:13px;color:var(--ink)}
+.hob.on{background:var(--rust);color:var(--paper);border-color:var(--rust)}
+.hint{font-size:12.5px;color:var(--ink2);margin:4px 0 8px}
+.rowbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.pbtn{background:var(--ink);color:var(--paper);border:0;padding:10px 16px;font-family:var(--f-disp);font-weight:700;letter-spacing:.12em}
+.pbtn.ghost{background:transparent;color:var(--ink);border:1px solid var(--ink)}
+.pbtn:hover{background:var(--blood);color:var(--paper)}
+
+/* 手帳・探索者 */
+.clues{display:flex;flex-direction:column;gap:12px}
+.clue{padding-bottom:10px;border-bottom:1px solid rgba(90,76,59,.3)}
+.clue b{font-family:var(--f-disp);letter-spacing:.06em}
+.clue p{margin:2px 0 0;font-size:14.5px;color:var(--ink2)}
+.clue.unk b{color:var(--ink3);font-weight:400}
+.skills{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 16px}
+.sk{display:flex;justify-content:space-between;font-size:14px;border-bottom:1px dotted rgba(90,76,59,.4);padding:3px 0}
+.sk b{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.sk .ck{color:var(--rust);font-size:11px;margin-left:4px}
+.items{display:flex;flex-direction:column;gap:8px}
+.it{display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px dotted rgba(90,76,59,.45);padding:4px 0}
+.it span{min-width:0}
+.it small{display:block;color:var(--ink2);font-size:12px}
+.it button{flex:none;background:var(--ink);color:var(--paper);border:0;padding:4px 10px;font-size:12px}
+.it button[disabled]{opacity:.35}
+
+/* 結末 */
+.ending-mark{font-family:var(--f-brush);color:var(--rust);font-size:15px;letter-spacing:.3em}
+.ending-title{font-family:var(--f-brush);font-size:clamp(34px,10vw,52px);line-height:1.3;margin:4px 0 18px;letter-spacing:.06em}
+.summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 16px;font-size:14px;margin-top:6px}
+.summary div{display:flex;justify-content:space-between;border-bottom:1px dotted rgba(90,76,59,.45)}
+.summary b{font-family:var(--f-mono)}
+.growth{font-size:13.5px;margin:6px 0 0;padding:0;list-style:none}
+.growth li{display:flex;justify-content:space-between;border-bottom:1px dotted rgba(90,76,59,.35);padding:2px 0}
+.growth .up{color:var(--kelp);font-weight:700}
+.gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.gal{border:1px solid rgba(90,76,59,.45);padding:10px;min-width:0}
+.gal .rk{font-family:var(--f-brush);color:var(--rust);font-size:13px}
+.gal b{display:block;font-family:var(--f-disp);font-size:16px;letter-spacing:.06em}
+.gal.lock b{color:var(--ink3);font-weight:400}
+.gal p{font-size:12px;margin:2px 0 0;color:var(--ink2);line-height:1.6}
+.rules p{font-size:15px}
+.chno{font-family:var(--f-brush);font-weight:400;margin-right:10px;letter-spacing:.1em}
+.btn.chap[disabled]{opacity:.4}
+.lrow{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.lst{font-size:12px;padding:0 8px;border:1px solid var(--rust);color:var(--blood)}
+.lst.ok{border-color:var(--kelp);color:var(--kelp)}
+.pbtn.small{padding:4px 10px;font-size:12px}
+.ttl{font-family:var(--f-brush);color:var(--rust);letter-spacing:.12em;margin:2px 0}
+.ttl.big{font-size:20px;margin:0 0 6px}
+.rules dt{font-family:var(--f-disp);font-weight:700;margin-top:10px}
+.rules dd{margin:0 0 6px;font-size:14.5px;color:var(--ink2)}
+
+/* 狂気の表現 */
+body.warp .story p{animation:warp 7s infinite}
+@keyframes warp{0%,92%,100%{transform:none;filter:none}93%{transform:translateX(1px) skewX(-1deg);filter:blur(.4px)}95%{transform:translateX(-2px);text-shadow:2px 0 rgba(168,50,31,.35)}}
+.back{background:none;border:0;color:var(--foam);font-family:var(--f-mono);font-size:12px;letter-spacing:.14em;padding:14px 0}
+
+@media (max-width:480px){
+  .paper{padding:22px 16px 20px}
+  .title-screen{grid-template-columns:1fr;justify-items:start}
+  .vtitle{writing-mode:vertical-rl;margin:0 auto}
+  .stats{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .derived,.skills,.summary{grid-template-columns:1fr 1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+
+<canvas id="bgsea" aria-hidden="true"></canvas>
+<div id="vignette"></div>
+<main id="app"></main>
+<div id="ov" hidden><div class="paper ovp" role="dialog" aria-live="polite">
+  <div class="ov-title" id="ovT"></div>
+  <div class="ov-sub" id="ovS"></div>
+  <div class="ov-target" id="ovG"></div>
+  <div class="dice"><div class="die" id="dT">00</div><div class="die pen" id="dP" hidden>00</div><div class="die" id="dU">0</div></div>
+  <div class="ov-total" id="ovV"></div>
+  <div class="stamp-holder" id="ovStamp"></div>
+  <div class="ov-note" id="ovN"></div>
+  <div class="ov-btns" id="ovB"></div>
+</div></div>
+
+<script>
+"use strict";
+/* ================= 基本ユーティリティ ================= */
+const $=s=>document.querySelector(s);
+const d=n=>1+Math.floor(Math.random()*n);
+function dice(expr){let t=0;String(expr).replace(/\s/g,'').split('+').forEach(p=>{const m=p.match(/^(\d*)d(\d+)$/i);if(m){const c=+(m[1]||1);for(let i=0;i<c;i++)t+=d(+m[2]);}else t+=(+p||0);});return t;}
+function diceMax(expr){let t=0;String(expr).replace(/\s/g,'').split('+').forEach(p=>{const m=p.match(/^(\d*)d(\d+)$/i);if(m)t+=(+(m[1]||1))*(+m[2]);else t+=(+p||0);});return t;}
+const fmtDice=e=>String(e).toUpperCase().replace(/D/g,'D');
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const LS={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
+const SAVE_KEY='shiomaneki-save-v1', END_KEY='shiomaneki-endings-v1', LEDGER_KEY='mikage-ledger-v1';
+const SERIES='御蔭浦怪異譚';
+const CHAPTERS=[
+  {no:1,n:'潮招きの夜',d:'昭和七年秋。旧友の手紙に呼ばれ、満月の漁村へ。',start:'p1',open:true},
+  {no:2,n:'第二章',d:'準備中。生き延びた探索者と、第一章の結末を引き継いで遊べる。',open:false},
+  {no:3,n:'第三章',d:'準備中。',open:false}
+];
+const KANJI_NO=['','一','二','三','四','五','六','七','八','九'];
+
+/* ================= 規則 ================= */
+const TIER={fumble:{r:0,t:'致命的失敗',c:'fumble'},fail:{r:1,t:'失敗',c:'fail'},reg:{r:2,t:'成功',c:''},hard:{r:3,t:'ハード成功',c:''},ext:{r:4,t:'イクストリーム成功',c:''},crit:{r:5,t:'決定的成功',c:'crit'}};
+const LV={r:{n:2,t:'レギュラー'},h:{n:3,t:'ハード'},e:{n:4,t:'イクストリーム'}};
+function d100(pen){const u=d(10)-1;const tens=[];for(let i=0;i<=pen;i++)tens.push(d(10)-1);const vals=tens.map(t=>{const v=t*10+u;return v===0?100:v});let best=0;vals.forEach((v,i)=>{if(v>vals[best])best=i});return{val:vals[best],tens,units:u,used:best};}
+function resolve(v,skill){if(v===1)return'crit';if((skill<50&&v>=96)||v===100)return'fumble';if(v<=Math.floor(skill/5))return'ext';if(v<=Math.floor(skill/2))return'hard';if(v<=skill)return'reg';return'fail';}
+function lvTarget(v,lv){return lv==='h'?Math.floor(v/2):lv==='e'?Math.floor(v/5):v}
+
+const SKILLS=['目星','聞き耳','図書館','説得','言いくるめ','心理学','隠密','回避','応急手当','医学','オカルト','歴史','鍵開け','水泳','拳銃','こぶし','クトゥルフ神話'];
+const BASE={目星:25,聞き耳:20,図書館:20,説得:10,言いくるめ:5,心理学:10,隠密:20,回避:0,応急手当:30,医学:1,オカルト:5,歴史:5,鍵開け:1,水泳:20,拳銃:20,こぶし:25,クトゥルフ神話:0};
+const STATK=['STR','CON','SIZ','DEX','APP','INT','POW','EDU'];
+const STATJ={STR:'筋力',CON:'体力',SIZ:'体格',DEX:'敏捷',APP:'外見',INT:'知性',POW:'精神',EDU:'教育'};
+const OCC={
+  kisha:{n:'新聞記者',d:'東京日日の社会部。足で稼ぐ取材と口の上手さ。',sk:{目星:55,図書館:60,説得:50,言いくるめ:55,心理学:45,聞き耳:45},items:['カメラ']},
+  tantei:{n:'私立探偵',d:'神田に事務所を構える元刑事。錠前と尾行はお手の物。',sk:{目星:65,聞き耳:55,鍵開け:55,隠密:50,心理学:50,拳銃:50},items:['拳銃','懐中電灯']},
+  ishi:{n:'医師',d:'本郷の開業医。冷静な観察眼と手当ての腕。',sk:{医学:70,応急手当:65,心理学:55,図書館:45,説得:45,目星:40},items:['救急鞄']},
+  minzoku:{n:'民俗学者',d:'久我の学友。古文書と土地の信仰に通じる。',sk:{歴史:65,オカルト:60,図書館:70,説得:45,目星:45,聞き耳:40},items:['懐中電灯']},
+  gunjin:{n:'元軍人',d:'満州帰りの元陸軍曹長。荒事と泳ぎには自信がある。',sk:{拳銃:60,こぶし:60,水泳:55,隠密:45,応急手当:45,聞き耳:40},items:['拳銃'],dodge:15}
+};
+const ITEMS={
+  'カメラ':{d:'蛇腹式の写真機。真実を記録する。'},
+  '拳銃':{d:'六連発の回転式拳銃。戦闘で「撃つ」が選べる。'},
+  '懐中電灯':{d:'暗所での目星がやさしくなる。'},
+  '救急鞄':{d:'手当てで回復する量が増える。'},
+  '鎮静剤':{d:'狂気の発作を鎮め、正気度を少し取り戻す。',use:true},
+  '星形の石':{d:'燃える眼を抱いた歪な五芒星。浦の者が畏れる。'},
+  '発破':{d:'漁に使うダイナマイト。導火線付き。'},
+  '祭の装束':{d:'行列の男衆が着る白と藍の装束。'}
+};
+const CLUES={
+  c_letter1:['久我の手紙','御蔭浦の「潮招き」という祭。次の満月、大潮の夜に行われる。'],
+  c_letter2:['二通目の葉書','「来るな。いや、来てくれ」「ここの水は甘い」。筆跡はひどく乱れていた。'],
+  c_faces:['浦の顔','村の男たちは目が左右に離れ、瞬きをせず、首筋がくすんだ灰青色をしている。'],
+  c_diary:['久我の日記','久我の母は浦の出身だった。寺の住職が隠した「星の石」と、神社の縁起に秘密がある。'],
+  c_sayo:['嫁入り','十年に一度、大潮の満月に娘を一人、海坊さまへ嫁がせる。今年は小夜が選ばれた。'],
+  c_genzo:['網元の嘘','汐見源蔵は久我の居場所を知っている。屋敷の奥の古い蔵が怪しい。'],
+  c_kuga:['久我の告白','祭は明晩子の刻、岬の洞で。「星の石」を祭壇に置き、祝詞を逆さに唱えれば門は閉じる。'],
+  c_engi:['御蔭浦縁起','天明の飢饉以来、浦は娘を海の者に嫁がせ、豊漁を得てきた。祭の祝詞が書き写されている。'],
+  c_norito:['裏祝詞','祝詞を終わりから逆さに唱える言葉。扉を閉ざし、来たるものを深みへ押し返す。'],
+  c_grave:['空の墓','墓は内側から破られ、指の長い裸足の足跡が浜へ続いていた。'],
+  c_monk:['住職の覚え書き','星の石を洞の祭壇に置き、祝詞を逆しまに唱えれば門は閉づる。祝詞の写しに逆さ読みの朱印。'],
+  c_birth:['出生記録','浦の子は歳と共に皮膚が硬くなり、目が離れ、最後は海へ入って帰らない。'],
+  c_ritual:['祭の段取り','子の刻に網元の屋敷から行列。余所者は行列の前に「片づける」手筈。'],
+  c_cave:['洞の壁画','娘を差し出す長、海から身を起こす巨大な影。最後には浦人もみな影と同じ姿になる。'],
+  c_route:['潮だまりの抜け道','祭壇の裏から岬の外へ抜ける細い道。満ち潮でも泳げば通れる。'],
+  c_figure:['夜の浜','波に入っていく影の一つは、網小屋の漁師と同じ顔をしていた。']
+};
+const BOUTS=['悲鳴を上げ、しばらく震えが止まらない','意味もなく笑い出し、止められない','足元の床が水に変わったように感じ、立っていられない','誰かの囁きが耳の奥から離れない','自分の手に鱗が生えているように見えて、爪を立ててしまう','その場から逃げ出したい衝動に呑まれる'];
+const PHOBIAS=['海と水を見ると動悸が止まらない（恐水症）','魚の匂いに吐き気を催す','暗がりで誰かに見られていると確信している','眠ると海の底の夢を見る'];
+const TIMES=['一日目・夕刻','一日目・夜','二日目・朝','二日目・昼','二日目・夕刻','二日目・夜　大潮'];
+const ENDINGS={
+  end_true:{t:'夜明けの潮',rk:'真',h:'門は閉ざされ、娘は母のもとへ帰った。'},
+  end_blast:{t:'崩れる岬',rk:'良',h:'洞は崩れ、扉は岩の下に埋もれた。'},
+  end_sayo:{t:'ふたりの逃避行',rk:'可',h:'嫁を失った祭は、果たされなかった。'},
+  end_flee:{t:'去りし者',rk:'生還',h:'祭の前に、あなたは村を去った。'},
+  end_hide:{t:'閉ざされた朝',rk:'生還',h:'戸を閉ざし、朝を待った。'},
+  end_join:{t:'浦の花婿',rk:'堕',h:'海はあたたかく、甘かった。'},
+  end_mad:{t:'潮騒の狂人',rk:'狂',h:'正気は波にさらわれた。'},
+  end_dead:{t:'波間に沈む',rk:'死',h:'あなたは深みへ沈んでいった。'}
+};
+
+/* ================= 状態 ================= */
+let S=null, C=null, UI={screen:'title',tab:'story'};
+const sk=k=>{if(!S)return 0;if(STATK.includes(k))return S.st[k];if(k==='幸運')return S.luck;if(k==='SAN')return S.san;return S.sk[k]||0};
+const has=i=>S.items.includes(i);
+const hasC=c=>S.clues.includes(c);
+const F=()=>S.flags;
+function addMsg(t,k){S.msgs.push({t,k:k||''})}
+function clue(id){if(!hasC(id)){S.clues.push(id);addMsg('手帳に記した ― 「'+CLUES[id][0]+'」','clue')}}
+function item(n){if(!has(n)){S.items.push(n);addMsg('手に入れた ― '+n,'item')}}
+function hurt(n,why){S.hp=Math.max(0,S.hp-n);addMsg((why?why+'　':'')+'耐久力 −'+n,'bad');flash('hp');if(n>=Math.ceil(S.hpMax/2)&&S.hp>0)addMsg('重傷を負った。体が言うことを聞かない','bad');}
+function heal(n,why){const b=S.hp;S.hp=Math.min(S.hpMax,S.hp+n);if(S.hp>b)addMsg((why?why+'　':'')+'耐久力 +'+(S.hp-b),'item')}
+function db(){const x=S.st.STR+S.st.SIZ;if(x<65)return'-2';if(x<85)return'-1';if(x<125)return'0';if(x<165)return'1d4';return'1d6'}
+function dbRoll(){const v=db();if(v.startsWith('-'))return-(+v.slice(1));return dice(v)}
+function save(){if(S)LS.set(SAVE_KEY,S)}
+let flashKey=null;function flash(k){flashKey=k}
+
+/* ================= 探索地点 ================= */
+const LOC={
+  inn:{n:'磯屋',s:'宿。女将のおとよと娘の小夜',x:150,y:150,node:()=> 'inn'},
+  genzo:{n:'汐見家',s:'網元・汐見源蔵の屋敷',x:238,y:104,node:s=>s.slot===1?'kura_sneak':'genzo',night:'夜陰に乗じて蔵へ'},
+  shrine:{n:'御蔭神社',s:'高台の社。神主の波多野',x:78,y:58,node:()=> 'shrine'},
+  temple:{n:'海蔵寺',s:'住職亡き荒れ寺と墓地',x:306,y:62,node:()=> 'temple'},
+  clinic:{n:'鳴海医院',s:'村でただ一人の医者',x:92,y:126,node:()=> 'clinic'},
+  nets:{n:'網小屋',s:'漁師たちと漁協の倉庫',x:196,y:196,node:()=> 'nets'},
+  beach:{n:'浜と岬の洞',s:'引き潮で口を開ける海食洞',x:338,y:196,node:s=>s.slot===1?'beach_night':'beach',night:'夜の浜を歩く'},
+  police:{n:'駐在所',s:'巡査の権藤',x:44,y:172,node:()=> 'police'}
+};
+
+/* ================= シナリオ ================= */
+const N={};
+N.p1={place:'東京・本郷',title:'一通目の手紙',text:[
+ '昭和七年、秋。下宿の郵便受けに、潮の匂いのする封書が差し込まれていた。',
+ '差出人は久我槙夫。帝大で机を並べた旧友で、いまは在野の民俗学者として、地方の祭や伝承を訪ね歩いている。',
+ '§拝啓。御蔭浦（みかげうら）という漁村に逗留している。ここには「潮招き」という奇妙な祭が残っていて、記録した者は誰もいない。次の満月、大潮の夜に執り行われるそうだ。君にもぜひ見てほしい。土地の者は親切だ。少し、親切すぎるくらいに。　槙夫',
+ '消印は六日前。満月は、明後日だった。'],
+ enter:()=>clue('c_letter1'),
+ ch:[{t:'翌朝を待つ',go:'p2'}]};
+N.p2={place:'東京・本郷',title:'二通目の葉書',text:[
+ '翌朝、もう一枚、葉書が届いた。',
+ '宛名は同じ久我の字だったが、ひどく乱れていた。ペンを握る手が、何度も滑ったように。',
+ '§来るな。いや、来てくれ。自分がどちら側の人間なのか、もう分からない。ここの水は甘い。甘いんだ。',
+ '葉書の端は一度濡れて乾き、白い塩の跡を残していた。'],
+ enter:()=>clue('c_letter2'),
+ ch:[{t:'御蔭浦へ向かう',go:'p3'}]};
+N.p3={place:'岬の道',title:'御蔭浦へ',text:[
+ '汽車を二度乗り継ぎ、一日に二本しかない乗合バスの終点で降りる。そこから先は、断崖沿いの細い道を歩くしかなかった。',
+ '日が傾くころ、眼下に小さな入り江が現れた。肩を寄せ合う瓦屋根、干された網、黒い岩の岬。海は凪いでいるのに、どこかで絶えず、低い唸りのような潮騒が聞こえる。',
+ '村の入口で、網を繕う男たちが一斉に顔を上げた。誰も何も言わない。ただ、こちらを見ている。'],
+ ch:[{t:'男たちの顔をよく見る',c:{sk:'目星',lv:'r',ok:'p3_ok',ng:'p3_ng'}},{t:'会釈して通り過ぎる',go:'arrive'}]};
+N.p3_ok={place:'岬の道',title:'浦の顔',text:[
+ '男たちの目は、左右に少し離れすぎていた。瞼はほとんど動かない。首筋の皮膚は、日焼けとは違う、くすんだ灰青色をしている。',
+ '一人が、ゆっくりと唇を舐めた。舌が妙に長く見えたのは、気のせいだろうか。'],
+ enter:()=>clue('c_faces'),san:{ok:'0',ng:'1',why:'人に似て、人と違う顔'},
+ ch:[{t:'目を逸らし、宿を探す',go:'arrive'}]};
+N.p3_ng={place:'岬の道',title:'西日',text:['西日がまぶしく、男たちの顔はよく見えなかった。ただ、彼らが一度も瞬きをしていないような気がした。'],ch:[{t:'宿を探す',go:'arrive'}]};
+N.arrive={place:'磯屋',title:'磯屋',text:[
+ '村に宿は一軒しかなかった。軒先に「磯屋」と墨で書かれた板。迎えに出たのは四十がらみの女将で、おとよと名乗った。',
+ '「久我先生のお知り合い……。先生なら、三日前に岬の方へ出かけたきり、お戻りになりません」',
+ 'おとよは目を伏せたまま、早口でそう言った。奥の土間で、色の白い娘が一人、桶を抱えたままこちらを見ている。目が合うと、娘はすっと奥へ消えた。',
+ '「娘の小夜です。……お部屋は、先生のお隣をご用意します。祭が済むまでは、どうか夜にお出歩きなさいませんよう」',
+ '※ここから探索が始まる。行き先を選ぶたびに時が進む。祭は二日目の夜。それまでに動けるのは五度だけ。'],
+ ch:[{t:'荷を解き、村を見て回る',go:'map'}]};
+
+/* --- 磯屋 --- */
+N.inn={place:'磯屋',title:'磯屋',text:s=>[s.slot<=1?'ランプの灯りが廊下に揺れている。どこか遠くで、誰かが低く歌っている。':'宿の中には干物と潮の匂いがこもっている。帳場で、おとよが算盤を弾く手を止めた。'],
+ ch:[
+  {t:'久我の部屋を調べる',once:'innRoom',c:{sk:'目星',lv:'r',ok:'inn_room_ok',ng:'inn_room_ng',push:true,pf:'inn_room_pf'}},
+  {t:'おとよと話す',need:s=>!s.flags.otoyoCold,lock:'おとよは口を閉ざしている',go:'inn_otoyo'},
+  {t:'小夜と話す',once:'sayo',go:'inn_sayo'},
+  {t:'夕餉の膳につく',once:'meal',need:s=>s.slot<=1,go:'inn_meal'},
+  {t:'宿を出る',end:true}]};
+N.inn_room_ok={place:'磯屋',title:'久我の部屋',text:[
+ '六畳間は几帳面に片付いていた。几帳面すぎる、と言ってもいい。だが畳の一枚だけが、わずかに浮いている。',
+ '畳を上げると、油紙に包んだ帳面の切れ端が出てきた。久我の字だ。',
+ '§十月二日。網元の汐見源蔵は、私の母の旧姓を言い当てた。母はこの浦の出だったのだ。私は知らなかった。',
+ '§十月四日。寺の住職は二十年前に死んだ。死ぬ前に、浦の者が畏れる「星の石」を本堂のどこかへ隠したという。祝詞にも秘密がある。神社の縁起を読まねばならない。',
+ '§十月五日。水を飲むのを止められない。指の間が、つっぱる。'],
+ enter:()=>clue('c_diary'),ch:[{t:'部屋を出る',go:'inn'}]};
+N.inn_room_ng={place:'磯屋',title:'久我の部屋',text:[
+ '部屋はきれいに片付いていて、目ぼしいものは見当たらない。行李の中は着替えと、浦の地図を写した紙が一枚だけ。',
+ '窓の桟に、乾いた塩の粒がこびりついていた。誰かが外から、何度も窓に触れたように。'],ch:[{t:'部屋を出る',go:'inn'}]};
+N.inn_room_pf={place:'磯屋',title:'物音',text:[
+ '畳を剥がそうと力を込めた瞬間、背後で襖が開いた。おとよが立っていた。',
+ '「……お客さん。先生のお部屋に、勝手に触らないでください」声は震えていたが、目は冷たかった。'],
+ enter:s=>{s.flags.otoyoCold=true},ch:[{t:'詫びて部屋を出る',go:'inn'}]};
+N.inn_otoyo={place:'磯屋',title:'女将',text:[
+ 'おとよは算盤から目を離さずに言った。「祭のことは、余所の方にお話しするものじゃありません」',
+ '指先が、算盤の同じ珠を何度も弾いている。'],
+ ch:[
+  {t:'表情をうかがう',once:'otoPsy',c:{sk:'心理学',lv:'r',ok:'inn_otoyo_psy',ng:'inn_otoyo_psyng'}},
+  {t:'小夜さんのことを尋ねる',once:'otoAsk',c:{sk:'説得',lv:s=>s.flags.otoFear?'r':'h',ok:'inn_otoyo_ok',ng:'inn_otoyo_ng'}},
+  {t:'話を切り上げる',go:'inn'}]};
+N.inn_otoyo_psy={place:'磯屋',title:'女将',text:['この人は怯えている。祭そのものにではない。祭で、何かを失うことに。視線が何度も、娘のいる土間の方へ流れていく。','※おとよの怯えを見抜いた。説得がやさしくなる。'],enter:s=>{s.flags.otoFear=true},ch:[{t:'続ける',go:'inn_otoyo'}]};
+N.inn_otoyo_psyng={place:'磯屋',title:'女将',text:['読み取れない。おとよの顔は、潮風に晒された板のように表情がなかった。'],ch:[{t:'続ける',go:'inn_otoyo'}]};
+N.inn_otoyo_ok={place:'磯屋',title:'おとよの告白',text:[
+ '算盤の音が止んだ。',
+ '「……小夜は、明日の晩、海坊さまへ嫁に出されます」',
+ '「この浦では十年に一度、大潮の満月に娘を一人、海へ嫁がせるんです。そうすれば網は破れるほど魚で満ちる。嫁いだ娘は帰ってきません。帰ってこない方が、いいんです」',
+ 'おとよは顔を覆った。「あの子の父親も浦の男でした。だからあの子は、呼ばれてしまう。久我先生はそれを止めると言って……それっきり」'],
+ enter:()=>clue('c_sayo'),
+ ch:[{t:'力になると約束する',fx:s=>{s.flags.promiseOtoyo=true},go:'inn'},{t:'黙って頷く',go:'inn'}]};
+N.inn_otoyo_ng={place:'磯屋',title:'女将',text:['「お客さん、明日には発たれた方がいいですよ」おとよはそれきり口をつぐんだ。'],ch:[{t:'続ける',go:'inn'}]};
+N.inn_sayo={place:'磯屋・裏の井戸',title:'小夜',text:[
+ '裏の井戸端で、小夜が水を汲んでいた。小さく口ずさむ歌は、聞いたことのない節回しだった。言葉なのかどうかも分からない。',
+ '「……毎晩、夢を見るんです。海の底で、たくさんの人が私の名前を呼んでいる。みんな優しいの。母さんより、ずっと」',
+ '小夜は桶を置き、濡れた手を見下ろした。「行きたくない。でも、行かなきゃいけない気がするんです」'],
+ ch:[
+  {t:'彼女の手を見る',once:'sayoEye',c:{sk:'目星',lv:'r',ok:'inn_sayo_eye',ng:'inn_sayo_eyeng'}},
+  {t:'「必ず守る」と約束する',once:'promise',fx:s=>{s.flags.promise=true},go:'inn_sayo_promise'},
+  {t:'その場を離れる',go:'inn'}]};
+N.inn_sayo_eye={place:'磯屋・裏の井戸',title:'指の間',text:['指の付け根に、薄い膜のようなものが張りかけている。光に透けて、静脈が青く見えた。','小夜はあなたの視線に気づき、慌てて手を袖に隠した。'],san:{ok:'0',ng:'1',why:'少女の指に張る膜'},ch:[{t:'続ける',go:'inn_sayo'}]};
+N.inn_sayo_eyeng={place:'磯屋・裏の井戸',title:'小夜',text:['夕闇で、手元はよく見えなかった。'],ch:[{t:'続ける',go:'inn_sayo'}]};
+N.inn_sayo_promise={place:'磯屋・裏の井戸',title:'約束',text:['小夜は驚いたようにあなたを見て、それから少しだけ笑った。','「……久我先生も、同じことを言いました」'],ch:[{t:'宿へ戻る',go:'inn'}]};
+N.inn_meal={place:'磯屋',title:'夕餉',text:[
+ '膳には麦飯と汁、それに見慣れない白身の膾が載っていた。おとよは「うしお膾です。浦でしか獲れない魚で」と言ったきり、目を合わせない。',
+ '身は半ば透きとおり、箸でつまむとかすかに震える。甘い、磯の匂いがした。'],
+ ch:[{t:'膾を食べる',fx:s=>{s.flags.ate=true},go:'inn_meal_ate'},{t:'膾には手をつけない',go:'inn_meal_no'}]};
+N.inn_meal_ate={place:'磯屋',title:'うしお膾',text:['舌の上で溶けるように甘い。体の芯まで温まり、疲れが抜けていく。','……ただ、食べ終えてからずっと、遠い潮騒が耳の奥で鳴りやまない。'],enter:()=>heal(1,'体が温まる'),ch:[{t:'膳を下げてもらう',go:'inn'}]};
+N.inn_meal_no={place:'磯屋',title:'夕餉',text:['膾を脇へ避けると、おとよが小さく、ほっと息をついたように見えた。'],ch:[{t:'膳を下げてもらう',go:'inn'}]};
+
+/* --- 汐見家 --- */
+N.genzo={place:'網元・汐見家',title:'汐見源蔵',text:[
+ '浜を見下ろす高台に、網元・汐見家の屋敷はあった。白壁の蔵が三つ並び、庭には大漁旗が畳まれて積まれている。',
+ '汐見源蔵は、樽のような胴をした大男だった。顔はにこやかだが、左右に離れた目は笑っていない。',
+ '「久我先生のご友人とは。先生には、浦のことをずいぶん熱心に調べていただいて」'],
+ ch:[
+  {t:'久我の行方を尋ねる',once:'genPsy',c:{sk:'心理学',lv:'r',ok:'genzo_lie',ng:'genzo_smooth'}},
+  {t:'蔵を見せてほしいと頼む',once:'genKura',c:{sk:'言いくるめ',lv:'h',ok:'kura_day',ng:'genzo_refuse'}},
+  {t:'屋敷を辞する',end:true}]};
+N.genzo_lie={place:'網元・汐見家',title:'網元の嘘',text:['「先生なら、岬の洞を見に行くと言ってそれきりでして」','源蔵がそう言う瞬間、目が一度だけ、庭の奥の一番古い蔵へ向いた。嘘だ。この男は久我の居場所を知っている。'],enter:()=>clue('c_genzo'),ch:[{t:'続ける',go:'genzo'}]};
+N.genzo_smooth={place:'網元・汐見家',title:'汐見源蔵',text:['「岬の洞を見に行くと言っておられました。潮が満ちると出られなくなる。可哀想なことです」','源蔵の声は穏やかで、疑う理由は見つからなかった。'],ch:[{t:'続ける',go:'genzo'}]};
+N.kura_day={place:'網元・汐見家',title:'古い蔵',text:[
+ '「ほう、蔵がお好きで」源蔵は手前の二つの蔵を案内した。漁具と古い帳簿ばかりだ。',
+ '一番奥の古い蔵の前で、源蔵の足が止まった。「あれは祭の道具をしまっておりますので」',
+ 'その時、蔵の中から、湿ったものが床を擦る音がした。源蔵は眉ひとつ動かさなかった。',
+ '※夜なら、あの蔵へ忍び込めるかもしれない。'],
+ enter:s=>{clue('c_genzo');s.flags.kuraKnown=true},ch:[{t:'続ける',go:'genzo'}]};
+N.genzo_refuse={place:'網元・汐見家',title:'汐見源蔵',text:['「蔵は、祭が済むまで開けぬ決まりでしてな」','源蔵の笑顔が、一瞬だけ剥がれ落ちた。あなたは目をつけられた。'],enter:s=>{s.flags.genzoSus=true},ch:[{t:'続ける',go:'genzo'}]};
+N.kura_sneak={place:'汐見家・裏手',title:'夜の蔵',text:[
+ '月は八分ほどに満ちていた。屋敷の灯は落ち、潮騒だけが高い。',
+ '裏手の土塀を越えると、一番奥の古い蔵が黒々と立っていた。中から、低いうめき声が聞こえる。'],
+ ch:[{t:'物陰を伝って蔵へ近づく',c:{sk:'隠密',lv:'r',ok:'kura_door',ng:'kura_caught'}},{t:'引き返す',end:true}]};
+N.kura_caught={place:'汐見家・裏手',title:'見つかった',text:['砂利が鳴った。母屋の雨戸が開き、提灯を手にした若衆が飛び出してくる。「誰だ」'],
+ enter:s=>{s.flags.genzoSus=true},
+ combat:{foe:{n:'網元の若衆',hp:10,atk:45,dmg:'1d3+1d4',dodge:25,armor:0,d:'若衆は漁で鍛えた腕を振り上げた。'},win:'kura_door',flee:'kura_fled'}};
+N.kura_fled={place:'汐見家・裏手',title:'逃走',text:['闇に紛れて塀を越え、宿まで駆け戻った。背後で、犬のような、しかし犬ではない吠え声が、いつまでも続いていた。'],ch:[{t:'宿で息を整える',end:true}]};
+N.kura_door={place:'汐見家・古い蔵',title:'錠前',text:['蔵の扉には、錆びた錠前が下がっていた。'],
+ ch:[{t:'錠前を外す',once:'kLock',c:{sk:'鍵開け',lv:'r',ok:'kura_kuga',ng:'kura_lockng'}},{t:'力ずくで壊す',once:'kStr',c:{sk:'STR',lv:'r',ok:'kura_noise',ng:'kura_lockng'}},{t:'諦めて立ち去る',end:true}]};
+N.kura_lockng={place:'汐見家・古い蔵',title:'錠前',text:['錠前はびくともしない。母屋の方で、誰かが咳払いをした。'],ch:[{t:'続ける',go:'kura_door'}]};
+N.kura_noise={place:'汐見家・古い蔵',title:'錠前',text:['錠前が派手な音を立てて弾け飛んだ。母屋で物音がしたが、やがて静まった。'],enter:s=>{s.flags.genzoSus=true},ch:[{t:'蔵に入る',go:'kura_kuga'}]};
+N.kura_kuga={place:'汐見家・古い蔵',title:'久我槙夫',text:[
+ '蔵の中は、海の底のような匂いがした。',
+ '床に据えられた大きな水甕の傍らに、鎖で繋がれた男がうずくまっていた。痩せた背中。見覚えのある丸眼鏡が、床に落ちている。',
+ '「……来て、しまったのか」',
+ '顔を上げた久我を見て、あなたは息を呑んだ。皮膚は濡れた鼠色に変わり、目は左右へ離れ、瞼はもうほとんど閉じない。首の両脇に鰓のような裂け目が細く開いて、呼吸のたびにひくついていた。'],
+ san:{ok:'1',ng:'1d6',myth:2,why:'変わり果てた友の姿'},
+ ch:[{t:'話を聞く',go:'kura_talk'}]};
+N.kura_talk={place:'汐見家・古い蔵',title:'告白',text:[
+ '「母はこの浦の出だった。私の血は、半分ここに属している。源蔵は最初から知っていた。私を里帰りさせるつもりだったんだ」',
+ '「明日の満月、大潮の子の刻。岬の洞で、小夜さんを海坊さまに嫁がせる。あれは神じゃない。海の底から来て、浦の血と交わり、増えていくものだ」',
+ '「止める方法はある。寺の住職が隠した星の石。そして神社の祝詞を、終わりから逆さに唱えること。祝詞は扉を開く言葉だ。逆に読めば、閉じる」',
+ '久我は鎖を鳴らし、震える手を伸ばした。「私はもう長くない。満月が来れば、私は海に帰る。帰りたいんだ。……それが恐ろしい」'],
+ enter:s=>{clue('c_kuga');s.flags.kugaMet=true},
+ ch:[{t:'鎖を外してやる',fx:s=>{s.flags.kugaFree=true},go:'kura_free'},{t:'「必ず戻る」と言い残して去る',go:'kura_leave'}]};
+N.kura_free={place:'汐見家・古い蔵',title:'放たれた友',text:['鎖が外れると、久我はよろめきながら立ち上がった。','「……ありがとう。なら明日の夜、私は内側から奴らを引きつける。君は小夜さんを」','久我は闇の中へ消えた。その歩き方は、もう人間のものではなかった。'],ch:[{t:'蔵を出る',end:true}]};
+N.kura_leave={place:'汐見家・古い蔵',title:'別れ',text:['「ああ。……急いでくれ」','背後で、水甕の水を啜る音がした。'],ch:[{t:'蔵を出る',end:true}]};
+
+/* --- 御蔭神社 --- */
+N.shrine={place:'御蔭神社',title:'御蔭神社',text:[
+ '村の背後の石段を上ると、海に向いて鳥居が立っていた。柱の根元に、びっしりとフジツボがこびりついている。海から遠いこの高台で、どうして。',
+ '社務所から白髪の神主が顔を出した。波多野と名乗った老人は、片目が白く濁っていた。'],
+ ch:[
+  {t:'神主に縁起を見せてほしいと頼む',once:'priest',need:s=>!s.flags.engiAccess,c:{sk:'説得',lv:'r',ok:'shrine_priest_ok',ng:'shrine_priest_ng'}},
+  {t:'言葉巧みに縁起を出させる',once:'priest2',need:s=>!s.flags.engiAccess,c:{sk:'言いくるめ',lv:'r',ok:'shrine_priest_ok',ng:'shrine_priest_ng'}},
+  {t:'本殿を覗く',once:'honden',go:'shrine_honden'},
+  {t:'縁起を読み解く',once:'engi',need:s=>s.flags.engiAccess,c:{sk:'図書館',lv:'r',ok:'engi_ok',ng:'engi_ng',push:true}},
+  {t:'祝詞を逆さに読み解く',once:'norito1',need:s=>hasC('c_engi')&&!hasC('c_norito'),c:{sk:'オカルト',lv:s=>hasC('c_kuga')||s.flags.reverseHint?'r':'h',ok:'norito_ok',ng:'norito_ng',push:true}},
+  {t:'神社を去る',end:true}]};
+N.shrine_priest_ok={place:'御蔭神社',title:'波多野',text:[
+ '老人は濁った片目で長いことあなたを見つめ、やがて喉の奥で笑った。「余所の方は皆、同じことを訊く。よろしい。読めるものなら読んでごらんなさい」',
+ '社務所の奥から、紐で綴じた古い和本が出てきた。表紙に『御蔭浦縁起』。紙は湿気を吸って波打ち、ところどころ黴が花のように咲いていた。'],
+ enter:s=>{s.flags.engiAccess=true},ch:[{t:'続ける',go:'shrine'}]};
+N.shrine_priest_ng={place:'御蔭神社',title:'波多野',text:['「祭の前に、余所の方へお見せするものはございません」','老人は社務所の戸を閉めた。戸の向こうで、誰かと小声で話しているのが聞こえる。'],ch:[{t:'続ける',go:'shrine'}]};
+N.shrine_honden={place:'御蔭神社・本殿',title:'御神体',text:[
+ '本殿の格子戸の隙間から、薄暗い内陣が見えた。',
+ '御神体は人の背丈ほどの黒い石像だった。うずくまった人のようにも、巨大な魚が身を起こしたようにも見える。表面はぬめるように光り、見ているうちに、その姿勢がわずかに変わったような気がした。'],
+ san:{ok:'0',ng:'1d3',myth:1,why:'ぬめる黒い石像'},
+ ch:[{t:'台座を調べる',once:'hondenEye',c:{sk:'目星',lv:'r',ok:'honden_eye',ng:'honden_eyeng'}},{t:'離れる',go:'shrine'}]};
+N.honden_eye={place:'御蔭神社・本殿',title:'削られた星',text:['台座の側面に、五芒の星が刻まれていた跡がある。だが何者かが、執拗に鑿で削り落としていた。削り跡は古い。何十年も前のものだ。','この星を、浦の者は恐れている。'],enter:s=>{s.flags.starHint=true},ch:[{t:'続ける',go:'shrine'}]};
+N.honden_eyeng={place:'御蔭神社・本殿',title:'御神体',text:['暗くて、それ以上はよく見えなかった。'],ch:[{t:'続ける',go:'shrine'}]};
+N.engi_ok={place:'御蔭神社',title:'御蔭浦縁起',text:[
+ '黴の匂いをこらえて頁を繰る。崩し字だが、なんとか読める。',
+ '§天明三年、大飢饉。浦人餓ゑて死する者数知れず。時に満月の大潮の夜、沖より人に似て人にあらざる者来たりて曰く、娘を嫁がせよ、さすれば網を満たさんと。',
+ '§浦の長これを容れ、十年毎に娘一人を洞へ送る。以来浦は飢ゑず。嫁ぎし娘の子らは浦に還り、浦人の血はやがて海に近しくなれり。',
+ '最後の頁に、祭で唱える祝詞が書き写されていた。発音を仮名で記しただけの、意味の通らない言葉の連なり。目で追うだけで、喉の奥に塩辛いものがこみ上げてくる。'],
+ enter:()=>clue('c_engi'),san:{ok:'0',ng:'1',myth:1,why:'人ならぬものとの契り'},ch:[{t:'続ける',go:'shrine'}]};
+N.engi_ng={place:'御蔭神社',title:'御蔭浦縁起',text:['崩し字と黴に阻まれ、意味がほとんど取れない。'],ch:[{t:'続ける',go:'shrine'}]};
+N.norito_ok={place:'',title:'裏祝詞',text:[
+ '祝詞の仮名を、終わりから一文字ずつ逆さに書き写してみる。',
+ '意味のない音の羅列だったものが、逆さにした途端、奇妙な韻律を帯びた。扉を閉ざし、門を塞ぎ、来たるものを深みへ押し返す言葉。なぜそう分かるのか、自分でも分からない。',
+ '口の中で繰り返すたび、鼻の奥に血の匂いがした。'],
+ enter:()=>clue('c_norito'),san:{ok:'1',ng:'1d3',myth:2,why:'理解してはならない言葉'},ch:[{t:'続ける',go:'@loc'}]};
+N.norito_ng={place:'',title:'祝詞',text:['逆さにしても順に読んでも、ただの音の連なりにしか見えない。'],ch:[{t:'続ける',go:'@loc'}]};
+
+/* --- 海蔵寺 --- */
+N.temple={place:'海蔵寺',title:'海蔵寺',text:[
+ '岬の付け根の丘に、崩れかけた寺があった。山門の扁額は落ち、本堂の屋根には草が茂っている。住職が死んでから、跡を継ぐ者はいなかったらしい。',
+ '境内の裏手には、海を見下ろす墓地が広がっていた。'],
+ ch:[
+  {t:'墓地を調べる',once:'grave',c:{sk:'目星',lv:'r',ok:'grave_ok',ng:'grave_ng'}},
+  {t:'本堂を探る',need:s=>!has('星形の石'),go:'temple_hall'},
+  {t:'覚え書きの祝詞を逆さに読み解く',once:'norito2',need:s=>hasC('c_monk')&&!hasC('c_norito'),c:{sk:'オカルト',lv:'r',ok:'norito_ok',ng:'norito_ng',push:true}},
+  {t:'寺を去る',end:true}]};
+N.grave_ok={place:'海蔵寺・墓地',title:'空の墓',text:[
+ '墓石はどれも海の方を向いていた。そして、新しい墓ほど土が乱れている。',
+ '一つの墓の前で足が止まった。土饅頭が、内側から押し広げられたように崩れている。覗き込むと棺の蓋は割れ、中には濡れた砂と、剥がれ落ちた鱗のようなものが溜まっていた。',
+ '足跡が、墓から浜の方へ続いている。裸足の、指の長い足跡が。'],
+ enter:()=>clue('c_grave'),san:{ok:'0',ng:'1d3',myth:1,why:'内側から破られた墓'},ch:[{t:'続ける',go:'temple'}]};
+N.grave_ng={place:'海蔵寺・墓地',title:'墓地',text:['苔むした墓石が並ぶばかりだ。ただ、どの墓も海の方を向いているのが、妙に気にかかった。'],ch:[{t:'続ける',go:'temple'}]};
+N.temple_hall={place:'海蔵寺・本堂',title:'本堂',text:['本堂の床板は半ば腐り、須弥壇の仏像は首が落ちていた。','須弥壇の下に、鉄の箍をはめた頑丈な木箱が押し込まれている。南京錠が掛かっていた。'],
+ ch:[
+  {t:'錠を外す',once:'tLock',c:{sk:'鍵開け',lv:'r',ok:'temple_box',ng:'temple_ng'}},
+  {t:'仏像のまわりを探す',once:'tEye',c:{sk:'目星',lv:s=>has('懐中電灯')?'r':'h',ok:'temple_key',ng:'temple_ng'}},
+  {t:'箱を叩き壊す',once:'tStr',c:{sk:'STR',lv:'r',ok:'temple_box',ng:'temple_ng',push:true}},
+  {t:'本堂を出る',go:'temple'}]};
+N.temple_ng={place:'海蔵寺・本堂',title:'本堂',text:['うまくいかない。箱は頑として口を閉ざしている。'],ch:[{t:'続ける',go:'temple_hall'}]};
+N.temple_key={place:'海蔵寺・本堂',title:'仏の腹',text:['首の落ちた仏像の胴の空洞に、錆びた鍵が隠されていた。'],ch:[{t:'箱を開ける',go:'temple_box'}]};
+N.temple_box={place:'海蔵寺・本堂',title:'住職の箱',text:[
+ '箱の中には、油紙に包まれた帳面と、掌ほどの灰色の石が入っていた。',
+ '石には、中央に燃える眼のような図形を抱いた、歪な五芒の星が刻まれている。手に取るとひやりと冷たく、潮騒が一瞬だけ遠のいた気がした。',
+ '§この石を、浦の者は畏る。洞の祭壇に置き、祝詞を逆しまに唱ふれば、門は閉づると先師より伝へ聞く。われ老いて果たせず。後の人に託す。',
+ '覚え書きの末尾には祝詞の全文が書き写され、その横に朱で、逆さ読みの印が振られていた。'],
+ enter:()=>{item('星形の石');clue('c_monk')},ch:[{t:'本堂を出る',go:'temple'}]};
+
+/* --- 鳴海医院 --- */
+N.clinic={place:'鳴海医院',title:'鳴海医院',text:s=>[
+ '村で唯一の洋館が、診療所だった。看板の「鳴海医院」の文字は、潮風で半ば剥げている。',
+ '鳴海医師は三十代半ばの痩せた男だった。'+(s.slot===1?'夜更けだというのに、まだ起きていた。':'昼間から、湯呑みに酒が注がれている。')+'「大阪から来て五年になります。……五年もいるべきじゃなかった」'],
+ ch:[
+  {t:'浦のことを尋ねる',once:'naruPsy',c:{sk:'心理学',lv:'r',ok:'clinic_psy',ng:'clinic_psyng'}},
+  {t:'カルテを見せてもらう',once:'naruRec',c:{sk:'説得',lv:s=>s.flags.naruOpen?'r':'h',ok:'clinic_records',ng:'clinic_recng'}},
+  {t:'力を貸してほしいと頼む',once:'naruAlly',need:s=>hasC('c_birth')||hasC('c_grave')||hasC('c_kuga'),lock:'頼むには、浦の異常の証が要る',c:{sk:'説得',lv:'r',ok:'clinic_ally',ng:'clinic_allyng'}},
+  {t:'傷の手当てを受ける',once:'naruHeal',need:s=>s.hp<s.hpMax,go:'clinic_heal'},
+  {t:'診療所を出る',end:true}]};
+N.clinic_psy={place:'鳴海医院',title:'鳴海',text:['鳴海は怯えている。それ以上に、誰かに話したがっている。この浦の秘密を一人で抱え続けることに、もう耐えられないのだ。','※カルテを頼みやすくなった。'],enter:s=>{s.flags.naruOpen=true},ch:[{t:'続ける',go:'clinic'}]};
+N.clinic_psyng={place:'鳴海医院',title:'鳴海',text:['「静かな、いい村ですよ」鳴海は湯呑みを傾けた。それ以上は読み取れない。'],ch:[{t:'続ける',go:'clinic'}]};
+N.clinic_records={place:'鳴海医院',title:'出生記録',text:[
+ '鳴海は戸棚の奥から、紐で括ったカルテの束を出した。',
+ '「浦で生まれる子は、指の間に膜がある子が多い。歳を重ねると皮膚が硬くなって、目が離れていく。医学的にはありえない変化だ。最後には、みんな……海に入って、帰ってこない」'],
+ enter:()=>clue('c_birth'),
+ ch:[{t:'記録を詳しく読み解く',once:'naruMed',c:{sk:'医学',lv:'r',ok:'clinic_med',ng:'clinic'}},{t:'続ける',go:'clinic'}]};
+N.clinic_med={place:'鳴海医院',title:'血の目覚め',text:s=>[
+ '変化は、浦の血が濃い者ほど早い。だが記録の端に、鳴海の走り書きがあった。',
+ '§浦の外で生まれた者でも、浦の水と魚を口にし続ければ、眠っていた血が目を覚ます。',
+ s.flags.ate?'あなたは夕餉の膾の甘さを思い出し、胃の腑が冷たくなった。':'久我の葉書の一文が蘇る。ここの水は甘い。'],
+ san:{ok:'0',ng:'1',why:'血に眠るもの'},ch:[{t:'続ける',go:'clinic'}]};
+N.clinic_recng={place:'鳴海医院',title:'鳴海',text:['「患者の記録は、お見せできません」'],ch:[{t:'続ける',go:'clinic'}]};
+N.clinic_ally={place:'鳴海医院',title:'同志',text:[
+ '鳴海は長い間、湯呑みの底を見つめていた。それから、酒を流しに捨てた。',
+ '「……分かりました。明日の晩、祭の間は村じゅうが岬へ出払う。私は医者だ、行列の後ろについていても怪しまれない。あなたを洞の奥まで連れて行きましょう」',
+ '鳴海は薬棚から小瓶を取り、あなたに握らせた。「鎮静剤です。正気を保てなくなったら、使ってください」'],
+ enter:s=>{s.flags.naruAlly=true;item('鎮静剤')},ch:[{t:'続ける',go:'clinic'}]};
+N.clinic_allyng={place:'鳴海医院',title:'鳴海',text:['「勘弁してください。私には妻も子もいない。だから、命くらいしか惜しむものがないんです」','鳴海は自嘲するように笑い、それでも薬棚から小瓶を一つ取ってよこした。「鎮静剤です。せめて、これだけは」'],enter:()=>item('鎮静剤'),ch:[{t:'続ける',go:'clinic'}]};
+N.clinic_heal={place:'鳴海医院',title:'手当て',text:['鳴海の手当ては、酒の匂いに反して的確だった。'],enter:()=>heal(dice('1d3'),'傷が手当てされた'),ch:[{t:'続ける',go:'clinic'}]};
+
+/* --- 網小屋 --- */
+N.nets={place:'網小屋',title:'網小屋',text:[
+ '浜沿いに長い網小屋が建っている。中では十人ほどの漁師が、黙々と網を繕っていた。誰も喋らない。網針を動かす音だけが、一定の調子で続いている。',
+ '小屋の奥には、錠の下りた倉庫がある。'],
+ ch:[
+  {t:'漁師たちに話しかける',once:'netTalk',c:{sk:'言いくるめ',lv:'h',ok:'nets_talk_ok',ng:'nets_talk_ng'}},
+  {t:'小屋の陰で耳を澄ます',once:'netHear',c:{sk:'聞き耳',lv:'r',ok:'nets_hear',ng:'nets_hearng',push:true}},
+  {t:'倉庫に忍び込む',once:'netStore',c:{sk:'隠密',lv:'r',ok:'nets_store',ng:'nets_store_ng'}},
+  {t:'網小屋を離れる',end:true}]};
+N.nets_talk_ok={place:'網小屋',title:'漁師',text:['「余所の人が珍しくてな」一人が手を止めずに言った。「明日は祭だ。今年はええ嫁さんが行く。来年からまた、網が重とうなる」','男は笑った。笑うと、歯の並びが人より一列多く見えた。'],ch:[{t:'続ける',go:'nets'}]};
+N.nets_talk_ng={place:'網小屋',title:'沈黙',text:['網針の音が、ぴたりと止んだ。十の顔が一斉にこちらを向く。誰も何も言わない。','あなたは自分が、網にかかった魚になった気がした。'],enter:s=>{s.flags.hostile=true},ch:[{t:'続ける',go:'nets'}]};
+N.nets_hear={place:'網小屋',title:'段取り',text:[
+ '板壁越しに、くぐもった声が聞こえる。',
+ '「子の刻に網元の屋敷から行列を出す。嫁は白装束。洞の口で松明を消して、あとは祝詞だ」',
+ '「宿の余所者はどうする」「網元は、行列の前に片づけろと言うとる。久我の先生と同じようにな」',
+ '低い笑い声。誰かが、湿った音を立てて唇を舐めた。'],
+ enter:s=>{clue('c_ritual');s.flags.knowTarget=true},ch:[{t:'続ける',go:'nets'}]};
+N.nets_hearng={place:'網小屋',title:'波の音',text:['波の音にかき消されて、話の中身は聞き取れなかった。'],ch:[{t:'続ける',go:'nets'}]};
+N.nets_store={place:'網小屋・倉庫',title:'倉庫',text:[
+ '漁師たちの目を盗んで、倉庫に滑り込んだ。',
+ '棚に木箱が並び、「発破」と墨書きされた箱があった。禁じられた漁に使うダイナマイトだ。導火線も揃っている。',
+ '隣の長持には、白と藍の祭装束が畳まれていた。行列の男衆が着るものらしい。'],
+ ch:[
+  {t:'発破を持ち出す',need:s=>!has('発破'),fx:()=>item('発破'),go:'nets_store'},
+  {t:'祭装束を一揃い持ち出す',need:s=>!has('祭の装束'),fx:()=>item('祭の装束'),go:'nets_store'},
+  {t:'倉庫を出る',go:'nets'}]};
+N.nets_store_ng={place:'網小屋・倉庫',title:'見咎められて',text:['倉庫の戸に手をかけた瞬間、肩を掴まれた。振り向くと、首筋に灰青色の斑を浮かべた大柄な漁師が立っていた。'],
+ enter:s=>{s.flags.hostile=true},
+ combat:{foe:{n:'漁師',hp:11,atk:50,dmg:'1d3+1d4',dodge:25,armor:0,d:'漁師は無言で拳を固めた。'},win:'nets_store_won',flee:'nets_fled'}};
+N.nets_store_won={place:'網小屋・倉庫',title:'倉庫',text:['漁師が砂の上に崩れ落ちた。息はある。今のうちだ。'],ch:[{t:'倉庫に入る',go:'nets_store'}]};
+N.nets_fled={place:'浜',title:'逃走',text:['小屋を飛び出し、浜を走った。追ってくる足音は、途中で波の音に紛れて消えた。'],ch:[{t:'宿へ戻る',end:true}]};
+
+/* --- 浜と岬 --- */
+N.beach={place:'浜と岬',title:'引き潮',text:[
+ '潮が大きく引いていた。普段は海の下にある岩場が剥き出しになり、岬の根元に、黒い洞窟の口がぽっかりと開いている。',
+ '濡れた岩の上に、何かの抜け殻のような半透明の皮が、いくつも張り付いていた。'],
+ ch:[{t:'洞窟へ入る',go:'cave1'},{t:'抜け殻を調べる',once:'skin',go:'beach_skin'},{t:'浜を離れる',end:true}]};
+N.beach_skin={place:'浜と岬',title:'抜け殻',text:['指でつまむと、皮は人の手の形をしていた。指が、五本ある。'],san:{ok:'0',ng:'1',why:'人の手の抜け殻'},ch:[{t:'続ける',go:'beach'}]};
+N.cave1={place:'岬の海食洞',title:'壁画',text:[
+ '洞窟の中は、思ったより広かった。天井から垂れる雫の音が、幾重にも反響する。',
+ '壁一面に、彫り込まれた絵があった。舟を出す人々。海から上がってくる、背の曲がった人のようなもの。娘を差し出す長。そして海の底から身を起こす、山のように巨大な影。',
+ '絵の最後の一枚では、浦の人々がみな、その影と同じ姿をしていた。'],
+ enter:()=>clue('c_cave'),san:{ok:'1',ng:'1d4',myth:1,why:'洞の壁画'},
+ ch:[{t:'さらに奥へ',go:'cave2'},{t:'引き返す',go:'beach'}]};
+N.cave2={place:'岬の海食洞・最奥',title:'祭壇',text:[
+ '奥へ進むと、洞は大きな空洞に開けた。中央に、海と繋がっているらしい黒い水溜まりがあり、その縁に石を積んだ祭壇がある。',
+ '祭壇の上には、掌ほどの窪みがあった。星の形をした窪みだ。',
+ '水面は、潮が引いているはずなのに、ゆっくりと上下していた。呼吸しているように。'],
+ ch:[
+  {t:'周囲を詳しく調べる',once:'route',c:{sk:'目星',lv:s=>has('懐中電灯')?'r':'h',ok:'cave_route',ng:'cave_routeng'}},
+  {t:'水面を覗き込む',once:'pool',go:'cave_pool'},
+  {t:'洞を出る',end:true}]};
+N.cave_route={place:'岬の海食洞・最奥',title:'抜け道',text:['祭壇の裏、岩の割れ目の奥から、かすかに外の光が漏れていた。潮だまりを伝って岬の外側へ抜ける細い道だ。','満ち潮になれば水に沈むだろうが、泳げば通れなくはない。'],enter:()=>clue('c_route'),ch:[{t:'続ける',go:'cave2'}]};
+N.cave_routeng={place:'岬の海食洞・最奥',title:'暗がり',text:['暗すぎて、岩肌の凹凸しか分からない。'],ch:[{t:'続ける',go:'cave2'}]};
+N.cave_pool={place:'岬の海食洞・最奥',title:'水底',text:['水の底で、何かが光った。','無数の、目だ。それが一斉に、こちらを見上げた。'],san:{ok:'1',ng:'1d6',myth:1,why:'水底の無数の目'},ch:[{t:'後ずさる',go:'cave2'}]};
+N.beach_night={place:'夜の浜',title:'夜の浜',text:[
+ '夜の浜は、月明かりで白く光っていた。波打ち際に、いくつもの人影が立っている。漁師たちだろうか。だが、誰も動かない。',
+ '影の一つが、ゆっくりと四つん這いになった。'],
+ ch:[{t:'岩陰に身を潜めて見届ける',c:{sk:'隠密',lv:'r',ok:'beach_watch',ng:'beach_fight'}},{t:'すぐに引き返す',end:true}]};
+N.beach_watch={place:'夜の浜',title:'波に還る者',text:['影たちは波の中へ這い入り、そのまま沈んでいった。','一人だけ、波打ち際に残った者がいる。月光の下で振り向いたその顔は、半分が魚で、半分が、網小屋にいた男の顔だった。'],
+ enter:()=>clue('c_figure'),san:{ok:'1',ng:'1d4',myth:1,why:'人から魚へ移ろう顔'},ch:[{t:'宿へ戻る',end:true}]};
+N.beach_fight={place:'夜の浜',title:'浜の者',text:['砂を踏む音に、影が一斉に振り向いた。一体が、信じられない速さで砂浜を這ってくる。'],
+ san:{ok:'0',ng:'1d4',why:'這い寄る浜の者'},
+ combat:{foe:{n:'浜の者',hp:12,atk:45,dmg:'1d6',dodge:20,armor:1,d:'鱗に覆われた腕が、鉤爪を振りかざす。'},win:'beach_won',flee:'beach_fled'}};
+N.beach_won={place:'夜の浜',title:'波間へ',text:['浜の者は痙攣しながら、波に引きずられるように消えた。ほかの影は、もういない。'],enter:()=>clue('c_figure'),ch:[{t:'宿へ戻る',end:true}]};
+N.beach_fled={place:'夜の浜',title:'逃走',text:['砂に足を取られながら、宿まで走り続けた。振り返ると、浜には誰もいなかった。濡れた足跡だけが、宿の前まで続いていた。'],ch:[{t:'戸を閉める',end:true}]};
+
+/* --- 駐在所 --- */
+N.police={place:'駐在所',title:'駐在所',text:['駐在所の巡査、権藤は汗を拭きながらあなたを迎えた。浦の者ではないらしい。顔色が悪い。'],
+ ch:[
+  {t:'久我の捜索を頼む',once:'polPsy',c:{sk:'心理学',lv:'r',ok:'police_psy',ng:'police_psyng'}},
+  {t:'浦の秘密を告げ、力を求める',once:'polAcc',need:s=>hasC('c_grave')||hasC('c_kuga')||hasC('c_ritual'),lock:'訴えるには証拠が要る',c:{sk:'説得',lv:'h',ok:'police_ok',ng:'police_ng'}},
+  {t:'夕方のバスで村を出る',need:s=>s.slot<=4,go:'police_leave'},
+  {t:'駐在所を出る',end:true}]};
+N.police_psy={place:'駐在所',title:'権藤',text:['「行方知れずの届けは、本官が預かります」権藤はそう言って帳面を閉じた。何も書いていない。','この男は浦の者を恐れている。見て見ぬふりをすることで、ここで生き延びてきたのだ。'],ch:[{t:'続ける',go:'police'}]};
+N.police_psyng={place:'駐在所',title:'権藤',text:['「お任せください」権藤は鷹揚に頷いた。'],ch:[{t:'続ける',go:'police'}]};
+N.police_ok={place:'駐在所',title:'権藤の決断',text:s=>['権藤は長いこと黙っていた。やがて机の引き出しを開け、油紙に包んだ拳銃を取り出した。','「本官は、明日の晩、何も見ない。……だが、これがあなたの手にあるなら、それは本官の知らぬことです」',has('拳銃')?'差し出されたのは、弾の包みだった。六発。':'弾は六発込められていた。'],
+ enter:s=>{if(!has('拳銃'))item('拳銃');else{s.ammo+=6;addMsg('弾 +6','item')}},ch:[{t:'続ける',go:'police'}]};
+N.police_ng={place:'駐在所',title:'権藤',text:['「滅多なことを言うもんじゃない」権藤は顔を背けた。「あなたのためだ。明日にでも、この村を出なさい」'],ch:[{t:'続ける',go:'police'}]};
+N.police_leave={place:'駐在所',title:'最後のバス',text:['権藤は、ほっとしたような顔をした。「それがいい。今から歩けば、夕方のバスに間に合いますよ」','本当に、行くのか。'],ch:[{t:'バスに乗る',go:'end_flee'},{t:'思い直す',go:'police'}]};
+
+/* --- 一夜 --- */
+N.night1={place:'磯屋',title:'一夜',text:[
+ '布団に入っても、潮騒が耳について眠れない。',
+ '夜半、窓の外で音がした。濡れたものが、雨戸を爪で引っかくような音。それから、聞き覚えのある声が囁いた。',
+ '「……開けてくれ。私だ。槙夫だ」'],
+ ch:[{t:'雨戸を開ける',go:'night1_open'},{t:'耳を澄ます',c:{sk:'聞き耳',lv:'r',ok:'night1_listen',ng:'night1_listenng'}},{t:'布団を被って耐える',c:{sk:'POW',lv:'r',ok:'night1_endure',ng:'night1_endureng'}}]};
+N.night1_open={place:'磯屋',title:'濡れた足跡',text:['雨戸を開けると、誰もいなかった。月明かりの浜の方へ、濡れた足跡が点々と続いている。','窓の桟に、魚の鱗が一枚、貼り付いていた。あれは久我の声だったのか。それとも、久我の声を真似た何かだったのか。'],san:{ok:'0',ng:'1d3',why:'窓の外の声'},ch:[{t:'朝を待つ',go:'morning'}]};
+N.night1_listen={place:'磯屋',title:'逆さの調べ',text:['声の主は、窓の外で何かを口ずさんでいた。祝詞のような、歌のような。','その調べがふいに逆さに巻き戻るように聞こえた瞬間、外の気配がびくりと怯み、遠ざかっていった。……逆さの言葉を、あれは嫌うのか。','※祝詞を逆さに読み解くのがやさしくなった。'],enter:s=>{s.flags.reverseHint=true},ch:[{t:'朝を待つ',go:'morning'}]};
+N.night1_listenng={place:'磯屋',title:'囁き',text:['囁きは潮騒に溶けて、やがて聞こえなくなった。'],ch:[{t:'朝を待つ',go:'morning'}]};
+N.night1_endure={place:'磯屋',title:'眠り',text:['歯を食いしばって、目を閉じ続けた。いつの間にか眠っていたらしい。夢は見なかった。'],enter:()=>heal(1,'わずかに休めた'),ch:[{t:'朝を迎える',go:'morning'}]};
+N.night1_endureng={place:'磯屋',title:'眠れぬ夜',text:['囁きは一晩じゅう続いた。あなたの名前を呼んで。眠れぬまま、窓が白むのを待った。'],san:{ok:'0',ng:'1',why:'名を呼ぶ声'},ch:[{t:'朝を迎える',go:'morning'}]};
+N.morning={place:'磯屋',title:'二日目の朝',text:['翌朝。海は嘘のように凪いでいた。','帳場のおとよが、目の下に隈を作っていた。「……今夜です」それだけ言って、奥へ引っ込んだ。'],
+ enter:s=>{s.daySan=s.san},ch:[{t:'外へ出る',go:'map'}]};
+
+/* --- 祭の夜 --- */
+N.climax0={place:'磯屋',title:'大潮の夜',text:[
+ '日が落ちると、村じゅうの家から灯が消えた。',
+ '子の刻が近づくにつれ、潮騒が高くなっていく。満月は不自然なほど大きく、赤みを帯びて、海の上に浮かんでいた。',
+ '網元の屋敷の方から、低い祝詞の合唱が流れてきた。'],
+ ch:[{t:'様子をうかがう',go:'hunt'}]};
+N.hunt={place:'磯屋',title:'戸を叩く者',text:s=>[
+ '宿の戸が叩かれた。乱暴に、何度も。',
+ '「余所の方。網元さまがお呼びです。祭の前に、ぜひご挨拶をと」戸の向こうに、何人もの気配がある。息遣いが、湿っている。',
+ s.flags.knowTarget?'網小屋で聞いた言葉が蘇る。行列の前に、片づけろ。':null],
+ ch:[
+  {t:'おとよの手引きで裏口から抜ける',need:s=>s.flags.promiseOtoyo,go:'hunt_otoyo'},
+  {t:'裏口から抜け出す',c:{sk:'隠密',lv:s=>s.flags.knowTarget?'r':'h',ok:'climax1',ng:'hunt_fight'}},
+  {t:'戸の前で迎え撃つ',go:'hunt_fight'}]};
+N.hunt_otoyo={place:'磯屋',title:'おとよ',text:['おとよが、裏口の閂をそっと外した。「……あの子を、お願いします」','その手は、氷のように冷たかった。'],ch:[{t:'岬へ急ぐ',go:'climax1'}]};
+N.hunt_fight={place:'磯屋',title:'迎え撃つ',text:['戸が破られた。提灯の光の中に、首筋を灰青に染めた若衆が立っていた。'],
+ combat:{foe:{n:'網元の若衆',hp:12,atk:50,dmg:'1d3+1d4',dodge:25,armor:0,d:'若衆が、魚を捌く包丁を構えた。'},win:'hunt_won',flee:'hunt_fled'}};
+N.hunt_won={place:'磯屋',title:'夜道へ',text:['若衆は土間に倒れ伏した。ほかの者たちは、祝詞に呼ばれるように岬へ去っていった。'],ch:[{t:'岬へ急ぐ',go:'climax1'}]};
+N.hunt_fled={place:'夜道',title:'夜道へ',text:['窓を破って転がり出た。背後の怒号が、やがて祝詞の合唱に呑まれていく。'],ch:[{t:'岬へ急ぐ',go:'climax1'}]};
+N.climax1={place:'岬への道',title:'行列',text:s=>[
+ '村の通りを、松明の列が岬へ向かって進んでいく。白装束の小夜が、網元の源蔵に手を引かれて歩いている。行列の男たちの影は、松明の揺らぎの中で、時おり人の形を外れた。',
+ s.flags.kugaMet?null:'行列の後ろに、見覚えのある丸眼鏡の男がいた。久我だ。灰色の皮膚、離れた目。彼はもう、あちら側を歩いていた。'],
+ san:s=>s.flags.kugaMet?null:{ok:'0',ng:'1d3',why:'行列の中の友'},
+ ch:[
+  {t:'行列に紛れ込む',sub:s=>has('祭の装束')?'祭の装束を着ている':'装束がない',c:{sk:'隠密',lv:s=>has('祭の装束')?'r':'h',ok:'altar',ng:'climax_caught'}},
+  {t:'潮だまりの抜け道を泳ぐ',need:s=>hasC('c_route'),lock:'洞の抜け道を知らない',c:{sk:'水泳',lv:'r',ok:'swim_ok',ng:'swim_ng'}},
+  {t:'鳴海医師と行列の後ろにつく',need:s=>s.flags.naruAlly,go:'altar_naru'},
+  {t:'宿に戻り、戸を閉ざす',go:'end_hide'}]};
+N.swim_ok={place:'岬の外側',title:'潮だまり',text:['冷たい潮に身を沈め、岩の割れ目をくぐる。行列が洞の口に着くより早く、あなたは祭壇の裏へ這い上がった。'],enter:s=>{s.flags.early=true},ch:[{t:'祭壇の陰から窺う',go:'altar'}]};
+N.swim_ng={place:'岬の外側',title:'潮だまり',text:['満ちてくる潮に足を取られ、岩に叩きつけられた。それでも、どうにか割れ目を抜けた。'],enter:()=>hurt(dice('1d4'),'岩に打たれた'),ch:[{t:'祭壇の陰へ',go:'altar'}]};
+N.altar_naru={place:'岬への道',title:'医者の顔',text:['鳴海が医者の顔で行列に頭を下げると、男たちは道を空けた。誰も、あなたを見ない。'],enter:s=>{s.flags.naru=true},ch:[{t:'洞の奥へ',go:'altar'}]};
+N.climax_caught={place:'岬への道',title:'余所者だ',text:['「余所者だ」誰かが叫んだ。松明が一斉にこちらを向く。行列から、背の曲がった影が跳ねるように飛び出してきた。'],
+ combat:{foe:{n:'浜の者',hp:12,atk:45,dmg:'1d6',dodge:20,armor:1,d:'鱗の腕が、松明の光を弾く。'},win:'caught_won',flee:'end_hide',fleeText:'松明の列から逃れ、宿へ転がり込んだ'}};
+N.caught_won={place:'岬への道',title:'洞へ',text:['浜の者が崩れ落ちる。行列は祝詞を止めない。あなたは遅れて、洞の中へ駆け込んだ。'],enter:s=>{s.flags.late=true},ch:[{t:'洞の奥へ',go:'altar'}]};
+N.altar={place:'岬の海食洞・最奥',title:'洞の奥',text:s=>[
+ '洞の奥の空洞は、松明の光で赤く染まっていた。黒い水溜まりは満ち潮で溢れ、祭壇の縁まで波が寄せている。',
+ '村人たちが輪になって祝詞を唱えている。その声は、もう人の喉から出る音ではなかった。祭壇の前に、白装束の小夜がひざまずいている。',
+ s.flags.kugaFree?'突然、水の中から灰色の影が躍り出て、源蔵に組みついた。久我だ。「今だ」叫び声が、半ば泡になって響く。行列が乱れた。':null,
+ s.flags.naru?'鳴海があなたの袖を引いた。「祭壇へ。私が人目を引きます」':null,
+ 'そして、水面が持ち上がった。'],
+ ch:[{t:'水面を見る',go:'rise'}]};
+N.rise={place:'岬の海食洞・最奥',title:'海坊さま',text:s=>[
+ s.flags.sealFailed||s.flags.shot?'それはまだ、そこにいる。':'黒い水が山のように盛り上がり、崩れ落ちた中から、それは姿を現した。',
+ s.flags.sealFailed||s.flags.shot?null:'洞の天井に届くほどの巨躯。鱗と、ぬめる皮膚と、擦れ合う無数の鰭。人の顔に似た部分があったが、それは笑っているように見えた。古い、古い、海の底の時間を宿した目が、ゆっくりとあなたを捉えた。',
+ s.flags.sealFailed||s.flags.shot?null:'村人たちが歓喜の声を上げ、ひれ伏した。'],
+ san:{ok:'1d6',ng:'1d20',myth:5,why:'深みより来たるもの'},
+ enter:s=>{if(s.flags.ate&&!s.flags.callFelt){s.flags.callFelt=true;s.pen+=1;addMsg('膾の甘さが喉に蘇る。呼び声に体が引き寄せられる（次の判定にペナルティ・ダイス）','bad')}},
+ ch:[
+  {t:'星形の石を祭壇に嵌め、裏祝詞を唱える',need:s=>has('星形の石')&&hasC('c_norito')&&!s.flags.sealFailed,lock:'星形の石と裏祝詞が要る',
+   sub:s=>(s.flags.early||s.flags.kugaFree||s.flags.naru)?'隙がある':'衆目の中',
+   c:{sk:'POW',lv:s=>(s.flags.early||s.flags.kugaFree||s.flags.naru)?'r':'h',ok:'end_true',ng:'seal_fail'}},
+  {t:'石を嵌め、覚えうろな祝詞をその場で逆さに唱える',need:s=>has('星形の石')&&!hasC('c_norito')&&(hasC('c_engi')||hasC('c_monk'))&&!s.flags.sealFailed,c:{sk:'オカルト',lv:'e',ok:'end_true',ng:'seal_fail'}},
+  {t:'発破に火を点ける',need:s=>has('発破'),lock:'発破がない',go:'blast'},
+  {t:'小夜の手を取って逃げる',go:'sayo_flee'},
+  {t:'拳銃で撃つ',need:s=>has('拳銃')&&!s.flags.shot&&s.ammo>0,go:'shoot_god'},
+  {t:'膝をつく',go:'end_join'}]};
+N.seal_fail={place:'岬の海食洞・最奥',title:'砕ける石',text:['言葉が喉で絡まった。逆さの祝詞が途切れた瞬間、石に走った罅から冷たい光が漏れ、消えた。','それが、あなたの方へ身を傾けた。'],
+ enter:s=>{s.flags.sealFailed=true},san:{ok:'1',ng:'1d10',why:'見つめ返す目'},ch:[{t:'まだ終わっていない',go:'rise'}]};
+N.shoot_god={place:'岬の海食洞・最奥',title:'銃声',text:['銃声が洞に轟いた。弾は確かに当たった。鱗が一枚弾け飛び、黒い体液が滲んだ。','それだけだった。それは、虫に刺されたほどにも感じていない。'],
+ enter:s=>{s.flags.shot=true;s.ammo=Math.max(0,s.ammo-3);addMsg('弾 −3','bad')},san:{ok:'0',ng:'1d3',why:'無力'},ch:[{t:'次の手を',go:'rise'}]};
+N.blast={place:'岬の海食洞・最奥',title:'導火線',text:['発破の導火線に、松明の火を移す。火花が音を立てて走り出した。','祭壇の根元へ投げ込み、走る。'+'' ],
+ ch:[{t:'出口へ走る',c:{sk:'回避',lv:'r',ok:'end_blast',ng:'blast_hurt'}}]};
+N.blast_hurt={place:'岬の海食洞・最奥',title:'崩落',text:['背後で轟音が弾け、崩れた岩が降り注いだ。'],enter:()=>hurt(dice('2d6'),'落石'),ch:[{t:'這って外へ',go:'end_blast'}]};
+N.sayo_flee={place:'岬の海食洞・最奥',title:'逃走',text:s=>[
+ 'あなたは祭壇に駆け寄り、小夜の手を掴んだ。冷たい手が、それでも強く握り返してきた。',
+ s.flags.kugaFree?'源蔵は久我に組み伏せられ、水際でもがいている。「行け」久我の声が聞こえた。':'「逃がすな」源蔵の声が、半ば咆哮になって響いた。その体が膨れ上がり、着物を裂いて灰色の鱗が覗く。'],
+ combat:s=>s.flags.kugaFree?null:{foe:{n:'変じた源蔵',hp:16,atk:50,dmg:'1d6+1d4',dodge:20,armor:2,d:'源蔵の指の間に、水掻きが広がっていく。'},win:'end_sayo',flee:'end_sayo',fleeText:'小夜の手を引いて岩場へ駆けた'},
+ ch:[{t:'岩場へ走る',go:'end_sayo'}]};
+
+/* --- 結末 --- */
+N.end_true={ending:'end_true',text:s=>[
+ '逆さの祝詞の最後の一音が、洞に吸い込まれた。',
+ '星形の石が祭壇の窪みに嵌った瞬間、音が消えた。潮騒も、合唱も、自分の心臓の音さえも。それは苦悶とも歓喜ともつかない声を上げ、ゆっくりと水の中へ沈んでいった。',
+ s.flags.kugaMet?'沈んでいく巨躯に、灰色の影が一つ寄り添っていた。久我だった。振り返った顔は、もうほとんど人ではなかったが、確かに笑っていた。「門は私が見張る。内側からな」それきり、水面は静まった。':'静まった水面に、丸眼鏡が一つ浮かんでいた。',
+ '夜明け、小夜はおとよの腕の中で泣いていた。村人たちは魂が抜けたように浜に座り込み、誰も、何も言わなかった。',
+ '翌年、御蔭浦の網はほとんど空のまま上がったという。それでも浦から娘が消えることは、二度となかった。',
+ has('カメラ')?'あなたが洞で撮った乾板には、何も写っていなかった。ただ一枚だけ、黒い水面に、無数の目のような光の点が並んでいた。':null]};
+N.end_blast={ending:'end_blast',text:s=>[
+ '背後で轟音が弾けた。岬が身震いし、洞の天井が崩れ落ちる。悲鳴も祝詞も、それの咆哮も、岩の下に呑まれていった。',
+ s.flags.promise?'気がつくと、あなたは浜に倒れていた。握りしめた手の先で、小夜が咳き込んでいる。約束は、守られた。':'浜に這い出したのは、あなた一人だった。白装束の切れ端が、波間に浮いていた。',
+ '岬は形を変え、洞の入口は永遠に塞がれた。村の男衆の半分が戻らなかった。久我槙夫の名も、その中にあった。',
+ 'だが、あなたは知っている。海は、あれを殺してはいない。塞がれた扉の向こうで、それは今も、次の大潮を待っている。']};
+N.end_sayo={ending:'end_sayo',text:s=>[
+ '松明の光が届かない岩場を、小夜の手を引いて走った。背後で祝詞が途切れ、怒りに満ちた咆哮が洞を揺るがした。',
+ '嫁を失った祭は、果たされなかった。夜明けまでに、浦の半分の家が空になっていた。住人たちは皆、海へ入ったのだ。'+(s.flags.kugaFree?'久我の姿も、それきり見えなかった。':''),
+ '小夜は東京で暮らし始めた。よく笑う娘になった。けれど満月の夜には窓を開け、遠い潮騒に耳を澄ませている。',
+ 'その指の間の膜は、年ごとに少しずつ、広がっていく。']};
+N.end_flee={ending:'end_flee',text:s=>[
+ '乗合バスの窓から、遠ざかる入り江を見た。岬の上で、誰かがこちらを見ている気がした。',
+ '東京に戻って十日後、新聞の片隅に小さな記事が載った。某県の漁村にて娘一人行方知れず。祭の夜、海に入ったものと見られる。',
+ 'その数日後、差出人のない封書が届いた。中には、濡れて字の滲んだ便箋が一枚だけ。',
+ '§甘いぞ。とても甘い。君もいつか来るといい。',
+ 'あなたはそれ以来、魚を口にしていない。']};
+N.end_hide={ending:'end_hide',text:s=>[
+ '宿の一室で、膝を抱えて朝を待った。子の刻、岬の方から長い長い咆哮が聞こえ、それから村じゅうで歓声が上がった。',
+ '朝、おとよは土間に座り込んでいた。小夜の白い足袋が片方だけ、戸口に揃えて置かれていた。',
+ '村を出る朝、網小屋の前を通ると、網は銀色の魚で溢れていた。漁師たちが一斉に顔を上げ、あなたを見た。誰も何も言わない。ただ、見ている。',
+ '十年後に、また来いと言うように。']};
+N.end_join={ending:'end_join',text:s=>[
+ '膝が、自然に折れた。',
+ '恐ろしくはなかった。むしろ懐かしかった。あの目に見つめられていると、ずっと昔から、自分はここへ帰るために生きてきたのだという気がした。',
+ '村人たちがあなたを取り囲み、祝福する。小夜が隣で微笑んでいた。水はあたたかく、そして、甘かった。',
+ '東京の下宿には、それきり誰も帰らなかった。']};
+N.end_mad={ending:'end_mad',text:s=>[
+ 'そこから先のことを、あなたは覚えていない。',
+ '数日後、断崖の道を裸足で歩いているところを保護された。あなたは笑いながら、意味の分からない祝詞を唱え続けていたという。',
+ '今、あなたは白い部屋にいる。窓のない部屋だ。それでも夜になると、潮騒が聞こえる。壁の向こうから、床の下から。',
+ 'あなたの名前を、呼んでいる。']};
+N.end_dead={ending:'end_dead',text:s=>[
+ '視界が暗くなる。冷たい水が、口と鼻に流れ込んできた。',
+ '不思議と苦しくはなかった。沈んでいく先、深い深いところで、無数の目が瞬いている。迎えるように。',
+ '久我槙夫の友人がどこへ消えたのか、知る者はいない。']};
+
+N.map={place:'御蔭浦',title:'御蔭浦',map:true,text:s=>[[
+ '西日が入り江を朱に染めている。浜では、男たちが黙々と網を干していた。',
+ '日が暮れた。家々の戸は固く閉ざされ、通りには誰もいない。月は八分ほどに満ち、潮騒だけが高い。夜に出歩けば、見てはならないものを見るかもしれない。',
+ '二日目の朝。海は凪ぎ、空は白い。村のあちこちで、祭の支度が始まっている。',
+ '昼。家々の軒先に、白い紙垂が下げられていく。誰もが、あなたを見ないふりをしている。',
+ '夕刻。潮が満ち始めた。日が沈めば祭の夜だ。動けるのは、これが最後だろう。'][s.slot]||'']};
+
+/* ================= エンジン ================= */
+function newState(c){
+  const st={...c.st};const sk={...BASE};sk.回避=Math.floor(st.DEX/2);
+  const o=OCC[c.occ];for(const k in o.sk)sk[k]=Math.max(sk[k],o.sk[k]);
+  if(o.dodge)sk.回避+=o.dodge;
+  c.hob.forEach(k=>{sk[k]=Math.min(90,sk[k]+20)});
+  const hpMax=Math.floor((st.CON+st.SIZ)/10);
+  return{id:'inv'+Date.now().toString(36)+d(999),chapter:1,name:c.name||'名無し',occ:c.occ,st,sk,hp:hpMax,hpMax,mp:Math.floor(st.POW/5),san:st.POW,sanStart:st.POW,sanMax:99,luck:c.luck,luckStart:c.luck,
+    slot:0,node:'p1',loc:null,clues:[],items:[...o.items],ammo:o.items.includes('拳銃')?6:0,flags:{},done:{},sanDone:{},seenLoc:{},chk:{},msgs:[],carry:[],pen:0,bout:null,indef:null,daySan:st.POW,pend:null,cbt:null,growth:null,healSlot:-1};
+}
+function go(id){
+  if(id==='@loc'){id=LOC[S.loc]?LOC[S.loc].node(S):'map'}
+  if(id==='@end'){endVisit();return}
+  const n=N[id];if(!n){console.error('no node',id);return}
+  S.node=id;S.msgs=S.carry;S.carry=[];S.pend=null;S.cbt=null;
+  if(n.enter)n.enter(S);
+  const sp=typeof n.san==='function'?n.san(S):n.san;
+  if(sp&&!S.sanDone[id])S.pend={san:sp};
+  const cb=typeof n.combat==='function'?n.combat(S):n.combat;
+  if(cb){S.cbt={spec:cb,hp:cb.foe.hp,log:[{k:'',t:cb.foe.d}],defend:false,over:null}}
+  if(n.ending)enterEnding(n.ending);
+  save();UI.tab='story';render();window.scrollTo({top:0,behavior:'smooth'});
+}
+function endVisit(){
+  S.slot++;S.loc=null;
+  if(S.slot===2&&!S.flags.night1){S.flags.night1=true;go('night1');return}
+  if(S.slot>=5){go('climax0');return}
+  go('map');
+}
+function enterEnding(k){
+  const seen=LS.get(END_KEY)||{};seen[k]=true;LS.set(END_KEY,seen);
+  if(!S.growth){S.growth=[];Object.keys(S.chk).forEach(s=>{if(!(s in BASE)||s==='クトゥルフ神話')return;const r=d(100);const cur=S.sk[s];if(r>cur||r>95){const g=d(10);S.sk[s]=Math.min(99,cur+g);S.growth.push({s,r,cur,g})}else S.growth.push({s,r,cur,g:0})})}
+  if(!S.reward){applyReward(k);try{if(['end_true','end_blast','end_sayo'].includes(k)&&window.tgClear)window.tgClear('shiomaneki',{ending:k})}catch(e){}}
+  S.ended=k;
+  recordLedger(k);
+}
+
+/* ---------- 報酬 ---------- */
+const REWARD={
+  end_true:{title:'門を閉ざした者',san:'2d6',why:'深きものを退け、門を閉ざした',st:{POW:5},sk:{オカルト:'1d6',歴史:'1d4'}},
+  end_blast:{title:'岬を崩した者',san:'1d10',why:'祭を打ち砕いた',sk:{回避:'1d6',隠密:'1d4'}},
+  end_sayo:{title:'娘を連れ出した者',san:'1d8',why:'嫁を海から奪い返した',sk:{説得:'1d6',心理学:'1d4'}},
+  end_flee:{san:'-1d3',why:'旧友と娘を見捨てた悔い'},
+  end_hide:{san:'-1d4',why:'戸の向こうの咆哮を聞いた夜'}
+};
+function applyReward(k){
+  const R=REWARD[k];S.reward=[];if(!R)return;
+  if(R.san){const neg=R.san.startsWith('-');const v=dice(neg?R.san.slice(1):R.san);const b=S.san;
+    S.san=neg?Math.max(1,S.san-v):Math.min(S.sanMax,S.san+v);
+    S.reward.push({t:`正気度 ${neg?'−':'+'}${Math.abs(S.san-b)}`,s:`${R.why}（${fmtDice(R.san.replace('-',''))}）`,up:!neg});}
+  if(R.st)for(const s in R.st){const b=S.st[s];S.st[s]=Math.min(99,b+R.st[s]);S.reward.push({t:`${s} +${S.st[s]-b}`,s:`${STATJ[s]}が鍛えられた`,up:true});if(s==='POW'){S.mp=Math.floor(S.st.POW/5)}}
+  if(R.sk)for(const s in R.sk){const b=S.sk[s];S.sk[s]=Math.min(99,b+dice(R.sk[s]));S.reward.push({t:`${s} +${S.sk[s]-b}`,s:`怪異との戦いで得た経験（${fmtDice(R.sk[s])}）`,up:true})}
+  if(k==='end_sayo'&&(S.kills||[]).includes('変じた源蔵')){S.reward.push({t:'称号',s:'変じた網元を討った',up:true});}
+  // 幸運の回復ロール
+  const lr=d(100);if(lr>S.luck){const g=d(10);const b=S.luck;S.luck=Math.min(99,S.luck+g);S.reward.push({t:`幸運 +${S.luck-b}`,s:`幸運の回復ロール ${lr} > ${b}`,up:true})}
+  else S.reward.push({t:'幸運 ±0',s:`幸運の回復ロール ${lr} ≦ ${S.luck}`,up:false});
+  // 討ち倒した怪異
+  const kills=S.kills||[];if(kills.length){S.reward.push({t:`討伐 ${kills.length}`,s:kills.join('・')+' に打ち勝った',up:true})}
+  S.titles=[...(S.titles||[])];if(R.title&&!S.titles.includes(R.title))S.titles.push(R.title);
+}
+
+/* ---------- 名簿と引き継ぎ ---------- */
+const STATUS={end_dead:'死亡',end_mad:'療養所に収容',end_join:'消息不明'};
+function worldOf(k,f){
+  // 第二章以降が参照する、第一章の世界の状態
+  const sayoSaved=k==='end_true'||k==='end_sayo'||(k==='end_blast'&&!!f.promise);
+  return{
+    ending:k,
+    sayo:sayoSaved?'救われた':(k==='end_join'?'海へ嫁いだ（探索者と共に）':'海へ嫁いだ'),
+    kuga:k==='end_true'&&f.kugaMet?'海の底で門番となった':(k==='end_true'?'行方知れず（丸眼鏡のみ浮かぶ）':(k==='end_blast'?'岬の崩落に消えた':'海へ帰った')),
+    gate:k==='end_true'?'星の石で閉ざされた':(k==='end_blast'?'岩の下に埋もれた（生きている）':'開いたまま'),
+    village:k==='end_true'?'不漁。娘は消えなくなった':k==='end_blast'?'男衆の半分を失った':k==='end_sayo'?'半ば空になった':'豊漁に沸いている',
+    naru:!!f.naruAlly, gondo:!!S.items.includes('拳銃')&&!OCC[S.occ].items.includes('拳銃'),
+    photo:k==='end_true'&&S.items.includes('カメラ'),
+    ate:!!f.ate, promise:!!f.promise
+  };
+}
+function carryLines(w){
+  const L=[`小夜は${w.sayo}`,`久我槙夫は${w.kuga}`,`洞の扉は${w.gate}`,`御蔭浦は${w.village}`];
+  if(w.naru)L.push('鳴海医師は、あなたを覚えている');
+  if(w.photo)L.push('目のような光が写った乾板が一枚、手元に残った');
+  if(w.ate)L.push('うしお膾の甘さを、舌がまだ覚えている');
+  return L;
+}
+function recordLedger(k){
+  const led=LS.get(LEDGER_KEY)||{inv:[]};
+  let r=led.inv.find(x=>x.id===S.id);
+  if(!r){r={id:S.id,name:S.name,occ:S.occ,ch:{}};led.inv.push(r)}
+  const used=k==='end_true'?['星形の石']:k==='end_blast'?['発破']:[];
+  Object.assign(r,{st:{...S.st},sk:{...S.sk},hpMax:S.hpMax,hp:Math.max(1,S.hp),san:S.san,sanStart:S.sanStart,sanMax:S.sanMax,luck:S.luck,
+    items:S.items.filter(i=>!used.includes(i)),ammo:S.ammo,titles:S.titles||[],kills:(r.kills||0)+(S.kills||[]).length,indef:S.indef,alive:!STATUS[k],status:STATUS[k]||'生存',last:S.chapter||1});
+  r.ch[S.chapter||1]={ending:k,world:worldOf(k,S.flags),clues:S.clues.length};
+  LS.set(LEDGER_KEY,led);
+}
+function ledger(){return(LS.get(LEDGER_KEY)||{inv:[]}).inv}
+
+/* ---------- 判定オーバーレイ ---------- */
+let OV=null;
+function openCheck(o){ // o:{title,sub,sk,lv,push,onDone(success)}
+  OV={...o,pushed:false};$('#ov').hidden=false;runRoll();
+}
+function runRoll(){
+  const o=OV;const base=sk(o.sk);const tgt=lvTarget(base,o.lv);
+  $('#ovT').textContent=o.title;$('#ovS').textContent=o.sub||'';
+  $('#ovG').innerHTML=`${o.sk} <b>${base}</b>　必要：${LV[o.lv].t}（<b>${tgt}</b> 以下）${o.pushed?'　<b>プッシュ</b>':''}`;
+  const pen=S.pen>0?1:0;if(pen)S.pen--;
+  const r=d100(pen);rollAnim(r,pen,()=>{
+    const t=resolve(r.val,base);const ok=TIER[t].r>=LV[o.lv].n;
+    if(ok&&!['STR','CON','SIZ','DEX','APP','INT','POW','EDU'].includes(o.sk))S.chk[o.sk]=true;
+    showStamp(t,ok,pen);
+    const b=$('#ovB');b.innerHTML='';
+    if(!ok){
+      const need=r.val-tgt;
+      if(t!=='fumble'&&!o.pushed&&need<=S.luck&&need>0){addBtn(b,`幸運を ${need} 使って成功にする`,`残り幸運 ${S.luck}`,()=>{S.luck-=need;flash('luck');S.chk[o.sk]=true;finish(true)});}
+      if(o.push&&!o.pushed&&t!=='fumble'){addBtn(b,'プッシュ・ロール','もう一度だけ。失敗すれば代償を払う',()=>{o.pushed=true;runRoll()});}
+      addBtn(b,'結果を受け入れる','',()=>finish(false,o.pushed),true);
+      $('#ovN').textContent=o.pushed?'無理を押した。代償がある。':(t==='fumble'?'最悪の目だ。':'');
+    }else{addBtn(b,'続ける','',()=>finish(true),true);$('#ovN').textContent='';}
+  });
+}
+function finish(ok,pushedFail){
+  $('#ov').hidden=true;const o=OV;OV=null;
+  if(pushedFail){const l=dice('1d3');S.carry.push({t:'無理を重ねた代償。正気度 −'+l,k:'bad'});S.san=Math.max(0,S.san-l);flash('san')}
+  o.onDone(ok,pushedFail);
+}
+function addBtn(b,t,sub,fn,primary){const x=document.createElement('button');x.className='btn'+(primary?' primary':'');x.innerHTML=t+(sub?`<small>${sub}</small>`:'');x.onclick=fn;b.appendChild(x);}
+function rollAnim(r,pen,cb){
+  const dT=$('#dT'),dP=$('#dP'),dU=$('#dU');dP.hidden=!pen;$('#ovV').textContent='';$('#ovStamp').innerHTML='';$('#ovN').textContent='';$('#ovB').innerHTML='';
+  [dT,dP,dU].forEach(e=>e.classList.add('spin'));sfx('dice');
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;let n=0;
+  const iv=setInterval(()=>{dT.textContent=(d(10)-1)+'0';dP.textContent=(d(10)-1)+'0';dU.textContent=d(10)-1;if(++n>(reduce?1:11)){clearInterval(iv);
+    [dT,dP,dU].forEach(e=>e.classList.remove('spin','dim'));
+    dT.textContent=r.tens[0]+'0';dU.textContent=r.units;if(pen){dP.textContent=r.tens[1]+'0';(r.used===0?dP:dT).classList.add('dim')}
+    $('#ovV').textContent=r.val;cb();}},60);
+}
+function showStamp(t,ok,pen){
+  const T=TIER[t];let cls='stamp '+(T.c||'');if(!ok&&t!=='fumble')cls='stamp fail';
+  const label=(!ok&&TIER[t].r>=2)?'不足':T.t;
+  $('#ovStamp').innerHTML=`<div class="${cls}">${label}</div>`;sfx(ok?'stamp':'thud');
+  if(!ok&&TIER[t].r>=2)$('#ovN').textContent=TIER[t].t+'だが、求められた水準に届かない。';
+}
+
+/* ---------- 正気度ロール ---------- */
+function sanCheck(sp,done){
+  OV={san:true};$('#ov').hidden=false;
+  $('#ovT').textContent='正気度ロール';$('#ovS').textContent=sp.why||'';
+  $('#ovG').innerHTML=`正気度 <b>${S.san}</b> 以下で成功　減少 ${fmtDice(sp.ok)} / ${fmtDice(sp.ng)}`;
+  const pen=0;const r=d100(pen);
+  rollAnim(r,pen,()=>{
+    const t=resolve(r.val,S.san);const ok=TIER[t].r>=2;
+    const loss=t==='fumble'?diceMax(sp.ng):dice(ok?sp.ok:sp.ng);
+    showStamp(t,ok,0);
+    $('#ovN').innerHTML=`正気度 <b>−${loss}</b>　（${fmtDice(ok?sp.ok:sp.ng)}${t==='fumble'?'・最大値':''}）`;
+    const b=$('#ovB');b.innerHTML='';
+    addBtn(b,'受け止める','',()=>{
+      $('#ov').hidden=true;OV=null;
+      S.san=Math.max(0,S.san-loss);if(loss)flash('san');
+      if(loss)S.msgs.push({t:`正気度 −${loss}（${sp.why||'恐怖'}）`,k:'bad'});
+      if(sp.myth&&!S.flags['myth_'+S.node]){S.flags['myth_'+S.node]=true;S.sk['クトゥルフ神話']+=sp.myth;S.sanMax=99-S.sk['クトゥルフ神話'];S.san=Math.min(S.san,S.sanMax);S.msgs.push({t:`クトゥルフ神話 +${sp.myth}　知ってはならないことを知った`,k:'clue'})}
+      const after=()=>{checkIndef();done()};
+      if(loss>=5&&S.san>0){
+        openCheck({title:'狂気の判定',sub:'正気度を一度に5以上失った。理解してしまえば、心が軋む。',sk:'INT',lv:'r',onDone:(succ)=>{
+          if(succ){S.bout=pick(BOUTS);S.pen=Math.max(S.pen,3);S.msgs.push({t:'一時的狂気 ― '+S.bout+'（以後3回の判定にペナルティ・ダイス）',k:'bad'})}
+          else S.msgs.push({t:'あまりのことに、心が理解を拒んだ。狂気は免れた。',k:''});
+          after();}});
+      }else after();
+    },true);
+  });
+}
+function checkIndef(){
+  if(!S.indef&&S.san>0&&(S.daySan-S.san)>=Math.max(1,Math.floor(S.daySan/5))){S.indef=pick(PHOBIAS);S.pen+=2;S.msgs.push({t:'不定の狂気 ― '+S.indef,k:'bad'})}
+}
+
+/* ---------- 戦闘 ---------- */
+function quick(skillName,lv){const base=sk(skillName);const tgt=lvTarget(base,lv||'r');const pen=S.pen>0?1:0;if(pen)S.pen--;const r=d100(pen);const t=resolve(r.val,base);const ok=TIER[t].r>=LV[lv||'r'].n;if(ok&&SKILLS.includes(skillName))S.chk[skillName]=true;return{val:r.val,t,ok,tgt,pen}}
+function rtxt(q,name){return `<span class="r">${name} ${q.val}/${q.tgt}${q.pen?'（ペナルティ）':''}　${q.ok?TIER[q.t].t:(q.t==='fumble'?'致命的失敗':'失敗')}</span>`}
+function cAct(kind){
+  const c=S.cbt,f=c.spec.foe;const L=(k,t)=>c.log.push({k,t});
+  if(kind==='flee'){const q=quick('DEX','r');if(q.ok){L('you','あなたは身を翻して逃げ出した。'+rtxt(q,'DEX'));c.over='flee';render();return}L('you','逃げようとしたが、回り込まれた。'+rtxt(q,'DEX'))}
+  else if(kind==='punch'){const q=quick('こぶし');
+    if(q.ok){let dodged=false;if(q.t==='reg'){const fd=d(100);if(fd<=f.dodge){dodged=true;L('you','拳を振るったが、かわされた。'+rtxt(q,'こぶし'))}}
+      if(!dodged){let dm=(q.t==='ext'||q.t==='crit')?3+Math.max(0,diceMax(db().startsWith('-')?'0':db())):dice('1d3')+dbRoll();dm=Math.max(1,dm-f.armor);c.hp-=dm;L('you',`拳が${f.n}を捉えた。${dm}の打撃。`+rtxt(q,'こぶし'));sfx('thud')}}
+    else L('you','拳は空を切った。'+rtxt(q,'こぶし'))}
+  else if(kind==='shoot'){S.ammo--;const q=quick('拳銃');sfx('shot');
+    if(q.ok){let dm=(q.t==='ext'||q.t==='crit')?10+dice('1d10'):dice('1d10');dm=Math.max(0,dm-f.armor);c.hp-=dm;L('you',`銃弾が${f.n}を撃ち抜いた。${dm}の損傷。`+rtxt(q,'拳銃'))}
+    else L('you','銃弾は闇に消えた。'+rtxt(q,'拳銃'))}
+  else if(kind==='defend'){c.defend=true;L('you','身を低くして、相手の動きに備えた。')}
+  if(c.hp<=0){L('you',`${f.n}は崩れ落ちた。`);c.over='win';save();render();return}
+  // 相手の攻撃
+  const fr=d(100);const ft=resolve(fr,f.atk);
+  if(TIER[ft].r>=2){
+    const lv=c.defend?'r':'h';const q=quick('回避',lv);
+    if(q.ok)L('foe',`${f.n}の攻撃を、身をよじってかわした。`+rtxt(q,'回避'+(lv==='h'?'（ハード）':'')));
+    else{const dm=(ft==='ext'||ft==='crit')?diceMax(f.dmg):dice(f.dmg);S.hp=Math.max(0,S.hp-dm);flash('hp');sfx('thud');L('foe',`${f.n}の一撃。耐久力 −${dm}。`+rtxt(q,'回避'+(lv==='h'?'（ハード）':'')))}
+  }else L('foe',`${f.n}の攻撃は外れた。`);
+  c.defend=false;
+  if(S.hp<=0){c.over='dead';L('foe','膝から力が抜けていく。')}
+  save();render();
+}
+
+/* ================= 描画 ================= */
+const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+function paras(arr){return arr.filter(Boolean).map((p,i)=>{const st=`style="animation-delay:${i*0.12}s"`;if(p.startsWith('§'))return`<div class="doc fade" ${st}>${esc(p.slice(1))}</div>`;if(p.startsWith('※'))return`<div class="msg fade" ${st}>${esc(p.slice(1))}</div>`;return`<p class="fade" ${st}>${esc(p)}</p>`}).join('')}
+function render(){
+  const app=$('#app');
+  updateDread();
+  if(UI.screen==='title')return renderTitle(app);
+  if(UI.screen==='create')return renderCreate(app);
+  if(UI.screen==='gallery')return renderGallery(app);
+  if(UI.screen==='rules')return renderRules(app);
+  if(UI.screen==='ledger')return renderLedger(app);
+  renderGame(app);
+}
+function updateDread(){
+  if(!S||UI.screen!=='game'){document.documentElement.style.setProperty('--dread',0);document.body.classList.remove('warp');return}
+  const r=clamp((S.sanStart-S.san)/Math.max(1,S.sanStart)*1.5,0,0.95);document.documentElement.style.setProperty('--dread',r.toFixed(2));
+  document.body.classList.toggle('warp',S.san<S.sanStart*0.45);
+}
+function renderTitle(app){
+  const sv=LS.get(SAVE_KEY);const seen=LS.get(END_KEY)||{};const nSeen=Object.keys(seen).length;
+  app.innerHTML=`<div class="wrap"><section class="title-screen">
+   <h1 class="vtitle">潮招きの夜<small>${SERIES}　第一章</small></h1>
+   <div class="title-side">
+    <div class="era">SHOWA 7 / 1932 — 百面骰子の怪奇探索</div>
+    <p>満月、大潮の夜。漁村に伝わる祭を見てほしいと、旧友から手紙が届いた。二通目の葉書には、ただ一言。来るな。いや、来てくれ。</p>
+    <p>技能と正気度を頼りに村を探り、二日目の夜に何が起こるのかを確かめる。百面骰子で運命を決める、ひとり用の怪奇探索ゲーム。</p>
+    <div class="menu">
+     <button class="btn" id="bCont" ${sv&&!sv.ended?'':'hidden'}>続きから<small>${sv&&!sv.ended?esc(sv.name)+'　第'+KANJI_NO[sv.chapter||1]+'章　'+TIMES[sv.slot]:''}</small></button>
+     ${CHAPTERS.map(c=>`<button class="btn ${c.open&&c.no===1?'primary':''} chap" data-ch="${c.no}" ${c.open?'':'disabled'}><span class="chno">第${KANJI_NO[c.no]}章</span>${c.open?c.n:'　未公開'}<small>${c.d}</small></button>`).join('')}
+     <button class="btn" id="bLed">探索者名簿<small>${ledger().length?ledger().filter(x=>x.alive).length+' 名が次の章へ向かえる':'まだ誰も記されていない'}</small></button>
+     <button class="btn" id="bGal">結末の記録<small>第一章　${nSeen} / 8</small></button>
+     <button class="btn" id="bRule">遊び方</button>
+    </div>
+   </div></section></div>`;
+  app.querySelectorAll('[data-ch]').forEach(b=>b.onclick=()=>{if(+b.dataset.ch!==1)return;
+    if(sv&&!sv.ended&&!UI.confirmNew){UI.confirmNew=true;b.querySelector('small').textContent='進行中の記録は消える。もう一度押すと始める';return}
+    UI.confirmNew=false;startAudioFromGesture();LS.del(SAVE_KEY);C=makeChar();UI.screen='create';render()});
+  $('#bCont').onclick=()=>{startAudioFromGesture();S=sv;UI.screen='game';render()};
+  $('#bLed').onclick=()=>{UI.screen='ledger';render()};
+  $('#bGal').onclick=()=>{UI.screen='gallery';render()};
+  $('#bRule').onclick=()=>{UI.screen='rules';render()};
+}
+function rollStats(){const st={};['STR','CON','DEX','APP','POW'].forEach(k=>st[k]=(d(6)+d(6)+d(6))*5);['SIZ','INT','EDU'].forEach(k=>st[k]=(d(6)+d(6)+6)*5);return st}
+function makeChar(){return{name:'',occ:'kisha',st:rollStats(),luck:(d(6)+d(6)+d(6))*5,hob:[]}}
+function renderCreate(app){
+  const c=C;const hp=Math.floor((c.st.CON+c.st.SIZ)/10);const x=c.st.STR+c.st.SIZ;const dbv=x<65?'-2':x<85?'-1':x<125?'0':x<165?'+1D4':'+1D6';
+  const o=OCC[c.occ];
+  const hobChoices=SKILLS.filter(s=>s!=='クトゥルフ神話');
+  app.innerHTML=`<div class="wrap"><button class="back" id="bBack">← 表紙へ</button><section class="paper">
+   <div class="place">探索者記録</div><h2>探索者を作る</h2>
+   <div class="sect">氏名</div>
+   <div class="field"><label for="iName">名前（空欄なら「朝倉 透」）</label><input id="iName" maxlength="12" value="${esc(c.name)}" placeholder="朝倉 透" autocomplete="off"></div>
+   <div class="sect">職業</div>
+   <div class="occs">${Object.entries(OCC).map(([k,v])=>`<button class="occ ${c.occ===k?'on':''}" data-occ="${k}"><b>${v.n}</b><span>${v.d}</span><span>持ち物：${v.items.join('・')}</span></button>`).join('')}</div>
+   <div class="sect">能力値</div>
+   <div class="stats">${STATK.map(k=>`<div class="stat"><div class="k">${k}</div><div class="v">${c.st[k]}</div><div class="j">${STATJ[k]}</div></div>`).join('')}</div>
+   <div class="derived"><div>耐久力<b>${hp}</b></div><div>正気度<b>${c.st.POW}</b></div><div>幸運<b>${c.luck}</b></div><div>MP<b>${Math.floor(c.st.POW/5)}</b></div><div>回避<b>${Math.floor(c.st.DEX/2)+(o.dodge||0)}</b></div><div>DB<b>${dbv}</b></div></div>
+   <div class="rowbtns"><button class="pbtn ghost" id="bReroll">骰子を振り直す</button></div>
+   <div class="sect">趣味の技能</div>
+   <p class="hint">二つ選ぶ。それぞれ +20。（${c.hob.length}/2）</p>
+   <div class="hobbies">${hobChoices.map(s=>`<button class="hob ${c.hob.includes(s)?'on':''}" data-hob="${s}">${s}</button>`).join('')}</div>
+   <div class="sect">職業技能</div>
+   <p class="hint">${Object.entries(o.sk).map(([k,v])=>k+' '+v).join('　')}</p>
+   <div class="rowbtns"><button class="pbtn" id="bStart">この探索者で始める</button></div>
+  </section></div>`;
+  $('#bBack').onclick=()=>{UI.screen='title';render()};
+  $('#iName').oninput=e=>{c.name=e.target.value};
+  app.querySelectorAll('[data-occ]').forEach(b=>b.onclick=()=>{c.occ=b.dataset.occ;render()});
+  app.querySelectorAll('[data-hob]').forEach(b=>b.onclick=()=>{const s=b.dataset.hob;if(c.hob.includes(s))c.hob=c.hob.filter(x=>x!==s);else if(c.hob.length<2)c.hob.push(s);render()});
+  $('#bReroll').onclick=()=>{c.st=rollStats();c.luck=(d(6)+d(6)+d(6))*5;sfx('dice');render()};
+  $('#bStart').onclick=()=>{c.name=(c.name||'').trim()||'朝倉 透';S=newState(c);UI.screen='game';LS.set(SAVE_KEY,S);go('p1')};
+}
+function renderGallery(app){
+  const seen=LS.get(END_KEY)||{};
+  app.innerHTML=`<div class="wrap"><button class="back" id="bBack">← 表紙へ</button><section class="paper"><div class="place">結末の記録</div><h2>結末の記録</h2><p class="hint">${Object.keys(seen).length} / 8 の結末を見届けた。</p>
+  <div class="gallery">${Object.entries(ENDINGS).map(([k,e])=>seen[k]?`<div class="gal"><div class="rk">${e.rk}</div><b>${e.t}</b><p>${e.h}</p></div>`:`<div class="gal lock"><div class="rk">？</div><b>未見の結末</b><p>${e.rk==='真'?'星と、逆さの言葉。':''}</p></div>`).join('')}</div></section></div>`;
+  $('#bBack').onclick=()=>{UI.screen=S&&!S.ended?'game':'title';render()};
+}
+function renderLedger(app){
+  const inv=ledger();
+  app.innerHTML=`<div class="wrap"><button class="back" id="bBack">← 表紙へ</button><section class="paper"><div class="place">${SERIES}</div><h2>探索者名簿</h2>
+   <p class="hint">章を終えた探索者が記される。生き延びた者は、次の章へ能力・技能・正気度・持ち物ごと連れていける。</p>
+   <div class="clues">${inv.length?inv.slice().reverse().map(r=>`<div class="clue ledger">
+     <div class="lrow"><b>${esc(r.name)}</b><span class="lst ${r.alive?'ok':''}">${esc(r.status)}</span></div>
+     ${r.titles&&r.titles.length?`<p class="ttl">${r.titles.map(esc).join('　')}</p>`:''}
+     <p>${OCC[r.occ].n}　正気度 ${r.san}/${r.sanStart}　神話 ${r.sk['クトゥルフ神話']}　耐久力 ${r.hpMax}${r.indef?'<br>'+esc(r.indef):''}</p>
+     ${Object.entries(r.ch).map(([no,c])=>`<p>第${KANJI_NO[no]}章「${ENDINGS[c.ending]?ENDINGS[c.ending].t:c.ending}」　${carryLines(c.world).slice(0,2).map(esc).join('。')}。</p>`).join('')}
+     <div class="rowbtns"><button class="pbtn ghost small" data-del="${r.id}">名簿から消す</button></div>
+   </div>`).join(''):'<p class="hint">まだ誰も記されていない。第一章を終えると、ここに名前が残る。</p>'}</div>
+  </section></div>`;
+  $('#bBack').onclick=()=>{UI.screen='title';render()};
+  app.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{
+    if(b.dataset.armed){const led=LS.get(LEDGER_KEY)||{inv:[]};led.inv=led.inv.filter(x=>x.id!==b.dataset.del);LS.set(LEDGER_KEY,led);render();return}
+    b.dataset.armed='1';b.textContent='本当に消す（もう一度押す）'});
+}
+function renderRules(app){
+  app.innerHTML=`<div class="wrap"><button class="back" id="bBack">← 戻る</button><section class="paper rules"><div class="place">遊び方</div><h2>遊び方</h2>
+  <dl>
+   <dt>判定</dt><dd>百面骰子（D100）を振り、技能値以下なら成功。ハードは技能値の半分、イクストリームは五分の一以下が必要。01は決定的成功、96〜100は致命的失敗。</dd>
+   <dt>幸運</dt><dd>失敗しても、足りない分だけ幸運を払えば成功に変えられる。幸運は戻らない。</dd>
+   <dt>プッシュ・ロール</dt><dd>一部の判定はもう一度だけ振り直せる。ただし失敗すると正気度を失う。</dd>
+   <dt>正気度</dt><dd>恐ろしいものを見ると正気度ロール。一度に5以上失うと一時的狂気、一日に多く失うと不定の狂気に陥り、判定にペナルティ・ダイスがつく。0になれば終わり。</dd>
+   <dt>時間</dt><dd>村の地図から行き先を選ぶたびに時が進む。祭は二日目の夜。行けるのは五か所まで。夜にしか起きないこともある。</dd>
+   <dt>結末</dt><dd>結末は八つ。集めた手掛かりと持ち物、そして約束が、最後の夜を変える。</dd>
+   <dt>報酬</dt><dd>怪異に打ち勝てば、その場で正気度が回復する。生きて章を終えると、結末に応じて正気度・能力値・技能のボーナスと称号を得て、幸運の回復ロールも行う。逃げ延びただけの結末では、悔いが正気度を削る。</dd>
+   <dt>章と名簿</dt><dd>${SERIES}は章立ての物語。章を終えた探索者は名簿に記され、生き延びた者は次の章へそのまま連れていける。第一章の結末は、その後の物語に影を落とす。</dd>
+  </dl></section></div>`;
+  $('#bBack').onclick=()=>{UI.screen=S&&!S.ended&&S.node?'game':'title';render()};
+}
+function meter(cls,label,v,max,key){return`<div class="meter ${cls} ${flashKey===key?'flash':''}"><div class="ml"><span>${label}</span><b>${v}<small style="opacity:.5">/${max}</small></b></div><div class="bar"><i style="width:${clamp(v/max*100,0,100)}%"></i></div></div>`}
+function renderGame(app){
+  const n=N[S.node];
+  const hud=`<div class="hud"><div class="hud-top"><div class="hud-name">${esc(S.name)}<span>${OCC[S.occ].n}</span></div>
+    <div class="toolbar"><span class="hud-time">${S.node.startsWith('p')?'昭和七年・東京':TIMES[Math.min(S.slot,5)]}</span><button class="tbtn ${AUD.on?'on':''}" id="bSnd" aria-pressed="${AUD.on}">音</button></div></div>
+    <div class="meters">${meter('hp','耐久力',S.hp,S.hpMax,'hp')}${meter('san','正気度',S.san,S.sanStart,'san')}${meter('luck','幸運',S.luck,S.luckStart,'luck')}</div>
+    ${(S.bout&&S.pen>0)||S.indef?`<div class="chips">${S.bout&&S.pen>0?`<span class="chip">一時的狂気</span>`:''}${S.indef?`<span class="chip">不定の狂気</span>`:''}</div>`:''}
+    <div class="tabs"><button class="tab ${UI.tab==='story'?'on':''}" data-tab="story">物語</button><button class="tab ${UI.tab==='notes'?'on':''}" data-tab="notes">手帳<span class="n">${S.clues.length}</span></button><button class="tab ${UI.tab==='sheet'?'on':''}" data-tab="sheet">探索者</button></div></div>`;
+  flashKey=null;
+  let body='';
+  if(UI.tab==='notes')body=renderNotes();else if(UI.tab==='sheet')body=renderSheet();else body=n.ending?renderEnding(n):renderNode(n);
+  app.innerHTML=`<div class="wrap">${hud}${body}</div>`;
+  app.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{UI.tab=b.dataset.tab;render()});
+  $('#bSnd').onclick=()=>{AUD.toggle();render()};
+  bindNode(n);
+}
+function renderNode(n){
+  const txt=typeof n.text==='function'?n.text(S):n.text;
+  const place=n.place||(S.loc?LOC[S.loc].n:'');
+  let h=`<section class="paper"><div class="place"><span>${esc(place)}</span>${S.loc&&!n.map?'<span>'+TIMES[S.slot]+'</span>':''}</div><h2>${esc(n.title||'')}</h2><div class="story">${paras(txt)}</div>`;
+  if(S.msgs.length)h+=`<div class="msgs">${S.msgs.map(m=>`<div class="msg ${m.k}">${esc(m.t)}</div>`).join('')}</div>`;
+  if(n.map)h+=renderMap();
+  if(S.pend&&S.pend.san){h+=`<div class="choices"><button class="choice forced" id="bSan"><span class="lab">正気度ロール（${fmtDice(S.pend.san.ok)}／${fmtDice(S.pend.san.ng)}）</span></button></div>`}
+  else if(S.hp<=0)h+=`<div class="choices"><button class="choice forced" data-go="end_dead"><span class="lab">……</span></button></div>`;
+  else if(S.san<=0)h+=`<div class="choices"><button class="choice forced" data-go="end_mad"><span class="lab">……</span></button></div>`;
+  else if(S.cbt)h+=renderCombat();
+  else if(n.map)h+=renderLocList();
+  else h+=renderChoices(n);
+  h+='</section>';return h;
+}
+function choiceList(n){const ch=typeof n.ch==='function'?n.ch(S):(n.ch||[]);return ch.map((c,i)=>({c,i})).filter(({c})=>!(c.once&&S.done[c.once]))}
+function renderChoices(n){
+  let h='<div class="choices">';
+  choiceList(n).forEach(({c,i})=>{
+    const ok=!c.need||c.need(S);if(!ok&&!c.lock)return;
+    let badge='';if(c.c){const lv=typeof c.c.lv==='function'?c.c.lv(S):c.c.lv;const v=sk(c.c.sk);badge=`<span class="badge ${lv}">${c.c.sk}${lv!=='r'?' '+LV[lv].t:''} ${lvTarget(v,lv)}</span>`}
+    if(!ok)badge=`<span class="badge">鍵</span>`;
+    const sub=!ok?c.lock:(typeof c.sub==='function'?c.sub(S):c.sub);
+    h+=`<button class="choice" data-ci="${i}" ${ok?'':'disabled'}><span class="lab">${esc(c.t)}${sub?`<span class="loc-sub">${esc(sub)}</span>`:''}</span>${badge}</button>`});
+  return h+'</div>';
+}
+function renderCombat(){
+  const c=S.cbt,f=c.spec.foe;const r=c.hp/f.hp;const st=c.hp<=0?'倒れた':r>0.66?'健在':r>0.33?'手負い':'瀕死';
+  let h=`<div class="combat"><div class="foe"><b>${esc(f.n)}</b><span class="state">${st}</span></div><ul class="clog">${c.log.slice(-7).map(l=>`<li class="${l.k}">${l.t}</li>`).join('')}</ul>`;
+  if(c.over){const lab=c.over==='win'?'先へ進む':c.over==='flee'?(c.spec.fleeText||'その場を離れる'):'……';h+=`<div class="choices"><button class="choice forced" id="bCOver"><span class="lab">${esc(lab)}</span></button></div>`}
+  else{h+=`<div class="cbtns">
+    <button class="cbtn" data-ca="punch">殴る<small>こぶし ${sk('こぶし')}</small></button>
+    <button class="cbtn" data-ca="shoot" ${has('拳銃')&&S.ammo>0?'':'disabled'}>撃つ<small>${has('拳銃')?'拳銃 '+sk('拳銃')+'　弾'+S.ammo:'拳銃なし'}</small></button>
+    <button class="cbtn" data-ca="defend">身を守る<small>次の回避をやさしく</small></button>
+    <button class="cbtn" data-ca="flee">逃げる<small>DEX ${sk('DEX')}</small></button></div>`}
+  return h+'</div>';
+}
+function renderMap(){
+  const pins=Object.entries(LOC).map(([k,l])=>{const seen=S.seenLoc[k];const lx=l.x>300?-8:10;const anchor=l.x>300?'end':'start';return`<g class="pin" data-loc="${k}" tabindex="0" role="button" aria-label="${l.n}">${seen?`<circle class="seen" cx="${l.x}" cy="${l.y}" r="11"/>`:''}<circle class="dot" cx="${l.x}" cy="${l.y}" r="5"/><text x="${l.x+lx}" y="${l.y+4}" text-anchor="${anchor}">${l.n}</text></g>`}).join('');
+  const night=S.slot===1;
+  return`<div class="map"><svg viewBox="0 0 400 270" aria-label="御蔭浦の地図">
+   <defs><pattern id="wv" width="26" height="12" patternUnits="userSpaceOnUse"><path d="M0 8 Q6.5 2 13 8 T26 8" fill="none" stroke="rgba(34,27,20,.32)" stroke-width="1"/></pattern></defs>
+   <rect width="400" height="270" fill="${night?'rgba(20,28,30,.22)':'transparent'}"/>
+   <path d="M0 270 L0 222 C40 214 70 222 110 226 C150 232 180 226 214 214 C246 202 268 186 292 182 C312 180 322 196 334 214 C344 232 362 240 378 226 C392 212 396 190 400 168 L400 270 Z" fill="url(#wv)"/>
+   <path d="M0 222 C40 214 70 222 110 226 C150 232 180 226 214 214 C246 202 268 186 292 182 C312 180 322 196 334 214 C344 232 362 240 378 226 C392 212 396 190 400 168" fill="none" stroke="rgba(34,27,20,.75)" stroke-width="1.6"/>
+   <path d="M40 72 C58 40 100 36 118 70" fill="none" stroke="rgba(34,27,20,.3)"/><path d="M30 80 C54 30 110 26 128 78" fill="none" stroke="rgba(34,27,20,.2)"/>
+   <path d="M276 76 C290 44 330 42 342 74" fill="none" stroke="rgba(34,27,20,.3)"/><path d="M266 84 C284 34 340 30 352 82" fill="none" stroke="rgba(34,27,20,.2)"/>
+   <path d="M44 172 L92 126 L150 150 L238 104 M150 150 L196 196 L338 196 M238 104 L306 62 M92 126 L78 58" fill="none" stroke="rgba(34,27,20,.45)" stroke-dasharray="3 4"/>
+   ${[[130,168],[170,170],[118,180],[160,186],[190,160],[205,176],[140,196],[110,160]].map(([x,y])=>`<rect x="${x}" y="${y}" width="9" height="6" fill="rgba(34,27,20,.28)"/>`).join('')}
+   <text x="20" y="252" font-size="11" fill="rgba(34,27,20,.6)" font-family="Shippori Mincho B1,serif" letter-spacing="4">御蔭浦</text>
+   <circle cx="360" cy="34" r="12" fill="none" stroke="rgba(168,50,31,.6)"/><circle cx="360" cy="34" r="9" fill="rgba(168,50,31,${(0.15+S.slot*0.1).toFixed(2)})"/>
+   ${pins}</svg></div>`;
+}
+function renderLocList(){
+  const left=5-S.slot;let h=`<div class="left">祭まで　残り行動 ${left}</div><div class="choices">`;
+  Object.entries(LOC).forEach(([k,l])=>{const nightLab=S.slot===1&&l.night?l.night:l.s;const cnt=S.seenLoc[k]||0;h+=`<button class="choice" data-loc="${k}"><span class="lab">${l.n}<span class="loc-sub">${esc(nightLab)}</span></span>${cnt?`<span class="badge san">訪問済</span>`:''}</button>`});
+  return h+'</div>';
+}
+function renderNotes(){
+  const all=Object.keys(CLUES);
+  return`<section class="paper"><div class="place">手帳</div><h2>手帳</h2><p class="hint">手掛かり ${S.clues.length} / ${all.length}</p><div class="clues">
+   ${S.clues.map(id=>`<div class="clue"><b>${CLUES[id][0]}</b><p>${CLUES[id][1]}</p></div>`).join('')}
+   ${all.length-S.clues.length>0?`<div class="clue unk"><b>まだ見つけていない手掛かりが ${all.length-S.clues.length} つある</b></div>`:''}
+  </div></section>`;
+}
+function renderSheet(){
+  const o=OCC[S.occ];
+  const canHeal=S.hp<S.hpMax&&S.healSlot!==S.slot&&!S.ended;
+  return`<section class="paper"><div class="place">探索者</div><h2>${esc(S.name)}</h2><p class="hint">${o.n}　${o.d}</p>
+   <div class="stats">${STATK.map(k=>`<div class="stat"><div class="k">${k}</div><div class="v">${S.st[k]}</div><div class="j">${STATJ[k]}</div></div>`).join('')}</div>
+   <div class="derived"><div>耐久力<b>${S.hp}/${S.hpMax}</b></div><div>正気度<b>${S.san}</b></div><div>正気度上限<b>${S.sanMax}</b></div><div>幸運<b>${S.luck}</b></div><div>MP<b>${S.mp}</b></div><div>DB<b>${db()}</b></div></div>
+   ${S.bout||S.indef?`<div class="msgs" style="margin-top:12px">${S.bout&&S.pen>0?`<div class="msg bad">一時的狂気：${esc(S.bout)}</div>`:''}${S.indef?`<div class="msg bad">不定の狂気：${esc(S.indef)}</div>`:''}${S.pen>0?`<div class="msg">残りペナルティ・ダイス：${S.pen}回</div>`:''}</div>`:''}
+   <div class="sect">技能</div><p class="hint">朱の印は、成功して成長の機会を得た技能。</p>
+   <div class="skills">${SKILLS.map(k=>`<div class="sk"><span>${k}${S.chk[k]?'<span class="ck">●</span>':''}</span><b>${S.sk[k]}</b></div>`).join('')}</div>
+   <div class="sect">所持品</div>
+   <div class="items">${S.items.map(i=>`<div class="it"><span>${i}${i==='拳銃'?'（弾 '+S.ammo+'）':''}<small>${ITEMS[i]?ITEMS[i].d:''}</small></span>${ITEMS[i]&&ITEMS[i].use?`<button data-use="${i}" ${S.ended?'disabled':''}>使う</button>`:''}</div>`).join('')||'<p class="hint">何も持っていない。</p>'}
+    <div class="it"><span>手当てをする<small>応急手当で傷を癒やす。時の区切りごとに一度。${has('救急鞄')?'救急鞄で 1D3 回復。':'回復は 1。'}</small></span><button id="bHeal" ${canHeal?'':'disabled'}>試みる</button></div>
+   </div>
+   <div class="rowbtns"><button class="pbtn ghost" id="bTitle">表紙へ戻る（記録は残る）</button></div>
+  </section>`;
+}
+function renderEnding(n){
+  const e=ENDINGS[n.ending];const txt=n.text(S);const seen=LS.get(END_KEY)||{};
+  return`<section class="paper"><div class="ending-mark">結末　${e.rk}</div><h2 class="ending-title">${e.t}</h2><div class="story">${paras(txt)}</div>
+   <div class="sect">探索の記録</div>
+   <div class="summary"><div>探索者<b>${esc(S.name)}</b></div><div>職業<b>${OCC[S.occ].n}</b></div><div>耐久力<b>${S.hp}/${S.hpMax}</b></div><div>正気度<b>${S.san}/${S.sanStart}</b></div><div>手掛かり<b>${S.clues.length}/16</b></div><div>神話技能<b>${S.sk['クトゥルフ神話']}</b></div><div>見届けた結末<b>${Object.keys(seen).length}/8</b></div><div>幸運<b>${S.luck}</b></div></div>
+   ${S.reward&&S.reward.length?`<div class="sect">報酬</div>${S.titles&&S.titles.length&&REWARD[n.ending]&&REWARD[n.ending].title?`<p class="ttl big">称号「${esc(REWARD[n.ending].title)}」</p>`:''}<ul class="growth">${S.reward.map(r=>`<li><span>${esc(r.s)}</span><span class="${r.up?'up':''}">${esc(r.t)}</span></li>`).join('')}</ul>`:''}
+   ${S.growth&&S.growth.length&&n.ending!=='end_dead'&&n.ending!=='end_join'?`<div class="sect">成長ロール</div><ul class="growth">${S.growth.map(g=>`<li><span>${g.s}　<span class="r">${g.r} / ${g.cur}</span></span>${g.g?`<span class="up">+${g.g} → ${g.cur+g.g}</span>`:'<span>成長せず</span>'}</li>`).join('')}</ul>`:''}
+   <div class="sect">次章への引き継ぎ</div>
+   <p class="hint">${STATUS[n.ending]?`${esc(S.name)}は探索者名簿に「${STATUS[n.ending]}」と記された。次の章へは、別の探索者が向かうことになる。`:`${esc(S.name)}は探索者名簿に記された。次の章では、この探索者をそのまま連れていける。`}</p>
+   <ul class="growth">${carryLines(worldOf(n.ending,S.flags)).map(l=>`<li><span>${esc(l)}</span></li>`).join('')}</ul>
+   <div class="rowbtns" style="margin-top:18px"><button class="pbtn" id="bAgain">新たな探索者で</button><button class="pbtn ghost" id="bLed2">探索者名簿</button><button class="pbtn ghost" id="bGal2">結末の記録</button></div>
+  </section>`;
+}
+function bindNode(n){
+  const app=$('#app');
+  const bs=$('#bSan');if(bs)bs.onclick=()=>{const sp=S.pend.san;sanCheck(sp,()=>{S.sanDone[S.node]=true;S.pend=null;save();render()})};
+  app.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
+  app.querySelectorAll('[data-ci]').forEach(b=>b.onclick=()=>choose(n,+b.dataset.ci));
+  app.querySelectorAll('[data-ca]').forEach(b=>b.onclick=()=>cAct(b.dataset.ca));
+  const bo=$('#bCOver');if(bo)bo.onclick=()=>{const c=S.cbt;if(c.over==='dead')go('end_dead');else if(c.over==='win'){const w=c.spec.win;const fn=c.spec.foe.n;S.cbt=null;
+      S.kills=S.kills||[];S.kills.push(fn);const g=fn==='変じた源蔵'?dice('1d4'):1;const b=S.san;S.san=Math.min(S.sanMax,S.san+g);
+      S.carry.push({t:`${fn}に打ち勝った。正気度 +${S.san-b}`,k:'item'});flash('san');go(w)}else{const f=c.spec.flee;S.cbt=null;go(f)}};
+  app.querySelectorAll('[data-loc]').forEach(b=>{const f=()=>visit(b.dataset.loc);b.onclick=f;b.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();f()}}});
+  app.querySelectorAll('[data-use]').forEach(b=>b.onclick=()=>useItem(b.dataset.use));
+  const bh=$('#bHeal');if(bh)bh.onclick=()=>{S.healSlot=S.slot;openCheck({title:'応急手当',sub:'傷口を洗い、布を巻く',sk:'応急手当',lv:'r',onDone:ok=>{if(ok)heal(has('救急鞄')?dice('1d3'):1,'手当て');else addMsg('手当てはうまくいかなかった','bad');save();render()}})};
+  const bt=$('#bTitle');if(bt)bt.onclick=()=>{save();UI.screen='title';render()};
+  const ba=$('#bAgain');if(ba)ba.onclick=()=>{LS.del(SAVE_KEY);S=null;C=makeChar();UI.screen='create';render()};
+  const bg=$('#bGal2');if(bg)bg.onclick=()=>{UI.screen='gallery';render()};
+  const bl=$('#bLed2');if(bl)bl.onclick=()=>{UI.screen='ledger';render()};
+}
+function visit(k){S.loc=k;S.seenLoc[k]=(S.seenLoc[k]||0)+1;go(LOC[k].node(S))}
+function choose(n,i){
+  const c=(typeof n.ch==='function'?n.ch(S):n.ch)[i];if(!c)return;
+  if(c.need&&!c.need(S))return;
+  if(c.once)S.done[c.once]=true;
+  if(c.fx){const b=S.msgs.length;c.fx(S);S.carry=S.carry.concat(S.msgs.slice(b))}
+  if(c.c){const lv=typeof c.c.lv==='function'?c.c.lv(S):c.c.lv;
+    openCheck({title:c.c.sk==='POW'?'意志の判定':c.c.sk+'の判定',sub:c.t,sk:c.c.sk,lv,push:!!c.c.push,onDone:(ok,pf)=>{go(ok?c.c.ok:(pf&&c.c.pf?c.c.pf:c.c.ng))}});return}
+  if(c.end){endVisit();return}
+  if(c.go)go(c.go);
+}
+function useItem(i){
+  if(i==='鎮静剤'){S.items=S.items.filter(x=>x!==i);S.bout=null;S.pen=0;const g=dice('1d3');S.san=Math.min(S.sanStart,S.sanMax,S.san+g);S.msgs.push({t:'鎮静剤を飲んだ。震えが止まり、心が凪いでいく。正気度 +'+g,k:'item'});flash('san');UI.tab='story';save();render()}
+}
+
+/* ================= 音 ================= */
+const AUD={ctx:null,on:false,master:null,
+  init(){if(this.ctx)return;try{const C=window.AudioContext||window.webkitAudioContext;this.ctx=new C();}catch(e){return}
+    const ctx=this.ctx;this.master=ctx.createGain();this.master.gain.value=0;this.master.connect(ctx.destination);
+    const len=ctx.sampleRate*4;const buf=ctx.createBuffer(1,len,ctx.sampleRate);const dd=buf.getChannelData(0);let last=0;for(let i=0;i<len;i++){const w=Math.random()*2-1;last=(last+0.02*w)/1.02;dd[i]=last*3.2}
+    const src=ctx.createBufferSource();src.buffer=buf;src.loop=true;const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=420;
+    const lfo=ctx.createOscillator();lfo.frequency.value=0.09;const lg=ctx.createGain();lg.gain.value=300;lfo.connect(lg);lg.connect(lp.frequency);
+    const wg=ctx.createGain();wg.gain.value=0.55;src.connect(lp);lp.connect(wg);wg.connect(this.master);src.start();lfo.start();
+    [55,58.3].forEach(f=>{const o=ctx.createOscillator();o.type='sine';o.frequency.value=f;const g=ctx.createGain();g.gain.value=0.05;o.connect(g);g.connect(this.master);o.start()});
+  },
+  toggle(){this.init();if(!this.ctx)return;this.on=!this.on;if(this.ctx.state==='suspended')this.ctx.resume();this.master.gain.setTargetAtTime(this.on?0.5:0,this.ctx.currentTime,0.6)}
+};
+function startAudioFromGesture(){if(!AUD.on){AUD.toggle()}}
+function sfx(k){if(!AUD.on||!AUD.ctx)return;const ctx=AUD.ctx,t=ctx.currentTime;
+  if(k==='dice'){for(let i=0;i<6;i++){const o=ctx.createOscillator();const g=ctx.createGain();o.type='square';o.frequency.value=900+Math.random()*700;g.gain.setValueAtTime(0.05,t+i*0.09);g.gain.exponentialRampToValueAtTime(0.0001,t+i*0.09+0.04);o.connect(g);g.connect(ctx.destination);o.start(t+i*0.09);o.stop(t+i*0.09+0.05)}}
+  else{const o=ctx.createOscillator();const g=ctx.createGain();o.type=k==='shot'?'sawtooth':'sine';o.frequency.setValueAtTime(k==='stamp'?180:k==='shot'?140:90,t);o.frequency.exponentialRampToValueAtTime(40,t+0.25);g.gain.setValueAtTime(k==='shot'?0.3:0.35,t);g.gain.exponentialRampToValueAtTime(0.0001,t+0.3);o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+0.32)}
+}
+
+/* ================= 背景の海 ================= */
+(function sea(){
+  const cv=$('#bgsea'),cx=cv.getContext('2d');let w,h,t=0;const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function size(){w=cv.width=innerWidth*devicePixelRatio;h=cv.height=innerHeight*devicePixelRatio}
+  size();addEventListener('resize',size);
+  function draw(){
+    cx.fillStyle='#0a1315';cx.fillRect(0,0,w,h);
+    const s=UI.screen==='title';const mx=w*0.78,my=h*(s?0.2:0.12),mr=Math.min(w,h)*(s?0.09:0.05);
+    const dread=S&&UI.screen==='game'?clamp((S.sanStart-S.san)/S.sanStart,0,1):0;
+    const g=cx.createRadialGradient(mx,my,mr*0.2,mx,my,mr*5);g.addColorStop(0,`rgba(${200+dread*40},${150-dread*90},${110-dread*80},.20)`);g.addColorStop(1,'rgba(0,0,0,0)');cx.fillStyle=g;cx.fillRect(0,0,w,h);
+    cx.beginPath();cx.arc(mx,my,mr,0,Math.PI*2);cx.fillStyle=`rgba(${222},${200-dread*110},${160-dread*120},${s?0.85:0.35})`;cx.fill();
+    const horizon=h*(s?0.42:0.3);
+    for(let i=0;i<34;i++){const y=horizon+Math.pow(i/34,1.6)*(h-horizon);const amp=(2+i*0.6)*devicePixelRatio;cx.beginPath();
+      for(let x=0;x<=w;x+=12*devicePixelRatio){const yy=y+Math.sin(x*0.004/devicePixelRatio+t*0.6+i*0.7)*amp+Math.sin(x*0.011/devicePixelRatio-t*0.9+i)*amp*0.4;x===0?cx.moveTo(x,yy):cx.lineTo(x,yy)}
+      cx.strokeStyle=`rgba(147,172,165,${0.03+0.08*(1-i/34)})`;cx.lineWidth=devicePixelRatio;cx.stroke();
+      const near=Math.abs(i-3)<3;if(near){}}
+    // 月の道
+    for(let i=0;i<20;i++){const y=horizon+i*h*0.03;cx.fillStyle=`rgba(230,210,170,${0.12*(1-i/20)})`;const ww=(mr*0.8+i*4*devicePixelRatio)*(0.6+0.4*Math.sin(t*2+i));cx.fillRect(mx-ww/2,y,ww,1.5*devicePixelRatio)}
+    t+=0.012;if(!reduce)requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ================= 起動 ================= */
+function snapshot(){return{S,UI,C}}
+try{window.claude?.hot?.snapshot?.(snapshot)}catch(e){}
+function boot(data){
+  if(data&&data.UI){S=data.S||null;C=data.C||null;UI=data.UI;if(UI.screen==='game'&&!S)UI.screen='title';if(UI.screen==='create'&&!C)UI.screen='title'}
+  render();
+}
+window.claude?.hot?.ready?window.claude.hot.ready(boot):boot(window.claude?.hot?.data??{});
+</script>
+
+</body></html>
