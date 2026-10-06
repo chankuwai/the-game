@@ -1,6 +1,6 @@
 /* ============================================================
    tg-pad.js  ザ・ゲーム 共通コントローラー
-   スティック + ABXY + LR（タッチ／キーボード／ゲームパッド対応）
+   スティック + ABXY + LR + START/SELECT（タッチ／キーボード／ゲームパッド対応）
 
    使い方:
      <div id="pad"></div>
@@ -12,21 +12,21 @@
        TGPad.pressed('A')          // 押した瞬間だけ true（読むと消える）
        TGPad.released('A')         // 離した瞬間だけ true
        TGPad.on('A', down=>{})     // 押した/離したときのコールバック
-   キーボード: 矢印/WASD=スティック  K=A  J=B  I=X  U=Y  Q=L  E=R
-   ゲームパッド: 標準配置（右=A 下=B 上=X 左=Y LB/LT=L RB/RT=R 左スティック/十字キー）
+   キーボード: 矢印/WASD=スティック  K=A  J=B  I=X  U=Y  Q=L  E=R  Enter=START  Shift=SELECT
+   ゲームパッド: 標準配置（右=A 下=B 上=X 左=Y LB/LT=L RB/RT=R START SELECT(BACK) 左スティック/十字キー）
    ============================================================ */
 (function(){
- const BTN=['A','B','X','Y','L','R'];
+ const BTN=['A','B','X','Y','L','R','START','SELECT'];
  const COL={A:'#ff5a5a',B:'#ffc53a',X:'#4aa8ff',Y:'#4ad87a',L:'#c8c8d8',R:'#c8c8d8'};
- const KEYS={k:'A',K:'A',j:'B',J:'B',i:'X',I:'X',u:'Y',U:'Y',q:'L',Q:'L',e:'R',E:'R'};
- const GP={A:1,B:0,X:3,Y:2,L:[4,6],R:[5,7]};
+ const KEYS={k:'A',K:'A',j:'B',J:'B',i:'X',I:'X',u:'Y',U:'Y',q:'L',Q:'L',e:'R',E:'R',Enter:'START',Shift:'SELECT'};
+ const GP={A:1,B:0,X:3,Y:2,L:[4,6],R:[5,7],START:9,SELECT:8};
  const st={touch:{},key:{},gp:{}};const prev={};const edgeDown={},edgeUp={};const cbs={};
  const stick={x:0,y:0,touch:{x:0,y:0},key:{x:0,y:0},gp:{x:0,y:0}};
  const css=`
 .tgp{position:relative;width:100%;height:100%;min-height:170px;-webkit-user-select:none;user-select:none;touch-action:none;-webkit-touch-callout:none;font-family:"Hiragino Sans","Noto Sans JP",sans-serif}
 .tgp *{box-sizing:border-box}
 .tgp-zone{position:absolute;left:0;top:0;bottom:0;width:50%}
-.tgp-base{position:absolute;left:14px;bottom:calc(10px + env(safe-area-inset-bottom));width:108px;height:108px;border-radius:50%;
+.tgp-base{position:absolute;left:16px;bottom:calc(30px + env(safe-area-inset-bottom));width:108px;height:108px;border-radius:50%;
  background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.04) 0 40%,rgba(255,255,255,.09) 41% 43%,rgba(255,255,255,.04) 44%),radial-gradient(circle,#2a2d3a,#15161e 72%);
  box-shadow:inset 0 3px 10px rgba(0,0,0,.8),0 0 0 2px rgba(255,255,255,.12),0 0 0 6px rgba(0,0,0,.35)}
 .tgp-base::before{content:'';position:absolute;inset:0;border-radius:50%;background:
@@ -40,16 +40,21 @@
  background:radial-gradient(circle at 38% 28%,var(--hl),var(--c) 55%,var(--dk));box-shadow:0 5px 0 var(--sh),0 7px 12px rgba(0,0,0,.5),inset 0 2px 0 rgba(255,255,255,.35);text-shadow:0 1px 2px rgba(0,0,0,.5);transition:transform .05s}
 .tgp-b b{font-size:18px}.tgp-b small{font-size:8.5px;margin-top:2px;font-weight:800;white-space:nowrap;opacity:.95}
 .tgp-b.on{transform:translateY(4px);box-shadow:0 1px 0 var(--sh),0 0 16px var(--c),inset 0 2px 0 rgba(255,255,255,.35);filter:brightness(1.15)}
-.tgp-face{position:absolute;right:12px;bottom:calc(8px + env(safe-area-inset-bottom));width:144px;height:144px}
+.tgp-face{position:absolute;right:14px;bottom:calc(26px + env(safe-area-inset-bottom));width:144px;height:144px}
 .tgp-face .tgp-b{width:50px;height:50px}
 .tgp-A{right:0;top:47px}.tgp-B{left:47px;bottom:0}.tgp-X{left:47px;top:0}.tgp-Y{left:0;top:47px}
-.tgp-sh{position:absolute;bottom:calc(158px + env(safe-area-inset-bottom));width:78px;height:32px;border-radius:12px 12px 8px 8px;display:flex;align-items:center;justify-content:center;gap:6px;color:#2a2d3a;font-weight:900;
+.tgp-sh{position:absolute;bottom:calc(180px + env(safe-area-inset-bottom));width:78px;height:32px;border-radius:12px 12px 8px 8px;display:flex;align-items:center;justify-content:center;gap:6px;color:#2a2d3a;font-weight:900;
  background:linear-gradient(#f0f0f8,#a8a8b8);box-shadow:0 4px 0 #6a6a7a,0 6px 10px rgba(0,0,0,.45),inset 0 2px 0 rgba(255,255,255,.8);transition:transform .05s}
 .tgp-sh b{font-size:15px}.tgp-sh small{font-size:9px;font-weight:800}
 .tgp-sh.on{transform:translateY(3px);box-shadow:0 1px 0 #6a6a7a,0 0 12px rgba(255,255,255,.6)}
-.tgp-L{left:14px}.tgp-R{right:14px}
+.tgp-L{left:16px}.tgp-R{right:16px}
+.tgp-sys{position:absolute;left:50%;bottom:calc(8px + env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;gap:14px}
+.tgp-s{display:flex;flex-direction:column;align-items:center;gap:3px;color:#8a90a8;font-size:8.5px;font-weight:900;letter-spacing:.08em}
+.tgp-s i{display:block;width:46px;height:16px;border-radius:9px;background:linear-gradient(#4a4e60,#262834);box-shadow:0 3px 0 #101118,0 4px 6px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.2);transition:transform .05s}
+.tgp-s.on i{transform:translateY(2px);box-shadow:0 1px 0 #101118,0 0 10px rgba(160,180,255,.5)}
+.tgp-s.on{color:#dfe4ff}
 .tgp-hide{display:none!important}
-@media (max-height:700px){.tgp-base{width:96px;height:96px}.tgp-face{width:132px;height:132px}.tgp-face .tgp-b{width:46px;height:46px}.tgp-A,.tgp-Y{top:43px}.tgp-B,.tgp-X{left:43px}.tgp-sh{height:28px;bottom:calc(144px + env(safe-area-inset-bottom))}}`;
+@media (max-height:700px){.tgp-base{width:96px;height:96px;bottom:calc(26px + env(safe-area-inset-bottom))}.tgp-face{width:132px;height:132px}.tgp-face .tgp-b{width:46px;height:46px}.tgp-A,.tgp-Y{top:43px}.tgp-B,.tgp-X{left:43px}.tgp-sh{height:28px;bottom:calc(162px + env(safe-area-inset-bottom))}.tgp-face{bottom:calc(24px + env(safe-area-inset-bottom))}}`;
  function shadeHex(c,k){const n=parseInt(c.slice(1),16);let r=n>>16,g=n>>8&255,b=n&255;const f=x=>Math.max(0,Math.min(255,Math.round(k<0?x*(1+k):x+(255-x)*k)));return `rgb(${f(r)},${f(g)},${f(b)})`;}
  let root=null,knob=null,base=null,stickId=null,opts={};const els={};
  function setBtn(b,src,v){if(!!st[src][b]===v)return;st[src][b]=v;}
@@ -58,12 +63,12 @@
   const s=[stick.touch,stick.gp,stick.key].find(v=>Math.hypot(v.x,v.y)>0.01)||{x:0,y:0};stick.x=s.x;stick.y=s.y;}
  function mount(sel,o){opts=o||{};const host=typeof sel==='string'?document.querySelector(sel):sel;if(!host)return;
   if(!document.getElementById('tgp-css')){const s=document.createElement('style');s.id='tgp-css';s.textContent=css;document.head.appendChild(s);}
-  const lb=Object.assign({A:'',B:'',X:'',Y:'',L:'',R:''},opts.labels||{});const hide=new Set(opts.hide||[]);
+  const lb=Object.assign({A:'',B:'',X:'',Y:'',L:'',R:'',START:'',SELECT:''},opts.labels||{});const hide=new Set(opts.hide||[]);
   root=document.createElement('div');root.className='tgp';
-  root.innerHTML=`<div class="tgp-zone"></div><div class="tgp-base"><div class="tgp-knob"></div></div><div class="tgp-face">${['X','Y','A','B'].map(b=>`<div class="tgp-b tgp-${b}" data-b="${b}"><b>${b}</b>${lb[b]?`<small>${lb[b]}</small>`:''}</div>`).join('')}</div>${['L','R'].map(b=>`<div class="tgp-sh tgp-${b}" data-b="${b}"><b>${b}</b>${lb[b]?`<small>${lb[b]}</small>`:''}</div>`).join('')}`;
+  root.innerHTML=`<div class="tgp-zone"></div><div class="tgp-base"><div class="tgp-knob"></div></div><div class="tgp-face">${['X','Y','A','B'].map(b=>`<div class="tgp-b tgp-${b}" data-b="${b}"><b>${b}</b>${lb[b]?`<small>${lb[b]}</small>`:''}</div>`).join('')}</div>${['L','R'].map(b=>`<div class="tgp-sh tgp-${b}" data-b="${b}"><b>${b}</b>${lb[b]?`<small>${lb[b]}</small>`:''}</div>`).join('')}<div class="tgp-sys">${['SELECT','START'].map(b=>`<div class="tgp-s" data-b="${b}"><i></i><span>${lb[b]||b}</span></div>`).join('')}</div>`;
   host.innerHTML='';host.appendChild(root);knob=root.querySelector('.tgp-knob');base=root.querySelector('.tgp-base');
   root.querySelectorAll('[data-b]').forEach(el=>{const b=el.dataset.b;els[b]=el;if(hide.has(b))el.classList.add('tgp-hide');
-   const c=COL[b];el.style.setProperty('--c',c);el.style.setProperty('--hl',shadeHex(c,.45));el.style.setProperty('--dk',shadeHex(c,-.35));el.style.setProperty('--sh',shadeHex(c,-.6));
+   const c=COL[b]||'#5a5e70';el.style.setProperty('--c',c);el.style.setProperty('--hl',shadeHex(c,.45));el.style.setProperty('--dk',shadeHex(c,-.35));el.style.setProperty('--sh',shadeHex(c,-.6));
    const ids=new Set();
    el.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();try{el.setPointerCapture(e.pointerId);}catch(_){}ids.add(e.pointerId);setBtn(b,'touch',true);sync();});
    const up=e=>{ids.delete(e.pointerId);if(!ids.size){setBtn(b,'touch',false);sync();}};
@@ -92,7 +97,7 @@
   pressed:b=>{const v=!!edgeDown[b];edgeDown[b]=false;return v;},
   released:b=>{const v=!!edgeUp[b];edgeUp[b]=false;return v;},
   on:(b,f)=>{(cbs[b]=cbs[b]||[]).push(f);},
-  label:(b,s)=>{const el=els[b];if(!el)return;let sm=el.querySelector('small');if(!s){if(sm)sm.remove();return;}if(!sm){sm=document.createElement('small');el.appendChild(sm);}sm.textContent=s;},
+  label:(b,s)=>{const el=els[b];if(!el)return;if(b==='START'||b==='SELECT'){el.querySelector('span').textContent=s||b;return;}let sm=el.querySelector('small');if(!s){if(sm)sm.remove();return;}if(!sm){sm=document.createElement('small');el.appendChild(sm);}sm.textContent=s;},
   show:(b,v)=>{if(els[b])els[b].classList.toggle('tgp-hide',!v);},
   dir8:()=>{const m=Math.hypot(stick.x,stick.y);if(m<.3)return -1;return Math.round(((Math.atan2(stick.y,stick.x)+Math.PI*2)%(Math.PI*2))/(Math.PI/4))%8;},
   reset:()=>{for(const s of ['touch','key','gp'])for(const b of BTN)st[s][b]=false;stick.touch.x=stick.touch.y=0;sync();}};
