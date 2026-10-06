@@ -47,16 +47,12 @@ h2.big{font-size:34px;margin:0 0 6px;letter-spacing:.08em}
  window.tgClear=function(gid,info){try{if(window.tgAuto||window.tgAutoUsed||window.__tgAutoEver)return;gid=gid||id;var o=JSON.parse(localStorage.getItem('tg_clear')||'{}');var r=o[gid]||{n:0};r.n=(r.n||0)+1;r.t=Date.now();if(info)r.info=info;o[gid]=r;localStorage.setItem('tg_clear',JSON.stringify(o));}catch(e){}};
  try{var a=JSON.parse(localStorage.getItem('tg_recent')||'[]').filter(function(x){return x.id!==id;});a.unshift({id:id,t:Date.now()});localStorage.setItem('tg_recent',JSON.stringify(a.slice(0,10)));}catch(e){}})();
 </script>
+<script src="tg-pad.js"></script>
 </head>
 <body>
 <div id="app">
   <canvas id="cv"></canvas>
-  <div id="pad">
-    <div id="stick"><div id="knob"></div></div>
-    <div class="btn" id="bDodge">回避</div>
-    <div class="btn" id="bAtk">攻撃</div>
-    <div class="btn" id="bJump">ジャンプ</div>
-  </div>
+  <div id="pad"></div>
 </div>
 <div id="ov" class="hidden"></div>
 <div id="rot">縦向きで遊んでね</div>
@@ -110,21 +106,12 @@ addEventListener('pointerdown',()=>{if(sndOn())ac();},{capture:true});
 
 /* ================= 入力 ================= */
 const hum={sx:0,sy:0,atk:false,jumpQ:false,dodgeQ:false,anyQ:false};
-const stick=$('stick'),knob=$('knob');let stickId=null;
-function stickSet(e){const r=stick.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let dx=e.clientX-cx,dy=e.clientY-cy;const m=hyp(dx,dy),R=r.width/2;if(m>R){dx*=R/m;dy*=R/m;}hum.sx=dx/R;hum.sy=dy/R;knob.style.transform=`translate(${dx}px,${dy}px)`;}
-function stickOff(){stickId=null;hum.sx=hum.sy=0;knob.style.transform='';}
-$('pad').addEventListener('pointerdown',e=>{if(e.target.closest('.btn'))return;const r=$('pad').getBoundingClientRect();if(e.clientX-r.left<r.width*.5&&stickId===null){stickId=e.pointerId;stickSet(e);}});
-addEventListener('pointermove',e=>{if(e.pointerId===stickId)stickSet(e);});
-addEventListener('pointerup',e=>{if(e.pointerId===stickId)stickOff();});
-addEventListener('pointercancel',e=>{if(e.pointerId===stickId)stickOff();});
-function bindBtn(id,down,up){const b=$(id);b.addEventListener('pointerdown',e=>{e.preventDefault();try{b.setPointerCapture(e.pointerId);}catch(_){}b.classList.add('on');hum.anyQ=true;down();});const off=()=>{b.classList.remove('on');up&&up();};b.addEventListener('pointerup',off);b.addEventListener('pointercancel',off);b.addEventListener('lostpointercapture',off);}
-bindBtn('bAtk',()=>{hum.atk=true;},()=>{hum.atk=false;});
-bindBtn('bJump',()=>{hum.jumpQ=true;});
-bindBtn('bDodge',()=>{hum.dodgeQ=true;});
+TGPad.mount('#pad',{keys:false,labels:{A:'攻撃',B:'ジャンプ',Y:'回避'}});
+TGPad.on('A',d=>{hum.atk=d;if(d)hum.anyQ=true;});TGPad.on('B',d=>{if(d){hum.jumpQ=true;hum.anyQ=true;}});TGPad.on('Y',d=>{if(d){hum.dodgeQ=true;hum.anyQ=true;}});
 const keys={};
 addEventListener('keydown',e=>{if(e.repeat)return;keys[e.key]=true;if(e.key==='k'||e.key===' '){hum.jumpQ=true;hum.anyQ=true;}if(e.key==='l'||e.key==='Shift'){hum.dodgeQ=true;hum.anyQ=true;}if(e.key==='j'||e.key==='z'){hum.atk=true;hum.anyQ=true;}});
 addEventListener('keyup',e=>{keys[e.key]=false;if(e.key==='j'||e.key==='z')hum.atk=false;});
-function humanInput(){let sx=hum.sx,sy=hum.sy;if(keys.ArrowLeft||keys.a)sx=-1;if(keys.ArrowRight||keys.d)sx=1;if(keys.ArrowUp||keys.w)sy=-1;if(keys.ArrowDown||keys.s)sy=1;
+function humanInput(){hum.sx=TGPad.stick.x;hum.sy=TGPad.stick.y;let sx=hum.sx,sy=hum.sy;if(keys.ArrowLeft||keys.a)sx=-1;if(keys.ArrowRight||keys.d)sx=1;if(keys.ArrowUp||keys.w)sy=-1;if(keys.ArrowDown||keys.s)sy=1;
  const m=hyp(sx,sy);const I={mx:Math.abs(sx)>.22?sx:0,aim:null,atk:hum.atk,jump:hum.jumpQ,dodge:hum.dodgeQ,any:hum.anyQ};
  if(m>.5&&(sy<-.35||sy>.55))I.aim=Math.atan2(sy,sx);
  hum.jumpQ=hum.dodgeQ=hum.anyQ=false;return I;}

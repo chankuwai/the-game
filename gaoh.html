@@ -61,17 +61,12 @@ html,body{margin:0;height:100%;background:#0a0604;color:#f4e8d0;overflow:hidden;
  window.tgClear=function(gid,info){try{if(window.tgAuto||window.tgAutoUsed||window.__tgAutoEver)return;gid=gid||id;var o=JSON.parse(localStorage.getItem('tg_clear')||'{}');var r=o[gid]||{n:0};r.n=(r.n||0)+1;r.t=Date.now();if(info)r.info=info;o[gid]=r;localStorage.setItem('tg_clear',JSON.stringify(o));}catch(e){}};
  try{var a=JSON.parse(localStorage.getItem('tg_recent')||'[]').filter(function(x){return x.id!==id;});a.unshift({id:id,t:Date.now()});localStorage.setItem('tg_recent',JSON.stringify(a.slice(0,10)));}catch(e){}})();
 </script>
+<script src="tg-pad.js"></script>
 </head>
 <body>
 <div id="app">
   <canvas id="cv"></canvas>
-  <div id="pad">
-    <div id="stick"><div id="knob"></div></div>
-    <div class="btn" id="bSp">必殺</div>
-    <div class="btn" id="bGuard">ガード</div>
-    <div class="btn" id="bAtk">攻撃</div>
-    <div class="btn" id="bJump">ジャンプ</div>
-  </div>
+  <div id="pad"></div>
 </div>
 <div id="ov" class="hidden"></div>
 <div id="story" class="hidden"><div class="sbox" id="sbox"><button class="sskip" id="sskip">スキップ ▶▶</button><div class="sname" id="sname"></div><div class="stext" id="stext"></div><div class="snext">▼ タップ</div></div></div>
@@ -151,19 +146,12 @@ setInterval(()=>{if(!AC||!sndOn()||!BG[BGM.mode])return;const m=BG[BGM.mode],sp=
 
 /* ================= 入力 ================= */
 const hum={sx:0,sy:0,atkQ:false,jumpQ:false,spQ:false,guard:false,upLatch:false};
-const stick=$('stick'),knob=$('knob');let stickId=null;
-function stickSet(e){const r=stick.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let dx=e.clientX-cx,dy=e.clientY-cy;const m=Math.hypot(dx,dy),R=r.width/2;if(m>R){dx*=R/m;dy*=R/m;}hum.sx=dx/R;hum.sy=dy/R;knob.style.transform=`translate(${dx}px,${dy}px)`;if(hum.sy<-.65&&!hum.upLatch){hum.upLatch=true;hum.jumpQ=true;}if(hum.sy>-.4)hum.upLatch=false;}
-function stickOff(){stickId=null;hum.sx=hum.sy=0;hum.upLatch=false;knob.style.transform='';}
-$('pad').addEventListener('pointerdown',e=>{if(e.target.closest('.btn'))return;const r=$('pad').getBoundingClientRect();if(e.clientX-r.left<r.width*.5&&stickId===null){stickId=e.pointerId;stickSet(e);}});
-addEventListener('pointermove',e=>{if(e.pointerId===stickId)stickSet(e);});
-addEventListener('pointerup',e=>{if(e.pointerId===stickId)stickOff();});
-addEventListener('pointercancel',e=>{if(e.pointerId===stickId)stickOff();});
-function bindBtn(id,down,up){const b=$(id);b.addEventListener('pointerdown',e=>{e.preventDefault();try{b.setPointerCapture(e.pointerId);}catch(_){}b.classList.add('on');down();});const off=()=>{b.classList.remove('on');up&&up();};b.addEventListener('pointerup',off);b.addEventListener('pointercancel',off);b.addEventListener('lostpointercapture',off);}
-bindBtn('bAtk',()=>{hum.atkQ=true;});bindBtn('bJump',()=>{hum.jumpQ=true;});bindBtn('bSp',()=>{hum.spQ=true;});bindBtn('bGuard',()=>{hum.guard=true;},()=>{hum.guard=false;});
+TGPad.mount('#pad',{keys:false,labels:{A:'攻撃',B:'ジャンプ',X:'必殺',Y:'ガード'}});
+TGPad.on('A',d=>{if(d)hum.atkQ=true;});TGPad.on('B',d=>{if(d)hum.jumpQ=true;});TGPad.on('X',d=>{if(d)hum.spQ=true;});TGPad.on('Y',d=>{hum.guard=d;});
 const keys={};
 addEventListener('keydown',e=>{if(e.repeat)return;keys[e.key]=true;if(e.key==='j'||e.key==='z')hum.atkQ=true;if(e.key==='k'||e.key==='x'||e.key===' '||e.key==='ArrowUp'||e.key==='w')hum.jumpQ=true;if(e.key==='i'||e.key==='c')hum.spQ=true;});
 addEventListener('keyup',e=>{keys[e.key]=false;});
-function humanInput(){let mx=hum.sx;if(Math.abs(mx)<.2)mx=0;if(keys.ArrowLeft||keys.a)mx=-1;if(keys.ArrowRight||keys.d)mx=1;
+function humanInput(){hum.sx=TGPad.stick.x;hum.sy=TGPad.stick.y;if(hum.sy<-.65&&!hum.upLatch){hum.upLatch=true;hum.jumpQ=true;}if(hum.sy>-.4)hum.upLatch=false;let mx=hum.sx;if(Math.abs(mx)<.2)mx=0;if(keys.ArrowLeft||keys.a)mx=-1;if(keys.ArrowRight||keys.d)mx=1;
  const I={mx,atk:hum.atkQ,jump:hum.jumpQ,sp:hum.spQ,guard:hum.guard||keys.l||keys.s||keys.ArrowDown};hum.atkQ=hum.jumpQ=hum.spQ=false;return I;}
 
 /* ================= 骨格リグ ================= */
@@ -732,7 +720,7 @@ function hud(g,t){if(!P)return;const gold=P.form==='gaoh';
  g.fillStyle='rgba(0,0,0,.55)';g.fillRect(6,6,170,40);g.fillStyle=gold?'#ffd75e':'#e8e4dc';g.font='900 12px sans-serif';g.fillText(gold?'金獅子 牙王':'虎鮫 蒼牙',12,20);
  g.fillStyle='#2a1208';g.fillRect(12,24,158,8);const hg=g.createLinearGradient(12,0,170,0);if(gold){hg.addColorStop(0,'#fff3b0');hg.addColorStop(1,'#d8a020');}else{hg.addColorStop(0,'#7aff8a');hg.addColorStop(1,'#2a9a4a');}g.fillStyle=P.hp<P.max*.25&&Math.sin(t*8)>0?'#ff4a3a':hg;g.fillRect(12,24,158*clamp(P.hp/P.max,0,1),8);
  g.fillStyle='#1a1008';g.fillRect(12,35,158,6);const full=P.sp>=100;g.fillStyle=full?(Math.sin(t*10)>0?'#fff3b0':'#ff9a1a'):'#e89a2a';g.fillRect(12,35,158*P.sp/100,6);g.fillStyle='#fff';g.font='bold 7px sans-serif';g.fillText(full?'必殺技 OK！':'獅子ゲージ',134,41);
- $('bSp').classList.toggle('ready',full);
+ TGPad.glow('X',full);
  const st=STAGES[G.stage];g.fillStyle='rgba(0,0,0,.5)';g.fillRect(VW-132,6,126,30);g.fillStyle='#ffd75e';g.font='900 10px sans-serif';g.textAlign='right';g.fillText(st.name+'　'+st.sub,VW-10,18);
  if(G.phase==='grunt'){g.fillStyle='#fff';g.font='900 11px sans-serif';g.fillText(`撃破 ${Math.min(G.kills,G.need)} / ${G.need}`,VW-10,31);}else{g.fillStyle='#ff8a6a';g.font='900 10px sans-serif';g.fillText('BOSS BATTLE',VW-10,31);}g.textAlign='left';
  if(P.combo>=3){g.fillStyle='#ffd75e';g.font='900 18px sans-serif';g.textAlign='right';g.lineWidth=3;g.strokeStyle='#3a1a00';g.strokeText(P.combo+' HIT',VW-10,62);g.fillText(P.combo+' HIT',VW-10,62);g.textAlign='left';}

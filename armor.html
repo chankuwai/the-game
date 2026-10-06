@@ -87,7 +87,7 @@ canvas{display:block; width:100%; aspect-ratio:3/4; border:3px solid var(--line)
 }
 #ov h2{margin:0; font-size:24px}
 #ov p{margin:0 0 4px; color:var(--sub); font-size:14px}
-#controls{display:flex; justify-content:space-between; align-items:center; margin-top:12px; user-select:none; -webkit-user-select:none}
+#controls{position:relative; height:250px; margin-top:6px; user-select:none; -webkit-user-select:none}
 #controls.off{opacity:.35; pointer-events:none}
 #stick{position:relative; width:130px; height:130px; border-radius:50%; background:var(--panel); border:3px solid var(--line); touch-action:none}
 #knob{position:absolute; left:41px; top:41px; width:48px; height:48px; border-radius:50%; background:var(--accent); border:3px solid var(--accent-ink)}
@@ -132,6 +132,7 @@ canvas{display:block; width:100%; aspect-ratio:3/4; border:3px solid var(--line)
  window.tgClear=function(gid,info){try{if(window.tgAuto||window.tgAutoUsed||window.__tgAutoEver)return;gid=gid||id;var o=JSON.parse(localStorage.getItem('tg_clear')||'{}');var r=o[gid]||{n:0};r.n=(r.n||0)+1;r.t=Date.now();if(info)r.info=info;o[gid]=r;localStorage.setItem('tg_clear',JSON.stringify(o));}catch(e){}};
  try{var a=JSON.parse(localStorage.getItem('tg_recent')||'[]').filter(function(x){return x.id!==id;});a.unshift({id:id,t:Date.now()});localStorage.setItem('tg_recent',JSON.stringify(a.slice(0,10)));}catch(e){}})();
 </script>
+<script src="tg-pad.js"></script>
 </head>
 <body>
 <div id="app">
@@ -185,15 +186,7 @@ canvas{display:block; width:100%; aspect-ratio:3/4; border:3px solid var(--line)
         <button id="ovB" hidden></button>
       </div>
     </div>
-    <div id="controls">
-      <div id="stick"><div id="knob"></div></div>
-      <div class="acts">
-        <button class="act" id="btnSlash">近接</button>
-        <button class="act" id="btnShot">射撃</button>
-        <button class="act" id="btnDash">ダッシュ</button>
-        <button class="act" id="btnUlt">超必殺</button>
-      </div>
-    </div>
+    <div id="controls"></div>
     <div class="keys">キーボード：矢印/WASDで移動、Jで射撃、Kで近接、Lでダッシュ、Uで超必殺</div>
   </section>
 
@@ -447,31 +440,14 @@ addEventListener("keydown",e=>{
 });
 addEventListener("keyup",e=>{keys[e.key.toLowerCase()]=false;});
 function manualInput(){
-  let mx=joy.x,my=joy.y;
+  let mx=TGPad.stick.x,my=TGPad.stick.y;
   if(keys["arrowleft"]||keys["a"]) mx-=1; if(keys["arrowright"]||keys["d"]) mx+=1;
   if(keys["arrowup"]||keys["w"]) my-=1;   if(keys["arrowdown"]||keys["s"]) my+=1;
   const c={mx,my,shoot:shotHeld||!!keys["j"]||!!keys[" "],slash:slashQ,dash:dashQ,ult:ultQ};
   slashQ=false; dashQ=false; ultQ=false; return c;
 }
-(function bindControls(){
-  const stick=$("stick"), knob=$("knob"); let id=null;
-  const upd=e=>{
-    const b=stick.getBoundingClientRect(), cx=b.left+b.width/2, cy=b.top+b.height/2;
-    let dx=(e.clientX-cx)/(b.width/2-10), dy=(e.clientY-cy)/(b.height/2-10);
-    const l=Math.hypot(dx,dy); if(l>1){dx/=l;dy/=l;}
-    joy.x=dx; joy.y=dy; knob.style.transform=`translate(${dx*36}px,${dy*36}px)`;
-  };
-  stick.addEventListener("pointerdown",e=>{id=e.pointerId; stick.setPointerCapture(id); upd(e);});
-  stick.addEventListener("pointermove",e=>{if(e.pointerId===id) upd(e);});
-  const end=e=>{ if(e.pointerId===id){id=null; joy.x=joy.y=0; knob.style.transform="";} };
-  stick.addEventListener("pointerup",end); stick.addEventListener("pointercancel",end);
-  const shot=$("btnShot");
-  shot.addEventListener("pointerdown",e=>{e.preventDefault(); shotHeld=true;});
-  ["pointerup","pointercancel","pointerleave"].forEach(t=>shot.addEventListener(t,()=>shotHeld=false));
-  $("btnSlash").addEventListener("pointerdown",e=>{e.preventDefault(); slashQ=true;});
-  $("btnDash").addEventListener("pointerdown",e=>{e.preventDefault(); dashQ=true;});
-  $("btnUlt").addEventListener("pointerdown",e=>{e.preventDefault(); ultQ=true;});
-})();
+TGPad.mount('#controls',{keys:false,labels:{A:'近接',B:'射撃',X:'ダッシュ',Y:'超必殺'}});
+TGPad.on('A',d=>{if(d)slashQ=true;});TGPad.on('B',d=>{shotHeld=d;});TGPad.on('X',d=>{if(d)dashQ=true;});TGPad.on('Y',d=>{if(d)ultQ=true;});
 $("modeBtn").onclick=()=>setMode(mode==="auto"?"manual":"auto");
 
 function step(dt){
@@ -820,9 +796,9 @@ function updateBtns(){
   const p=S.p;
   $("gaugeMe").style.width=p.gauge+"%";
   $("gaugeT").textContent=p.gauge>=100?"MAX":Math.floor(p.gauge)+"%";
-  $("btnUlt").classList.toggle("ready",p.gauge>=100&&p.ultT<=0);
-  $("btnUlt").classList.toggle("cd",p.gauge<100);
-  $("btnDash").classList.toggle("cd",p.dashCd>0);
+  TGPad.glow("Y",p.gauge>=100&&p.ultT<=0);
+  TGPad.enable("Y",p.gauge>=100);
+  TGPad.enable("X",!(p.dashCd>0));
 }
 function drawArena(){
   ctx.fillStyle=C["--arena"]; ctx.fillRect(0,0,W,H);
