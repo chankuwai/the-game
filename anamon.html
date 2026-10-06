@@ -25,8 +25,8 @@ html,body{margin:0;height:100%;background:#1a1526;color:#2a2230;overflow:hidden;
 .hearts{letter-spacing:1px;font-size:12px}
 .bar{flex:1;height:7px;border-radius:4px;background:#14101a;overflow:hidden}
 .bar>div{height:100%;border-radius:4px;background:#7ae07a;transition:width .3s}
-#btns{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;width:calc(100% - 16px);max-width:470px;margin-top:10px}
-.ab{position:relative;aspect-ratio:1/1;max-height:74px;border-radius:50%;border:none;font-family:inherit;font-weight:900;font-size:10px;color:#4a2010;background:radial-gradient(circle at 35% 28%,#fff6e0,#ffd08a 55%,#e89040);box-shadow:inset 0 -4px 0 rgba(140,50,0,.35),0 4px 0 #8a3a10,0 6px 10px rgba(0,0,0,.4);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1;padding:0}
+#btns{display:grid;grid-template-columns:repeat(4,1fr);gap:8px 10px;justify-items:center;width:calc(100% - 16px);max-width:470px;margin-top:10px}
+.ab{position:relative;aspect-ratio:1/1;width:100%;max-width:72px;border-radius:50%;border:none;font-family:inherit;font-weight:900;font-size:10px;color:#4a2010;background:radial-gradient(circle at 35% 28%,#fff6e0,#ffd08a 55%,#e89040);box-shadow:inset 0 -4px 0 rgba(140,50,0,.35),0 4px 0 #8a3a10,0 6px 10px rgba(0,0,0,.4);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1;padding:0}
 .ab .e{font-size:22px;line-height:1;margin-bottom:2px}
 .ab:active,.ab.on{transform:translateY(3px);box-shadow:inset 0 -2px 0 rgba(140,50,0,.35),0 1px 0 #8a3a10}
 .ab:disabled{filter:grayscale(.9) brightness(.7)}
@@ -42,7 +42,7 @@ html,body{margin:0;height:100%;background:#1a1526;color:#2a2230;overflow:hidden;
 #sub{width:calc(100% - 16px);max-width:470px;margin-top:8px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 #sub div{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:6px 4px;text-align:center;color:#ffe8c0;font-size:10px;font-weight:bold}
 #sub b{display:block;font-size:15px;color:#fff;margin-top:2px}
-@media (max-height:740px){#sub{display:none}}
+@media (max-height:800px){#sub{display:none}}
 #modal{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(10,6,20,.72)}
 #modal.hidden{display:none}
 .mbox{width:100%;max-width:400px;max-height:calc(100% - 40px);overflow:auto;background:#fff8ec;border-radius:20px;padding:16px;box-shadow:0 0 0 4px #ff9f5a,0 12px 30px rgba(0,0,0,.6);-webkit-overflow-scrolling:touch;touch-action:pan-y}
@@ -105,10 +105,12 @@ input.nm{width:100%;padding:10px;font-size:16px;border-radius:10px;border:2px so
   <button class="ab" id="bClean"><span class="e">🧹</span>そうじ</button>
   <button class="ab" id="bMed"><span class="e">💊</span>おくすり</button>
   <button class="ab" id="bScold"><span class="e">📢</span>しかる</button>
+  <button class="ab" id="bLight"><span class="e">💡</span>でんき</button>
   <button class="ab" id="bTrain"><span class="e">💪</span>きたえる</button>
   <button class="ab" id="bBattle"><span class="e">⚔️</span>バトル</button>
-  <button class="ab" id="bLight"><span class="e">💡</span>でんき</button>
+  <button class="ab" id="bItem"><span class="e">🎒</span>どうぐ</button>
   <button class="ab" id="bShop"><span class="e">🛒</span>おみせ</button>
+  <button class="ab" id="bStat"><span class="e">📊</span>ステータス</button>
   <button class="ab" id="bMenu"><span class="e">📋</span>メニュー</button>
  </div>
  <div id="bat">
@@ -691,7 +693,9 @@ function toggleLight(){S.light=!S.light;sfx('click');const m=M();if(m&&!m.egg){i
 function pet(){const m=M();if(!canAct()||m.sleeping)return;if(m.petT>0){m.mood='happy';m.moodT=.8;return;}m.hap=Math.min(4,m.hap+.5);m.petT=40;m.mood='happy';m.moodT=1.4;sfx('happy');hearts(m.x,150);save();}
 function useItem(k){const m=M();if(!canAct())return;if((S.inv[k]||0)<=0)return;
  if(k==='steak'||k==='cake'){feed(k);return;}
- if(k==='med'||k==='band'){medicine();return;}
+ if(k==='med'){if(!m.sick){toast('病気じゃないみたい');return;}S.inv.med--;m.sick=false;m.sickT=0;sfx('med');log('💊 病気が治った！');m.mood='happy';m.moodT=1.2;save();return;}
+ if(k==='band'){if(!m.hurt){toast('ケガはしていないみたい');return;}S.inv.band--;m.hurt=false;m.hurtT=0;sfx('med');log('🩹 ケガが治った！');m.mood='happy';m.moodT=1.2;save();return;}
+ if(k==='energy'&&m.sta>=100){toast('たいりょくは満タンだよ');return;}
  S.inv[k]--;if(k==='energy'){m.sta=Math.min(100,m.sta+50);}
  if(k==='protein'){m.trained.atk+=3;m.trained.hp+=3;}if(k==='shield'){m.trained.def+=3;m.trained.hp+=3;}if(k==='feather'){m.trained.spd+=3;m.trained.int+=3;}
  m.wt+=1;sfx('ok');m.mood='happy';m.moodT=1.2;toast(ITEMS[k].n+'をつかった');save();}
@@ -842,7 +846,7 @@ function updateHud(){if(!S)return;const m=M();$('imoney').textContent=S.money+'G
  if(m.egg){$('iname').textContent='タマゴ';$('istage').textContent=FAM[m.fam].n;}
  else{$('iname').textContent=m.name;$('istage').textContent=STAGE_N[SP[m.sp].s];}
  $('mHun').textContent=hstr(m.egg?4:m.hun);$('mHap').textContent=hstr(m.egg?4:m.hap);$('mSta').style.width=(m.egg?100:m.sta)+'%';$('mDis').style.width=(m.egg?0:m.dis)+'%';
- const eg=!!m.egg;['bFood','bToilet','bClean','bMed','bScold','bTrain','bBattle'].forEach(id=>$(id).disabled=eg);
+ const eg=!!m.egg;['bFood','bToilet','bClean','bMed','bScold','bTrain','bBattle','bStat'].forEach(id=>$(id).disabled=eg);
  $('bToilet').classList.toggle('alert',!eg&&m.needT);$('bClean').classList.toggle('alert',!eg&&m.poops.length>0);$('bMed').classList.toggle('alert',!eg&&(m.sick||m.hurt));
  $('bFood').classList.toggle('alert',!eg&&m.hun<1);$('bScold').classList.toggle('alert',!eg&&m.whine>0);$('bLight').classList.toggle('alert',!eg&&isNight()&&S.light&&!m.sleeping);
  const st=m.egg?null:stats(m);const nx=m.egg?null:SP[m.sp].s<4?EVO_DAY[SP[m.sp].s]:null;
@@ -940,11 +944,17 @@ function foodMenu(){const m=M();if(!canAct())return;let h='<h2>🍖 ごはん</h
  h+='<button class="mb sub" id="fX">もどる</button>';openModal(h,{auto(){$('mbox').querySelector('[data-k=meat]').click();}});
  $('mbox').querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>feed(b.dataset.k));$('fX').onclick=()=>{sfx('click');closeModal();};}
 function shopMenu(msg){let h=`<h2>🛒 おみせ</h2><p style="text-align:center">所持金 <b>${S.money}G</b></p>${msg?`<p style="text-align:center;color:#e8663a">${msg}</p>`:''}`;
- for(const k of Object.keys(ITEMS)){if(k==='meat')continue;const it=ITEMS[k];h+=`<div style="display:flex;gap:6px;align-items:center;margin-top:6px"><button class="mb" style="margin:0;flex:1" data-b="${k}" ${S.money<it.p?'disabled':''}>${it.e} ${it.n}　${it.p}G<small>${it.d}　所持:${S.inv[k]||0}</small></button>${(S.inv[k]||0)>0&&!['steak','cake','med','band'].includes(k)?`<button class="mb sub" style="margin:0;width:70px" data-u="${k}">つかう</button>`:''}</div>`;}
+ for(const k of Object.keys(ITEMS)){if(k==='meat')continue;const it=ITEMS[k];h+=`<div style="display:flex;gap:6px;align-items:center;margin-top:6px"><button class="mb" style="margin:0;flex:1" data-b="${k}" ${S.money<it.p?'disabled':''}>${it.e} ${it.n}　${it.p}G<small>${it.d}　所持:${S.inv[k]||0}</small></button></div>`;}
  h+='<button class="mb sub" id="sX">もどる</button>';openModal(h,{auto(){$('sX').click();}});
- $('mbox').querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>{const k=b.dataset.b;if(S.money<ITEMS[k].p)return;S.money-=ITEMS[k].p;S.inv[k]=(S.inv[k]||0)+1;sfx('coin');save();updateHud();shopMenu(ITEMS[k].n+'を買った！');});
- $('mbox').querySelectorAll('[data-u]').forEach(b=>b.onclick=()=>{closeModal();useItem(b.dataset.u);});
+ $('mbox').querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>{const k=b.dataset.b;if(S.money<ITEMS[k].p)return;S.money-=ITEMS[k].p;S.inv[k]=(S.inv[k]||0)+1;sfx('coin');save();updateHud();shopMenu(ITEMS[k].n+'を買った！ 🎒どうぐから使えるよ');});
  $('sX').onclick=()=>{sfx('click');closeModal();};}
+function itemMenu(msg){const m=M();const ks=Object.keys(ITEMS).filter(k=>k!=='meat'&&(S.inv[k]||0)>0);
+ let h=`<h2>🎒 どうぐ</h2>${msg?`<p style="text-align:center;color:#e8663a">${msg}</p>`:''}`;
+ if(!ks.length)h+='<p style="text-align:center">もちものがない…<br>おみせで買ってこよう</p><button class="mb" id="iShop">🛒 おみせへ</button>';
+ ks.forEach(k=>{const it=ITEMS[k];h+=`<button class="mb" data-u="${k}" ${m&&!m.egg?'':'disabled'}>${it.e} ${it.n}　×${S.inv[k]}<small>${it.d}</small></button>`;});
+ h+='<button class="mb sub" id="iX">とじる</button>';openModal(h,{auto(){$('iX').click();}});
+ $('mbox').querySelectorAll('[data-u]').forEach(b=>b.onclick=()=>{const k=b.dataset.u;closeModal();useItem(k);});
+ if($('iShop'))$('iShop').onclick=()=>{sfx('click');shopMenu();};$('iX').onclick=()=>{sfx('click');closeModal();};}
 
 /* ================= トレーニング ================= */
 function trainMenu(){const m=M();if(!canAct())return;if(m.stage<1&&ageDays(m)<.05){}
@@ -995,14 +1005,14 @@ function mainMenu(){const m=M();const can=m&&!m.egg&&SP[m.sp].s>=4;
  <button class="mb sub" id="mX">とじる</button>`,{auto(){$('mX').click();}});
  $('mSt').onclick=()=>{sfx('click');statusScr();};$('mBr').onclick=()=>{sfx('click');breedMenu();};$('mDex').onclick=()=>{sfx('click');dexScr();};$('mHall').onclick=()=>{sfx('click');hallScr();};
  $('mSpd').onclick=()=>{S.speed=S.speed===1?2:S.speed===2?4:1;sfx('click');save();updateHud();mainMenu();};$('mHelp').onclick=()=>{sfx('click');help(mainMenu);};$('mX').onclick=()=>{sfx('click');closeModal();};}
-function statusScr(){const m=M();const sp=SP[m.sp],st=stats(m),pw=power(st);const mx=Math.max(60,...STAT_K.map(k=>st[k]));
+function statusScr(direct){const m=M();const sp=SP[m.sp],st=stats(m),pw=power(st);const mx=Math.max(60,...STAT_K.map(k=>st[k]));
  let h=`<h2>${m.name}</h2><div style="text-align:center" id="stPic"></div><p style="text-align:center;margin:0"><b style="font-size:16px">${sp.n}</b>　${STAGE_N[sp.s]}・${FAM[sp.f].n}属性</p><p style="text-align:center;font-size:11px;color:#8a6a4a;margin:2px 0 8px">${sp.d}</p><table class="stt">`;
  STAT_K.forEach(k=>{h+=`<tr><td style="width:70px">${STAT_N[k]}</td><td><div class="sbar"><div style="width:${st[k]/mx*100}%"></div></div><small style="color:#a08060">血統 +${Math.round(m.genes[k]*GF[sp.s])}</small></td><td>${st[k]}</td></tr>`;});
  h+=`<tr><td>戦闘力</td><td></td><td style="color:#e8663a">${pw}</td></tr><tr><td>年齢</td><td></td><td>${ageDays(m).toFixed(1)}日 / 寿命${lifespan(m).toFixed(0)}日</td></tr><tr><td>体重</td><td></td><td>${m.wt}kg（目安${WEIGHT0[sp.s]}）</td></tr><tr><td>戦績</td><td></td><td>${m.wins}勝 ${m.losses}敗</td></tr><tr><td>お世話ミス</td><td></td><td>今の段階 ${m.cm}／通算 ${m.cmTotal}</td></tr><tr><td>ひっさつ技</td><td></td><td>${sp.mv}</td></tr></table>`;
  const nx=sp.s===4?`<p style="font-size:11px;color:#8a6a4a">極限期への条件：9日目以降・バトル4勝以上・戦闘力300以上・この段階のお世話ミス4回以下</p>`:'';
  h+=nx+`<button class="mb sub" id="stRn">なまえをかえる</button><button class="mb" id="stX">もどる</button>`;
- openModal(h,{auto(){$('stX').click();}});$('stPic').appendChild(thumb(m.sp,false,150));$('stX').onclick=()=>{sfx('click');mainMenu();};
- $('stRn').onclick=async()=>{const n=await askName(m.name,'新しいなまえ');m.name=n;save();updateHud();statusScr();};}
+ openModal(h,{auto(){$('stX').click();}});$('stPic').appendChild(thumb(m.sp,false,150));$('stX').onclick=()=>{sfx('click');if(direct)closeModal();else mainMenu();};
+ $('stRn').onclick=async()=>{const n=await askName(m.name,'新しいなまえ');m.name=n;save();updateHud();statusScr(direct);};}
 function dexScr(){let h=`<h2>📖 ずかん</h2><div class="dex">`;SPL.forEach((sp,i)=>{h+=`<div data-i="${i}"><div class="pic"></div>${S.dex[sp.id]===1?sp.n:'？？？'}<br><span style="color:#a08060">${STAGE_N[sp.s]}</span></div>`;});h+=`</div><button class="mb" id="dX">もどる</button>`;
  openModal(h,{auto(){$('dX').click();}});$('mbox').querySelectorAll('.dex>div').forEach(d=>{const sp=SPL[+d.dataset.i];const c=thumb(sp.id,S.dex[sp.id]!==1,70);d.querySelector('.pic').appendChild(c);
   d.onclick=()=>{if(S.dex[sp.id]!==1)return;infoModal(`<h2>${sp.n}</h2><div id="dxp" style="text-align:center"></div><p style="text-align:center">${STAGE_N[sp.s]}・${FAM[sp.f].n}属性<br>ひっさつ：${sp.mv}</p><p>${sp.d}</p>`,()=>$('dxp').appendChild(thumb(sp.id,false,170))).then(dexScr);};});
@@ -1026,7 +1036,7 @@ async function breed(pt){const m=M();busy=true;setBgm('evo');sfx('love');
 
 /* ================= ボタン ================= */
 $('bFood').onclick=()=>{sfx('click');foodMenu();};$('bToilet').onclick=toilet;$('bClean').onclick=clean;$('bMed').onclick=medicine;$('bScold').onclick=scold;
-$('bTrain').onclick=()=>{sfx('click');trainMenu();};$('bBattle').onclick=()=>{sfx('click');battleMenu();};$('bLight').onclick=toggleLight;$('bShop').onclick=()=>{sfx('click');if(S)shopMenu();};$('bMenu').onclick=()=>{sfx('click');if(S)mainMenu();};
+$('bTrain').onclick=()=>{sfx('click');trainMenu();};$('bBattle').onclick=()=>{sfx('click');battleMenu();};$('bLight').onclick=toggleLight;$('bShop').onclick=()=>{sfx('click');if(S)shopMenu();};$('bMenu').onclick=()=>{sfx('click');if(S)mainMenu();};$('bItem').onclick=()=>{sfx('click');if(S)itemMenu();};$('bStat').onclick=()=>{sfx('click');const m=M();if(m&&!m.egg)statusScr(true);};
 cv.addEventListener('pointerdown',e=>{const m=M();if(!m||m.egg||B)return;const r=cv.getBoundingClientRect();const x=(e.clientX-r.left)/SC,y=(e.clientY-r.top)/SC;const sz=SIZE[SP[m.sp].s];if(Math.abs(x-m.x)<sz*.6&&y>212-sz-10&&y<220)pet();});
 
 /* ================= AUTO ================= */
