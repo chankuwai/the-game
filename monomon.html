@@ -53,8 +53,10 @@ html,body{margin:0;height:100%;background:#14161c;color:#181818;overflow:hidden;
 'use strict';
 /* ================= 基本 ================= */
 const SW=160,SH=144,TAU=Math.PI*2;
+// フィールドは広めに表示（キャンバスは3倍解像度、フィールド2倍・それ以外3倍で描画）
+const CVS=3,WZ=2,VW=SW*CVS/WZ,VH=SH*CVS/WZ;
 const $=id=>document.getElementById(id);
-const cv=$('cv'),ctx=cv.getContext('2d');ctx.imageSmoothingEnabled=false;
+const cv=$('cv'),ctx=cv.getContext('2d');cv.width=SW*CVS;cv.height=SH*CVS;ctx.imageSmoothingEnabled=false;
 const UI=$('ui');
 const C0='#f8f8f8',C1='#a8a8a8',C2='#585858',C3='#181818',SH4=[C0,C1,C2,C3];
 const rnd=(a,b)=>a+Math.random()*(b-a),irnd=(a,b)=>Math.floor(a+Math.random()*(b-a+1)),clamp=(v,a,b)=>v<a?a:v>b?b:v,lerp=(a,b,t)=>a+(b-a)*t,pick=a=>a[Math.floor(Math.random()*a.length)];
@@ -739,7 +741,7 @@ function tryMove(d,forced){const [dx,dy]=DXY[d];const t=across(G.map,G.x+dx,G.y+
  if(!t||!canWalk(t.mid,t.x,t.y)){if(forced)return;P.bumpT-=1/60;if(P.bumpT<=0){sfx('bump');P.bumpT=.35;}if(window.tgAuto)BOT.blocked();return;}
  P.moving=true;P.t=0;P.fx=G.x;P.fy=G.y;P.tx=G.x+dx;P.ty=G.y+dy;P.tmid=null;
  if(t.mid!==G.map){P.tmid=t.mid;P.tx=t.x;P.ty=t.y;}
- P.spd=forced?9:(IN.held.B||window.tgAuto)?8:4;}
+ P.spd=forced?11:(IN.held.B||window.tgAuto)?11:6.5;}
 // 木を切る・岩をくだく・鍵のかかった扉
 function bumpSpecial(t){const tt=tileAt(MAPS[t.mid],t.x,t.y);const w=warpAt(MAPS[t.mid],t.x,t.y);
  if(tt==='c'||tt==='k'){const tool=tt==='c'?'nata':'glove';
@@ -800,10 +802,10 @@ async function talkNpc(o){const n=o.n;faceTo(o);
   default:await say(n.text||['……']);}}
 /* ---- 描画 ---- */
 const EDGE={town:'T',route:'T',forest:'T',snow:'T',cave:'#',indoor:'X',tower:'X',hq:'X',ship:'X',mansion:'X',lava:'#',icecave:'#'};
-function drawWorld(g,t){const m=curMap();const camX=Math.round(P.px-72),camY=Math.round(P.py-64);const f=Math.floor(t*2)%2;
- g.fillStyle=C0;g.fillRect(0,0,SW,SH);
+function drawWorld(g,t){const m=curMap();const camX=Math.round(P.px-(VW/2-8)),camY=Math.round(P.py-(VH/2-8));const f=Math.floor(t*2)%2;
+ g.fillStyle=C0;g.fillRect(0,0,VW,VH);
  const x0=Math.floor(camX/16),y0=Math.floor(camY/16);
- for(let ty=y0;ty<=y0+10;ty++)for(let tx=x0;tx<=x0+11;tx++){let ch=tileAt(m,tx,ty);let theme=m.theme;
+ for(let ty=y0;ty<=y0+Math.ceil(VH/16);ty++)for(let tx=x0;tx<=x0+Math.ceil(VW/16);tx++){let ch=tileAt(m,tx,ty);let theme=m.theme;
   if(ch==null){const a=across(G.map,tx,ty);if(a&&m.theme!=='indoor'){const mm=MAPS[a.mid];ch=tileAt(mm,a.x,a.y);theme=mm.theme;}if(ch==null)ch=EDGE[m.theme]||'T';}
   g.drawImage(tileImg(ch,(ch==='~'||ch==='*'||ch==='"'||ch==='%'||ch==='x')?f:0,theme),tx*16-camX,ty*16-camY);}
  drawSigns(g,m,camX,camY);
@@ -816,8 +818,8 @@ function drawWorld(g,t){const m=curMap();const camX=Math.round(P.px-72),camY=Mat
  if(RIVALNPC)list.push({y:RIVALNPC.y*16,draw:()=>drawPerson(g,RIVALNPC.x*16-camX,RIVALNPC.y*16-4-camY,RIVALNPC.dir,0,'rival')});
  list.sort((a,b)=>a.y-b.y).forEach(o=>o.draw());
  if(emote){const x=emote.x*16-camX,y=emote.y*16-camY-26;g.fillStyle=C0;g.fillRect(x+4,y,9,12);g.fillStyle=C3;g.fillRect(x+4,y,9,1);g.fillRect(x+4,y+11,9,1);g.fillRect(x+4,y,1,12);g.fillRect(x+12,y,1,12);g.fillRect(x+8,y+2,1,5);g.fillRect(x+8,y+9,1,1);}
- if(m.dark){const r=has('lantern')?64:22;const cx=Math.round(P.px-camX)+8,cy=Math.round(P.py-camY)+6;g.fillStyle=C3;g.beginPath();g.rect(0,0,SW,SH);g.arc(cx,cy,r,0,TAU,true);g.fill('evenodd');if(has('lantern')){g.globalAlpha=.35;g.beginPath();g.rect(0,0,SW,SH);g.arc(cx,cy,r-14,0,TAU,true);g.fill('evenodd');g.globalAlpha=1;}}
- if(fade>0){g.fillStyle=C3;g.globalAlpha=fade;g.fillRect(0,0,SW,SH);g.globalAlpha=1;}}
+ if(m.dark){const r=has('lantern')?84:24;const cx=Math.round(P.px-camX)+8,cy=Math.round(P.py-camY)+6;g.fillStyle=C3;g.beginPath();g.rect(0,0,VW,VH);g.arc(cx,cy,r,0,TAU,true);g.fill('evenodd');if(has('lantern')){g.globalAlpha=.35;g.beginPath();g.rect(0,0,VW,VH);g.arc(cx,cy,r-14,0,TAU,true);g.fill('evenodd');g.globalAlpha=1;}}
+ if(fade>0){g.fillStyle=C3;g.globalAlpha=fade;g.fillRect(0,0,VW,VH);g.globalAlpha=1;}}
 
 
 /* ================= バトル ================= */
@@ -1288,9 +1290,9 @@ let last=performance.now();
 function frame(now){const dt=clamp((now-last)/1000,0,.05);last=now;TT+=dt;
  try{inputTick(dt);
   if(STACK.length){for(const e of takeEv())uiEv(e);}
-  if(mode==='world'&&G){if(!STACK.length)G.time+=dt;worldStep(dt*Math.min(4,SPD()));drawWorld(ctx,TT);}
-  else if(mode==='battle'){takeEv();battleTick(dt*SPD());drawBattle(ctx,TT);}
-  else if(mode==='title'){drawTitle(ctx,TT);}
+  if(mode==='world'&&G){if(!STACK.length)G.time+=dt;worldStep(dt*Math.min(4,SPD()));ctx.setTransform(WZ,0,0,WZ,0,0);drawWorld(ctx,TT);}
+  else if(mode==='battle'){takeEv();battleTick(dt*SPD());ctx.setTransform(CVS,0,0,CVS,0,0);drawBattle(ctx,TT);}
+  else if(mode==='title'){ctx.setTransform(CVS,0,0,CVS,0,0);drawTitle(ctx,TT);}
  }catch(e){console.error(e);}
  requestAnimationFrame(frame);}
 requestAnimationFrame(frame);
