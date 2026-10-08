@@ -907,11 +907,14 @@ function healAll(){for(const m of G.party)healMon(m);}
 function partyAlive(){return G.party.filter(m=>m.hp>0);}
 function newGame(name){G={v:2,name:name||'ホワイト',rival:'ブラック',map:'home',x:3,y:4,dir:2,party:[],box:[],bag:{potion:3},money:3000,flags:{},seen:{},caught:{},steps:0,repel:0,lastCenter:{map:'home',x:3,y:4},time:0,starter:null,mod:{},visited:{}};}
 function save(){if(window.tgAuto||!G)return false;try{localStorage.setItem(SAVE_KEY,JSON.stringify(G));return true;}catch(e){return false;}}
-function load(){try{const s=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');if(s&&s.v===2){G=s;G.mod=G.mod||{};G.visited=G.visited||{};UID=1+Math.max(0,...G.party.concat(G.box).map(m=>m.uid||0));G.party.concat(G.box).forEach(m=>{if(!m.st||m.st.spa==null){const r=m.st?m.hp/m.st.hp:1;calcStats(m);m.hp=m.hp>0?Math.max(1,Math.round(m.st.hp*r)):0;}});return true;}}catch(e){}return false;}
+function load(){try{const s=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');if(s&&s.v===2){G=s;G.mod=G.mod||{};G.visited=G.visited||{};UID=1+Math.max(0,...G.party.concat(G.box).map(m=>m.uid||0));G.party.concat(G.box).forEach(m=>{if(!m.st||m.st.spa==null){const r=m.st?m.hp/m.st.hp:1;calcStats(m);m.hp=m.hp>0?Math.max(1,Math.round(m.st.hp*r)):0;}});G.box.forEach(healMon);return true;}}catch(e){}return false;}
 const badgeCount=()=>[1,2,3,4,5,6,7,8].filter(i=>G.flags['b'+i]).length;
 function addItem(k,n){G.bag[k]=(G.bag[k]||0)+(n||1);}
 function useBag(k){if(!G.bag[k])return false;G.bag[k]--;if(!G.bag[k])delete G.bag[k];return true;}
-function giveMon(m){G.seen[m.sp]=1;G.caught[m.sp]=1;if(G.party.length<6){G.party.push(m);return 'party';}G.box.push(m);return 'box';}
+// ボックスに 入ると 体力・状態・PPが 全て 元どおりに なる
+function healMon(m){m.hp=m.st.hp;m.status=null;m.moves.forEach(x=>x.pp=MOVES[x.id].pp);return m;}
+function toBox(m){G.box.push(healMon(m));}
+function giveMon(m){G.seen[m.sp]=1;G.caught[m.sp]=1;if(G.party.length<6){G.party.push(m);return 'party';}toBox(m);return 'box';}
 const STARTERS=[DXI.m004,DXI.m007,DXI.m001];
 const LINES={f:['m004','m005','m006','m006'],w:['m007','m008','m009','m009'],g:['m001','m002','m003','m003']};
 function rivalLine(){const p=G.starter;return p===STARTERS[0]?LINES.w:p===STARTERS[1]?LINES.g:LINES.f;}
@@ -1196,11 +1199,11 @@ async function pcScreen(){await say(`${G.name}は パソコンの スイッチ�
   if(v===0){if(G.party.length<=1){await say('手持ちが いなくなって しまいます！');continue;}
    const i=await partyScreen('どの モノモンを 預ける？',{tag:'pc_dep'});if(i<0)continue;
    if(G.party.filter((m,k)=>k!==i&&m.hp>0).length===0){await say('戦える モノモンが いなくなって しまいます！');continue;}
-   const m=G.party.splice(i,1)[0];G.box.push(m);sfx('ok');await say(`${mname(m)}を ボックスに 預けた。`);}
+   const m=G.party.splice(i,1)[0];toBox(m);sfx('ok');await say(`${mname(m)}を ボックスに 預けた。\fボックスの 中で 休んで すっかり 元気に なった！`);}
   else if(v===1){if(!G.box.length){await say('ボックスに 誰も いない。');continue;}
    const full=G.party.length>=6;
    const i=await boxScreen('引き出す モノモンは？',{tag:'pc_wd',hint:full?'手持ちと 入れかえに なります':'タップで 引き出す'});if(i<0)continue;const m=G.box[i];
-   if(full){const j=await partyScreen(`${mname(m)}と 入れかえる モノモンは？`,{tag:'pc_swap'});if(j<0)continue;const old=G.party[j];G.party[j]=m;G.box.splice(i,1,old);sfx('ok');await say(`${mname(old)}を 預けて ${mname(m)}を 引き出した。`);}
+   if(full){const j=await partyScreen(`${mname(m)}と 入れかえる モノモンは？`,{tag:'pc_swap'});if(j<0)continue;const old=G.party[j];G.party[j]=m;G.box.splice(i,1,healMon(old));sfx('ok');await say(`${mname(old)}を 預けて ${mname(m)}を 引き出した。`);}
    else{G.box.splice(i,1);G.party.push(m);sfx('ok');await say(`${mname(m)}を 引き出した。`);}}
   else if(v===2){for(;;){const i=await boxScreen('ボックス',{tag:'pc_view',hint:'タップで くわしく 見る'});if(i<0)break;await summary(G.box[i]);}}
   else break;}}
@@ -1630,7 +1633,7 @@ async function throwBall(mult){const e=B.foe();await say(`${G.name}は ボール
   const where=giveMon(e);B.ball=null;if(!G.caught._c)G.caught._c=0;
   if(where==='box'){await say(`手持ちが いっぱいだ！\f手持ちの モノモンを 1匹 ボックスに 送って ${mname(e)}を 連れて いきますか？`);
    let i=-1;if(await yesno('catch_swap')){hudKill();B.showAlly=false;i=await partyScreen('ボックスに 送る モノモンは？',{tag:'catch_swap_pick'});}
-   if(i>=0){const old=G.party[i];G.box.splice(G.box.indexOf(e),1);G.party[i]=e;G.box.push(old);await say(`${mname(old)}を ボックスに 送った。\f${mname(e)}が 手持ちに 加わった！`);}
+   if(i>=0){const old=G.party[i];G.box.splice(G.box.indexOf(e),1);G.party[i]=e;toBox(old);await say(`${mname(old)}を ボックスに 送った。\f${mname(e)}が 手持ちに 加わった！`);}
    else await say(`${mname(e)}は ボックスに 送られた！`);}
   return 'caught';}
  B.ball=null;B.foeVis=true;await say(shakes===0?'ああ！ モノモンが ボールから 出てしまった！':shakes===1?'ああっ！ もう少しで 捕まえられたのに！':'くうっ！ あと ちょっと だったのに！');return 'used';}
@@ -1715,7 +1718,7 @@ async function trainerBattle(o){const n=o.n;await say(talkLines(n.name,n.text));
  await afterBattle(res);}
 async function leaderBattle(o){const n=o.n;await say(n.text);
  const res=await battle({kind:'trainer',team:teamFrom(n.team,24),tname:n.name,tstyle:n.style,ai:'smart',potions:n.badge?Math.min(2,Math.ceil(n.badge/3)):(n.give||n.setf||n.id==='shiro'||n.id==='kuro'||n.id==='sumi')?1:2,bgm:n.badge?'gym':/^lg/.test(n.id)?'league':'trainer'});
- if(res==='win'){G.flags[n.id]=1;const pay=n.badge?n.money*5:n.money;G.money+=pay;
+ if(res==='win'){G.flags[n.id]=1;const pay=n.badge?n.money*2:n.money;G.money+=pay;
   if(n.badge){G.flags['b'+n.badge]=1;sfx('item');await say([...n.win,`${G.name}は ${['','ロック','アクア','サンダー','リーフ','シャドウ','マインド','アイス','ドラゴン'][n.badge]}バッジを 手に入れた！`,`${pay}円を もらった！`]);addItem('candy',2);await say(`ふしぎなアメを 2こ もらった！`);
    if(n.scroll&&ITM[n.scroll]){addItem(n.scroll,1);sfx('item');await say([`ジムに 伝わる 技の 巻物も もらえた！`,`${G.name}は ${ITM[n.scroll].n}を もらった！`,'巻物は バッグから 使うと モノモンに 技を 覚えさせられるよ。']);}
    if(n.badge===8){G.flags.lgpass=1;await say('これで リーグへの 道が 開けた！ リュウジシティの 北へ 進め！');}}
