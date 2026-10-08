@@ -1408,9 +1408,11 @@ async function battleLoop(){
   if(order.length===2){const pa=act.mv>=0?(eff(MOVES[act.mv],'prio')?+eff(MOVES[act.mv],'prio')[1]:0):0,pb=ea.mv>=0?(eff(MOVES[ea.mv],'prio')?+eff(MOVES[ea.mv],'prio')[1]:0):0;
    const sa_=bStat(B.ally(),B.sides[0],'spd'),sb_=bStat(B.foe(),B.sides[1],'spd');
    if(pb>pa||(pb===pa&&(sb_>sa_||(sb_===sa_&&Math.random()<.5))))order.reverse();}
+  B.swapped=false;
   for(const o of order){const atk=o.side===0?B.ally():B.foe(),def=o.side===0?B.foe():B.ally();if(atk.hp<=0||def.hp<=0)continue;
    await doMove(o.side,o.mv,o.slot);
-   if(await checkFaint())return;}
+   if(await checkFaint())return;
+   if(B.swapped)break;}  // 倒れて 入れ替わったら その ターンは おしまい
   // ターン終了
   for(const s of [0,1]){const m=s===0?B.ally():B.foe();if(!m||m.hp<=0)continue;const sd=B.sides[s];
    if(m.status==='brn'||m.status==='psn'||m.status==='tox'){let d;if(m.status==='tox'){sd.tox=Math.min(15,sd.tox+1);d=Math.max(1,Math.floor(m.st.hp*sd.tox/16));}else d=Math.max(1,Math.floor(m.st.hp/8));m.hp=Math.max(0,m.hp-d);await settle();await say(`${pre(s)}${mname(m)}は ${m.status==='brn'?'やけど':'毒'}の ダメージを 受けた！`);}
@@ -1564,12 +1566,16 @@ async function checkFaint(){const e=B.foe(),a=B.ally();
   if(B.ally().hp<=0){}
   const next=B.foeTeam.findIndex((m,i)=>i>B.fi&&m.hp>0);
   if(next<0){B.res='win';if(B.kind!=='wild'){setBgm('win');await say(`${B.tName}との 勝負に 勝った！`);}return true;}
-  B.fi=next;if(B.ally().hp>0&&B.kind!=='wild'&&!window.tgAuto){}
+  B.fi=next;B.swapped=true;
+  if(B.ally().hp>0&&B.kind!=='wild'&&!window.tgAuto&&partyAlive().length>1){
+   await say(`${B.tName}は ${mname(B.foe())}を 繰り出そうとしている！`);
+   const box=el('box msg',null,'');box.textContent=`${G.name}も モノモンを 入れ替えますか？`;const yes=await yesno('shift');box.remove();
+   if(yes){const i=await partyScreen('どの モノモンと 入れ替える？',{tag:'bshift',dis:m=>m.hp<=0||m===B.ally()});if(i>=0&&i!==B.ai_){await say(`戻れ！ ${mname(B.ally())}！`);B.showAlly=false;await wait(200);B.ai_=i;await sendAlly(false);}}}
   await sendFoe(false);return a.hp<=0?await allyFaint():false;}
  if(a.hp<=0)return await allyFaint();return false;}
 async function allyFaint(){const a=B.ally();sfx('faint');for(let i=0;i<10;i++){B.allyY=i*6;await wait(30);}B.showAlly=false;B.allyY=0;await say(`${mname(a)}は 倒れた！`);B.part.delete(a.uid);
  if(!partyAlive().length){B.res='lose';await say(`${G.name}の 手持ちには 戦える モノモンが いない！`);return true;}
- const i=await partyScreen('次の モノモンを 選んでください',{tag:'bnext',cancel:false,dis:m=>m.hp<=0});B.ai_=i;await sendAlly(false);return false;}
+ const i=await partyScreen('次の モノモンを 選んでください',{tag:'bnext',cancel:false,dis:m=>m.hp<=0});B.ai_=i;await sendAlly(false);B.swapped=true;return false;}
 async function giveExp(e){const base=Math.floor(DEX[e.sp].exp*e.lv/7*(B.kind==='wild'?1:1.5));
  const parts=G.party.filter(m=>B.part.has(m.uid)&&m.hp>0);const share=G.bag.exp>0;
  // 最初の ライバル戦は 勝てば ちょうど 1レベル 上がる
@@ -1625,9 +1631,11 @@ async function afterBattle(res,o){
   await say(lost?`${lost}円を 落として しまった……`:'……');await say('モノモンたちは すっかり 元気に なった。');return res;}
  await postBattleEvolutions();return res;}
 async function wildBattle(w,o){const m=mkMon(w.sp,w.lv);const res=await battle({kind:'wild',team:[m],ghost:o&&o.ghost});await afterBattle(res);}
-async function trainerBattle(o){const n=o.n;await say(n.text||['勝負だ！']);
+// せりふを「名前「……」」の 形に
+function talkLines(name,lines){lines=[].concat(lines||['勝負だ！']);return lines.map((t,i)=>(i===0?`${name}「`:'')+t+(i===lines.length-1?'」':''));}
+async function trainerBattle(o){const n=o.n;await say(talkLines(n.name,n.text));
  const res=await battle({kind:'trainer',team:teamFrom(n.team),tname:n.name,tstyle:n.style});
- if(res==='win'){G.flags[n.id]=1;G.money+=n.money||100;await say([...(n.win||['負けた……']),`${G.name}は ${n.money||100}円を もらった！`]);}
+ if(res==='win'){G.flags[n.id]=1;G.money+=n.money||100;await say([...talkLines(n.name,n.win||['負けた……']),`${G.name}は ${n.money||100}円を もらった！`]);}
  await afterBattle(res);}
 async function leaderBattle(o){const n=o.n;await say(n.text);
  const res=await battle({kind:'trainer',team:teamFrom(n.team,24),tname:n.name,tstyle:n.style,ai:'smart',potions:n.badge?Math.min(2,Math.ceil(n.badge/3)):(n.give||n.setf||n.id==='shiro'||n.id==='kuro'||n.id==='sumi')?1:2,bgm:n.badge?'gym':/^lg/.test(n.id)?'league':'trainer'});
