@@ -1306,14 +1306,17 @@ BOT.choose=function(tag,opts,o){
 /* ================= タイトル・メインループ ================= */
 let TT=0;
 function drawTitle(g,t){g.fillStyle=C0;g.fillRect(0,0,SW,SH);
- // ロゴ：左半分が黒、右半分が白。文字は境目で白黒が反転する
- g.fillStyle=C3;g.fillRect(0,8,SW/2,40);g.fillStyle=C3;g.fillRect(0,8,SW,1);g.fillRect(0,47,SW,1);
- g.save();g.globalCompositeOperation='difference';g.fillStyle='#ffffff';
- g.font='bold 15px "DotGothic16",monospace';g.textAlign='center';g.textBaseline='middle';g.fillText('モノクロ',SW/2,20);g.fillText('モンスター',SW/2,36);g.restore();
- // 4すみの飾り
- g.fillStyle=C0;g.fillRect(2,10,3,1);g.fillRect(2,10,1,3);g.fillStyle=C3;g.fillRect(SW-5,45,3,1);g.fillRect(SW-3,43,1,3);
+ // ロゴ：斜めに白黒が分かれ、文字は境目で反転する
+ const Y0=9,Y1=49;
+ g.fillStyle=C3;g.beginPath();g.moveTo(0,Y0);g.lineTo(SW*0.60,Y0);g.lineTo(SW*0.40,Y1);g.lineTo(0,Y1);g.closePath();g.fill();
+ // 細い罫線（上下、斜めの切れ目に合わせて すき間）
+ g.fillStyle=C3;g.fillRect(0,Y0-3,SW*0.60-2,1);g.fillRect(SW*0.60+3,Y0-3,SW*0.40-3,1);g.fillRect(0,Y1+2,SW*0.40-3,1);g.fillRect(SW*0.40+2,Y1+2,SW*0.60-2,1);
+ g.save();g.globalCompositeOperation='difference';g.fillStyle='#ffffff';g.textBaseline='middle';
+ g.font='bold 16px "DotGothic16",monospace';g.textAlign='left';g.fillText('モノクロ',17,20);g.textAlign='right';g.fillText('モンスター',SW-16,38);g.restore();
+ // 斜めの切れ目に そう 細い線
+ g.strokeStyle=C1;g.lineWidth=1;g.beginPath();g.moveTo(SW*0.60+2,Y0);g.lineTo(SW*0.40+2,Y1);g.stroke();
  g.textAlign='center';g.textBaseline='middle';
- g.font='7px "DotGothic16",monospace';g.fillStyle=C2;g.fillText('― モノモン ―',SW/2,55);
+ g.save();g.font='5px "DotGothic16",monospace';g.fillStyle=C2;try{g.letterSpacing='2px';}catch(e){}g.fillText('MONOCHROME  MONSTERS',SW/2+1,58);g.restore();
  const ids=[STARTERS[0],STARTERS[1],STARTERS[2],DXI.m150];const k=Math.floor(t/2.4)%ids.length;
  const bob=Math.round(Math.sin(t*3)*1.5);g.drawImage(monImg(DEX[ids[k]].art,false),SW/2-26,62+bob,52,52);
  g.fillStyle=C1;g.fillRect(SW/2-24,116,48,3);
