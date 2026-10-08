@@ -91,6 +91,7 @@ const SFX={
  lvup(){[784,988,1175,1568].forEach((f,i)=>tone(f,.1,'square',.05,0,i*.08));},
  heal(){[523,659,784,659,784,1047].forEach((f,i)=>tone(f,.14,'square',.05,0,i*.13));},
  evo(){for(let i=0;i<14;i++)tone(400+i*60,.1,'square',.04,0,i*.08);},
+ evodone(){const n=[523,659,784,1047,784,1047,1319,1568];n.forEach((f,i)=>tone(f,.14,'square',.06,0,i*.11));[262,330,392].forEach(f=>tone(f,.9,'triangle',.07,0,.9));[1047,1319,1568].forEach(f=>tone(f,.9,'square',.035,0,.9));},
  save(){[659,784,988,1319].forEach((f,i)=>tone(f,.1,'triangle',.06,0,i*.09));},
  encounter(){for(let i=0;i<8;i++)tone(i%2?880:660,.05,'square',.05,0,i*.05);},
  run(){noise(.3,.15,2000);tone(400,.2,'square',.04,2);},
@@ -133,6 +134,8 @@ const BGMS={
   b:'D2 D3 D2 D3 C2 C3 C2 C3 A#1 A#2 A#1 A#2 A1 A2 A1 A2 D2 D3 D2 D3 G1 G2 A1 A2 A#1 A#2 A1 A2 D2 D3 D2 D2',d:2},
  center:{bpm:104,m:'E5 - G5 - C6 - B5 - A5 - G5 - E5 - - - F5 - A5 - G5 - E5 - D5 - - - - - . . E5 - G5 - C6 - D6 - E6 - D6 - C6 - A5 - G5 - A5 - B5 - D6 - C6 - - - - - . .',
   b:'C3 . G3 . A2 . E3 . F2 . C3 . G2 . D3 . C3 . G3 . A2 . F3 . G2 . G2 . C3 . C3 .'},
+ evolve:{bpm:152,m:'E4 G4 B4 E5 G4 B4 E5 G5 F4 A4 C5 F5 A4 C5 F5 A5 G4 B4 D5 G5 B4 D5 G5 B5 A4 C#5 E5 A5 C#5 E5 A5 C#6 E4 G4 B4 E5 G4 B4 E5 G5 F4 A4 C5 F5 A4 C5 F5 A5 G4 B4 D5 G5 B4 D5 G5 B5 G#4 B4 D5 G#5 B4 D5 G#5 B5',
+  b:'E2 E2 E3 E2 F2 F2 F3 F2 G2 G2 G3 G2 A2 A2 A3 A2 E2 E2 E3 E2 F2 F2 F3 F2 G2 G2 G3 G2 E2 E2 E3 E2',d:2},
  win:{bpm:132,m:'C5 E5 G5 C6 - - G5 - A5 - F5 - G5 - - - E5 G5 C6 E6 - - D6 - C6 - - - - - . .',b:'C3 G3 C3 G3 F2 C3 G2 D3 C3 G3 A2 E3 F2 G2 C3 C3',d:1},
  league:{bpm:150,m:'C5 - D#5 - G5 - F5 D#5 D5 - C5 - G4 - - - G#4 - C5 - D#5 - D5 C5 B4 - G4 - - - . . C5 D#5 G5 C6 - - A#5 G#5 G5 - F5 - D#5 - D5 - G#5 - G5 - F5 - D5 - C5 - - - C4 . . .',
   b:'C2 C3 C2 C3 G#1 G#2 G#1 G#2 F1 F2 F1 F2 G1 G2 G1 G2 C2 C3 C2 C3 D#2 D#3 F2 F3 G#1 G#2 G1 G2 C2 C3 C2 C2',d:2},
@@ -1613,11 +1616,12 @@ async function learnMove(m,id){const mv=MOVES[id];
  const old=MOVES[m.moves[i].id].n;m.moves[i]={id,pp:mv.pp};await say(`1　2の……　ポカン！\f${mname(m)}は ${old}の 使い方を きれいに 忘れた！\fそして……　${mname(m)}は 新しく ${mv.n}を 覚えた！`);}
 async function evolve(m){const d=DEX[m.sp];const to=DXI[d.evo];if(to==null)return;delete m._evo;
  const box=fullBox('');box.style.background='#f8f8f8';const cvs=document.createElement('canvas');cvs.width=MC;cvs.height=MC;cvs.style.cssText=`display:block;margin:${U(16)} auto 0;width:${U(80)};height:${U(80)};image-rendering:pixelated`;box.appendChild(cvs);const g=cvs.getContext('2d');
- setBgm('none');sfx('evo');await say(`おや……？ ${mname(m)}の 様子が……！`);
+ const prevBgm=BGM.mode;setBgm('none');sfx('evo');await say(`おや……？ ${mname(m)}の 様子が……！`);setBgm('evolve');
  const a=monImg(d.art,false),b=monImg(DEX[to].art,false);
- for(let i=0;i<22;i++){g.clearRect(0,0,MC,MC);g.drawImage(i%2&&i>6?b:a,0,0);await wait(Math.max(40,180-i*7));}
+ for(let i=0;i<30;i++){g.clearRect(0,0,MC,MC);g.drawImage(i%2&&i>6?b:a,0,0);await wait(Math.max(40,200-i*6));}
+ setBgm('none');
  g.clearRect(0,0,MC,MC);g.drawImage(b,0,0);const oldName=mname(m);m.sp=to;const oh=m.st.hp;calcStats(m);m.hp+=m.st.hp-oh;G.seen[to]=1;G.caught[to]=1;
- sfx('caught');await say(`おめでとう！ ${oldName}は ${DEX[to].n}に 進化した！`);box.remove();
+ sfx('evodone');await say(`おめでとう！ ${oldName}は ${DEX[to].n}に 進化した！`);box.remove();setBgm(prevBgm);
  for(const [lv,id] of DEX[to].learn){if(lv===m.lv&&!m.moves.some(x=>x.id===id))await learnMove(m,id);}}
 async function postBattleEvolutions(){for(const m of G.party.slice()){if(m._evo&&m.hp>0){await evolve(m);}}}
 
