@@ -1256,7 +1256,7 @@ async function interact(){const [dx,dy]=DXY[G.dir];let x=G.x+dx,y=G.y+dy;const m
  if(t==='H'){runEvent(()=>say('モノモンを 回復する 機械だ。'));return;}}
 async function talkNpc(o){const n=o.n;faceTo(o);
  switch(n.kind){
-  case 'nurse':await say('ようこそ！ モノモンセンターへ。\fお預かりした モノモンを 元気に しますね。');setBgm('none');sfx('heal');await wait(1400);healAll();G.lastCenter={map:G.map,x:G.x,y:G.y};setBgmFor(curMap());await say('お待ちどうさまでした！\fまた いつでも どうぞ！');break;
+  case 'nurse':await say('ようこそ！ モノモンセンターへ。\fお預かりした モノモンを 元気に しますね。');setBgm('none');sfx('heal');await wait(1400);healAll();G.lastCenter={map:G.map,x:G.x,y:G.y};setBgmFor(curMap());await say('お待たせしました！\fお預かりした モノモンは みんな 元気に なりましたよ。\fまた いつでも どうぞ！');break;
   case 'clerk':await say('いらっしゃいませ！');await shopScreen(n.shop);break;
   case 'mom':if(!G.starter){await say([`ママ「${G.name}、博士が 呼んでいたわよ。`,'となりの 研究所に いってらっしゃい！」']);}else{await say('ママ「少し 休んで いきなさい」');healAll();sfx('heal');await wait(900);await say('ママ「元気に なったわね。いってらっしゃい！」');G.lastCenter={map:'home',x:G.x,y:G.y};}break;
   case 'prof':if(G.starter==null){await chooseStarter();}
