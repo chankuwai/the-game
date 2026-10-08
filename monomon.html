@@ -918,7 +918,8 @@ async function pcScreen(){await say(`${G.name}は パソコンの スイッチ�
   else if(v===1){if(!G.box.length){await say('ボックスに 誰も いない。');continue;}if(G.party.length>=6){await say('手持ちが いっぱいです！');continue;}
    const i=await choose(G.box.map(m=>`${mname(m)} Lv${m.lv}`).concat(['やめる']),{pos:{left:0,top:0,right:0},tag:'pc_wd'});if(i<0||i>=G.box.length)continue;const m=G.box.splice(i,1)[0];G.party.push(m);await say(`${mname(m)}を 引き出した。`);}
   else break;}}
-async function startMenu(){while(true){const v=await choose(['図鑑','モノモン','バッグ',G.name,'レポート','閉じる'],{pos:{right:0,top:0},w:62,tag:'start'});
+async function startMenu(){while(true){const hasDex=G.flags.dex||G.starter!=null;const L=(hasDex?['図鑑']:[]).concat(['モノモン','バッグ',G.name,'レポート','閉じる']);
+ const c=await choose(L,{pos:{right:0,top:0},w:62,tag:'start'});const v=c<0?5:c+(hasDex?0:1);  // 図鑑を もらう までは メニューに 出さない
  if(v===0)await dexScreen();
  else if(v===1){if(!G.party.length){await say('モノモンを 持っていない。');continue;}const i=await partyScreen('',{tag:'party_menu'});if(i<0)continue;
   const a=await choose(['強さを 見る','入れ替える','やめる'],{pos:{right:0,bottom:46},tag:'party_act'});
@@ -973,8 +974,9 @@ function across(mid,x,y){const m=MAPS[mid];if(x>=0&&y>=0&&x<m.w&&y<m.h)return {m
  if(side==='w')return {mid:c.to,x:t.w-1,y:y+c.off};return {mid:c.to,x:0,y:y+c.off};}
 function setBgmFor(m){setBgm(m.bgm||'route');}
 function showBanner(t){if(banner)banner.remove();banner=el('box',{left:U(4),top:U(4)},t);bannerT=1.8;}
-async function warpTo(mid,x,y,dir){busy=true;sfx('door');fade=1;await wait(180);const prevName=curMap().name;G.map=mid;G.x=x;G.y=y;if(dir!=null)G.dir=dir;P.moving=false;syncP();setBgmFor(curMap());
- if(curMap().theme!=='indoor'&&curMap().name!==prevName)showBanner(curMap().name);await wait(120);fade=0;busy=false;}
+async function warpTo(mid,x,y,dir){busy=true;if(G.starter==null&&mid!=='lab')RIVALNPC=null;sfx('door');fade=1;await wait(180);const prevName=curMap().name;G.map=mid;G.x=x;G.y=y;if(dir!=null)G.dir=dir;P.moving=false;syncP();setBgmFor(curMap());
+ if(curMap().theme!=='indoor'&&curMap().name!==prevName)showBanner(curMap().name);await wait(120);fade=0;busy=false;
+ if(mid==='lab'&&G.starter==null){if(!G.flags.rival_meet)runEvent(rivalMeet);else RIVALNPC={x:7,y:3,dir:2};}}
 function syncP(){P.px=G.x*16;P.py=G.y*16;}
 function enterMap(){syncP();setBgmFor(curMap());}
 
@@ -1424,21 +1426,38 @@ async function hallOfFame(){setBgm('title');await say(['博士「……見てお
  G.map='home';G.x=3;G.y=4;G.dir=2;enterMap();healAll();G.lastCenter={map:'home',x:3,y:4};}
 async function legendBattle(o){const n=o.n;await say(n.text);const m=mkMon(DXI[n.sp],n.lv,{iv:30});const res=await battle({kind:'wild',team:[m],bgm:'league'});
  if(res==='caught'||res==='win')G.flags[n.id]=1;await afterBattle(res);}
+// 研究所に 入ると ライバルが 走りこんでくる
+async function rivalMeet(){G.flags.rival_meet=1;await wait(250);
+ RIVALNPC={x:6,y:9,dir:0};sfx('door');await say(`？？？「どけどけー！」`,{auto:window.tgAuto?1:700});
+const walk=async(path,ms)=>{for(const [x,y] of path){RIVALNPC.dir=x>RIVALNPC.x?1:x<RIVALNPC.x?3:y<RIVALNPC.y?0:2;RIVALNPC.x=x;RIVALNPC.y=y;await wait(ms);}};
+ // 横を すりぬけて 前に 回りこみ、こちらを 向く
+ await walk([[6,8],[6,7],[5,7]],100);G.dir=0;RIVALNPC.dir=2;emote={x:RIVALNPC.x,y:RIVALNPC.y,t:.6};await wait(500);
+ await say([`${G.rival}「……なんだ、${G.name}か！ お前も 博士に 呼ばれたのか？」`,
+  `${G.rival}「へへっ、今日 博士から モノモンを もらえるって 聞いて 走ってきたんだ！」`,
+  `${G.rival}「おれの ほうが 先に 来たんだからな。いちばん 強いのは おれが もらうぜ！」`,
+  '博士「これこれ、研究所の 中を 走るんじゃない。」',
+  `博士「${G.name}も よく 来たな。さあ、わしの ところへ おいで。」`]);
+ await walk([[6,7],[6,6],[6,5],[6,4],[7,4],[7,3]],140);RIVALNPC.dir=2;}
 async function chooseStarter(){
- await say([`博士「おお、${G.name}！ 待っておったぞ。`,'わしは モノクロ博士。モノモンの 進化を 研究しておる。','君に パートナーを あげよう。この 3匹から 選ぶのじゃ！']);
+ if(!RIVALNPC&&G.flags.rival_meet)RIVALNPC={x:7,y:3,dir:2};
+ await say([`博士「おお、${G.name}！ 待っておったぞ。`,'わしは モノクロ博士。モノモンの 進化を 研究しておる。','実は 君たちに 頼みが あってな。','この 世界の モノモンを すべて 記録する「モノモン図鑑」を 完成させて ほしいのじゃ。','そのために まずは パートナーを あげよう。この 3匹から 選ぶのじゃ！']);
  while(true){const pv=fullBox(`<canvas width="78" height="78" style="display:block;margin:${U(8)} auto 0;width:${U(64)};height:${U(64)};image-rendering:pixelated"></canvas><div class="sm" id="spinfo" style="text-align:center"></div>`);const g=pv.querySelector('canvas').getContext('2d');
   const names=STARTERS.map(i=>DEX[i].n);
   const v=await choose(names,{pos:{right:0,bottom:46},tag:'starter',onMove:k=>{g.clearRect(0,0,MC,MC);g.drawImage(monImg(DEX[STARTERS[k]].art,false),0,0);pv.querySelector('#spinfo').innerHTML=`${DEX[STARTERS[k]].n}　${DEX[STARTERS[k]].t.map(t=>TY[t]).join('/')}タイプ`;}});
   pv.remove();if(v<0)continue;
   if(!(await yesno('starter_ok')))continue;
   const sp=STARTERS[v];G.starter=sp;const m=mkMon(sp,5,{iv:20});giveMon(m);sfx('caught');await say(`${G.name}は 博士から ${DEX[sp].n}を もらった！`);break;}
+ await say(['博士「そして これが モノモン図鑑じゃ！','出会った モノモンは 自動で 記録される。たくさん 捕まえて、図鑑を 埋めて おくれ。」']);
+ G.flags.dex=1;sfx('item');await say(`${G.name}は モノモン図鑑を もらった！`);
  const rl=rivalLine();
  await say([`${G.rival}「おれは こいつに するぜ！」`,`${G.rival}は ${DEX[DXI[rl[0]]].n}を 受け取った！`,`${G.rival}「せっかく だし、勝負 しようぜ！」`]);
  const res=await battle({kind:'trainer',team:teamFrom(rivalTeam(1)),tname:'ライバルの '+G.rival,tstyle:'rival',noBlackout:true});
  await say(res==='win'?`${G.rival}「くっそー！ 次は 負けないからな！」`:`${G.rival}「やったー！ おれの 勝ちだ！」`);healAll();
  G.flags.rival1=1;addItem('ball',5);addItem('potion',3);
  await say(['博士「この モノボールを 持っていきなさい。','野生の モノモンを 弱らせてから 投げると 捕まえられるぞ。','8つの ジムバッジを 集めて、リーグを 目指すのじゃ！'],{});
- await say(`${G.name}は モノボールを 5こ もらった！`);}
+ await say(`${G.name}は モノボールを 5こ もらった！`);
+ await say([`${G.rival}「図鑑なんて おれが 先に 完成させてやるぜ！」`,`${G.rival}「じゃあな、${G.name}！」`]);
+ if(RIVALNPC){for(const [x,y] of [[7,4],[6,4],[6,5],[6,6],[6,7],[6,8],[6,9]]){RIVALNPC.dir=y>RIVALNPC.y?2:3;RIVALNPC.x=x;RIVALNPC.y=y;await wait(110);}sfx('door');}RIVALNPC=null;}
 async function rivalEvent(ev){const stage={rival2:2,rival3:3,rival4:4,rival5:5}[ev];
  setBgm('trainer');RIVALNPC={x:G.x+(G.dir===1?-1:1)*0,y:G.y,dir:0};
  // 主人公の前に出てくる
@@ -1568,7 +1587,7 @@ BOT.choose=function(tag,opts,o){
  if(tag.startsWith('forget:')){const id=+tag.split(':')[1];const m=o.ctx;let wi=0,wv=1e9;m.moves.forEach((x,i)=>{const mv=MOVES[x.id];const v=mv.cat==='status'?10:mv.p*(DEX[m.sp].t.includes(mv.t)?1.5:1);if(v<wv){wv=v;wi=i;}});const nv=MOVES[id].p*(DEX[m.sp].t.includes(MOVES[id].t)?1.5:1);return nv>wv?wi:4;}
  if(tag==='forget_ok')return 0;
  if(tag==='save')return 1;
- if(tag==='start')return 5;
+ if(tag==='start')return opts.length-1;
  if(tag==='shop_top'){BOT.buy=shopBuy(BOT.inv||[]);return BOT.buy?0:2;}
  if(tag==='shop_buy'){BOT.buy=shopBuy(BOT.inv||[]);return BOT.buy?BOT.inv.indexOf(BOT.buy[0]):opts.length-1;}
  if(tag==='shop_n')return BOT.buy?BOT.buy[1]:0;
