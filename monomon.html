@@ -777,6 +777,16 @@ function moveEffText(mv){const ST={atk:'攻撃',def:'防御',spa:'特攻',sdf:'�
   if(k==='t'||k==='s'){const n=+b;return `${c?c+'%で ':''}${k==='t'?'相手':'自分'}の ${ST[a]}${n>0?'↑':'↓'}${Math.abs(n)>1?Math.abs(n):''}`;}
   if(P[k]){if(a&&a.endsWith('self'))return `${parseInt(a)}%で 自分が ${P[k]}`;return mv.cat==='status'||a==='100'?`相手を ${P[k]}に`:`${a}%で ${P[k]}`;}
   return {prio:'先制',recoil:`反動 ${a}%`,crit:'急所に 当たりやすい',heal:`HP ${a}% 回復`,recharge:'次の ターン 動けない',drain:`与えた ダメージの ${a}% 回復`,leech:'毎ターン HPを 吸う',tox:'猛毒に',level:'レベル分の ダメージ',fixed:`${a}の 固定ダメージ`}[k]||'';}).filter(Boolean).join('、');}
+// レポート：今の 記録を 表示して 書き残すか たずねる
+function playTimeStr(){const s=Math.floor(G.time||0);return `${Math.floor(s/3600)}:${String(Math.floor(s/60)%60).padStart(2,'0')}`;}
+async function saveConfirm(){const n=badgeCount();
+ const info=el('box xs',{left:U(6),right:U(6),top:U(6)});info.style.lineHeight='1.7';
+ info.innerHTML=`<div style="display:flex;justify-content:space-between;border-bottom:${U(.5)} solid #181818;margin-bottom:${U(1)}"><b class="sm">${G.name}</b><span>${curMap().name}</span></div>
+  <div style="display:flex;justify-content:space-between"><span>バッジ</span><span>${[1,2,3,4,5,6,7,8].map(i=>G.flags['b'+i]?'●':'○').join('')}　${n}こ</span></div>
+  <div style="display:flex;justify-content:space-between"><span>図鑑</span><span>${Object.keys(G.caught).length}匹</span></div>
+  <div style="display:flex;justify-content:space-between"><span>プレイ時間</span><span>${playTimeStr()}</span></div>`;
+ const msg=el('box msg',null,'');msg.textContent='レポートを 書き残しますか？';
+ const ok=await yesno('save');info.remove();msg.remove();return ok;}
 function summary(m,startPage){const d=DEX[m.sp];const box=fullBox('');box.style.padding='0';const o={el:box};
  let page=startPage||0,cur=0,pick=-1;
  const chip=t=>`<span style="display:inline-block;border:${U(.5)} solid #181818;padding:0 ${U(1.2)};margin-right:${U(1)};line-height:1.25">${TY[t]}</span>`;
@@ -914,8 +924,8 @@ async function startMenu(){while(true){const v=await choose(['図鑑','モノモ
   const a=await choose(['強さを 見る','入れ替える','やめる'],{pos:{right:0,bottom:46},tag:'party_act'});
   if(a===0)await summary(G.party[i]);else if(a===1){const j=await partyScreen('どこへ 移動？',{tag:'party_swap'});if(j>=0){const t=G.party[i];G.party[i]=G.party[j];G.party[j]=t;}}}
  else if(v===2){const k=await bagScreen('field');if(k)await useItemField(k);}
- else if(v===3){await say([`${G.name}　バッジ ${badgeCount()}こ`,`お金 ${G.money}円　図鑑 ${Object.keys(G.caught).length}匹`]);}
- else if(v===4){if(await yesno('save')){if(save()){sfx('save');await say(`${G.name}は レポートに しっかり 書き残した！`);}else await say(window.tgAuto?'AUTOの 間は レポートを 書けません。':'レポートが 書けませんでした。');}}
+ else if(v===3){await say([`${G.name}　バッジ ${badgeCount()}こ`,`お金 ${G.money}円　図鑑 ${Object.keys(G.caught).length}匹\nプレイ時間 ${playTimeStr()}`]);}
+ else if(v===4){if(await saveConfirm()){if(save()){sfx('save');await say(`${G.name}は レポートに しっかり 書き残した！`);}else await say(window.tgAuto?'AUTOの 間は レポートを 書けません。':'レポートが 書けませんでした。');}}
  else break;}}
 // 表彰状（図鑑完成）
 function certScreen(){return new Promise(res=>{
