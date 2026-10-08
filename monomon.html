@@ -1158,6 +1158,38 @@ async function shopScreen(town){const inv=SHOPS[town]||SHOPS.tsugi;BOT.inv=inv;
    const i=await choose(keys.map(k=>`${ITM[k].n} ×${G.bag[k]}<span style="float:right;margin-left:${U(6)}">${ITM[k].p>>1}</span>`).concat(['やめる']),{pos:{left:0,top:0,right:0},tag:'shop_sell'});
    if(i<0||i>=keys.length)continue;const k=keys[i];useBag(k);G.money+=ITM[k].p>>1;sfx('money');await say(`${ITM[k].n}を 売りました。`);}}
  await say('またの お越しを お待ちしています！');}
+// 名前を 入力する 画面（50音の キーボード）
+const KANA_H=['あかさたなはまやらわ','いきしちにひみゆりを','うくすつぬふむよるん','えけせてねへめーれ゛','おこそとのほもっろ゜','ぁぃぅぇぉゃゅょ！？'];
+const DAKU=['かきくけこさしすせそたちつてとはひふへほカキクケコサシスセソタチツテトハヒフヘホウう','がぎぐげござじずぜぞだぢづでどばびぶべぼガギグゲゴザジズゼゾダヂヅデドバビブベボヴゔ'];
+const HANDA=['はひふへほハヒフヘホ','ぱぴぷぺぽパピプペポ'];
+const toKata=s=>s.replace(/[ぁ-ゖ]/g,c=>String.fromCharCode(c.charCodeAt(0)+96));
+function nameInput(title,init,sp,max){max=max||6;return new Promise(res=>{const box=fullBox('');box.style.padding='0';const o={el:box};
+ let txt=[...(init||'')].slice(0,max),kata=true,r=0,c=0;const CMD=['かな／カナ','けす','もとの 名前','けってい'];
+ const draw=()=>{const rows=KANA_H.map(s=>kata?toKata(s):s);
+  box.innerHTML=`<div style="position:absolute;left:${U(5)};right:${U(5)};top:${U(2.5)};height:${U(9)};display:flex;align-items:center;border-bottom:${U(.6)} solid #181818" class="sm">${title}</div>
+  ${sp!=null?`<canvas width="78" height="78" style="position:absolute;left:${U(8)};top:${U(13)};width:${U(22)};height:${U(22)};image-rendering:pixelated"></canvas>`:''}
+  <div style="position:absolute;left:${U(36)};top:${U(16)};display:flex;gap:${U(1.5)}">${Array.from({length:max},(_,i)=>`<span style="display:inline-block;width:${U(10)};height:${U(12)};text-align:center;font-size:${U(8.5)};line-height:${U(12)};border-bottom:${U(.8)} solid ${i===txt.length?'#181818':'#a8a8a8'}">${txt[i]||''}</span>`).join('')}</div>
+  <div style="position:absolute;left:${U(8)};right:${U(8)};top:${U(39)};height:${U(68)};border:${U(.5)} solid #a8a8a8"></div>`+
+  rows.map((s,ri)=>[...s].map((ch,ci)=>`<div data-k="${ri},${ci}" class="sm" style="position:absolute;left:${U(11+ci*14)};top:${U(40.5+ri*11)};width:${U(13)};height:${U(10.5)};display:flex;align-items:center;justify-content:center;cursor:pointer;${r===ri&&c===ci?'background:#181818;color:#f8f8f8;':''}">${ch}</div>`).join('')).join('')+
+  CMD.map((t,ci)=>`<div data-k="6,${ci}" class="xs" style="position:absolute;left:${U(8+ci*36.5)};top:${U(111)};width:${U(34)};height:${U(12)};display:flex;align-items:center;justify-content:center;border:${U(.6)} solid #181818;cursor:pointer;${r===6&&c===ci?'background:#181818;color:#f8f8f8;':''}">${t}</div>`).join('')+
+  `<div class="xs" style="position:absolute;left:${U(8)};right:${U(8)};top:${U(127)};color:#585858;text-align:center">Bで 1文字 けす　なにも 入れないと もとの 名前</div>`;
+  const cv=box.querySelector('canvas');if(cv){const g=cv.getContext('2d');g.imageSmoothingEnabled=false;g.drawImage(monImg(DEX[sp].art,false),0,0);}};
+ const finish=()=>{uiPop(o);res(txt.join('').trim());};
+ const press=()=>{if(r===6){if(c===0){kata=!kata;sfx('sel');}else if(c===1){txt.pop();sfx('sel');}else if(c===2){txt=[];sfx('sel');}else{sfx('ok');finish();return;}draw();return;}
+  const ch=(kata?toKata(KANA_H[r]):KANA_H[r])[c];
+  if(ch==='゛'||ch==='゜'){const T=ch==='゛'?DAKU:HANDA;const L=txt[txt.length-1];const k=L?T[0].indexOf(L):-1;
+   if(k>=0){txt[txt.length-1]=T[1][k];sfx('sel');}else{const b=ch==='゛'?DAKU[1].indexOf(L):HANDA[1].indexOf(L);if(b>=0){txt[txt.length-1]=T[0][b];sfx('sel');}else sfx('ng');}draw();return;}
+  if(txt.length>=max){sfx('ng');return;}txt.push(ch);sfx('sel');if(txt.length>=max){r=6;c=3;}draw();};
+ o.onEv=ev=>{const W=r===6?CMD.length:10;
+  if(ev==='D0'){if(r===6){r=5;c=Math.min(9,c*3);}else r=(r+6)%7;if(r===6)c=Math.min(3,Math.floor(c/2.5));sfx('sel');draw();}
+  else if(ev==='D2'){if(r===5){r=6;c=Math.min(3,Math.floor(c/2.5));}else if(r===6){r=0;c=Math.min(9,c*3);}else r++;sfx('sel');draw();}
+  else if(ev==='D1'){c=(c+1)%W;sfx('sel');draw();}else if(ev==='D3'){c=(c+W-1)%W;sfx('sel');draw();}
+  else if(ev==='A')press();else if(ev==='B'){if(txt.length){txt.pop();sfx('sel');draw();}else{sfx('sel');finish();}}};
+ box.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();const k=e.target.closest('[data-k]');if(!k)return;[r,c]=k.dataset.k.split(',').map(Number);press();if(STACK.includes(o))draw();});
+ uiPush(o);draw();if(window.tgAuto)setTimeout(()=>{if(STACK.includes(o))finish();},AUTOWAIT());});}
+// ニックネームを つける（空なら 種族名に もどす）
+async function nickname(m){const n=await nameInput(`${DEX[m.sp].n}の ニックネームは？`,m.nick||'',m.sp);m.nick=n&&n!==DEX[m.sp].n?n:null;}
+async function askNick(m){const q=el('box msg',null,`${DEX[m.sp].n}に ニックネームを つけますか？`);const ok=await yesno('nick');q.remove();if(ok){await nickname(m);if(m.nick)await say(`${DEX[m.sp].n}の 名前は ${m.nick}に なった！`);}}
 // ボックスの 一覧（左に アイコンつきの 一覧、右に 大きな 姿と くわしい 情報）
 function boxScreen(title,opt){opt=opt||{};return new Promise(res=>{const box=fullBox('');box.style.padding='0';const o={el:box};const V=8,RH=15.4;let cur=0,top=0;
  const P=(css,html)=>{const d=document.createElement('div');d.style.cssText='position:absolute;'+css;if(html!=null)d.innerHTML=html;box.appendChild(d);return d;};
@@ -1211,8 +1243,9 @@ async function startMenu(){while(true){const hasDex=G.flags.dex||G.starter!=null
  const c=await choose(L,{pos:{right:0,top:0},w:62,tag:'start'});const v=c<0?5:c+(hasDex?0:1);  // 図鑑を もらう までは メニューに 出さない
  if(v===0)await dexScreen();
  else if(v===1){if(!G.party.length){await say('モノモンを 持っていない。');continue;}const i=await partyScreen('',{tag:'party_menu'});if(i<0)continue;
-  const a=await choose(['強さを 見る','入れ替える','やめる'],{pos:{right:0,bottom:46},tag:'party_act'});
-  if(a===0)await summary(G.party[i]);else if(a===1){const j=await partyScreen('どこへ 移動？',{tag:'party_swap'});if(j>=0){const t=G.party[i];G.party[i]=G.party[j];G.party[j]=t;}}}
+  const a=await choose(['強さを 見る','入れ替える','ニックネーム','やめる'],{pos:{right:0,bottom:46},tag:'party_act'});
+  if(a===0)await summary(G.party[i]);else if(a===1){const j=await partyScreen('どこへ 移動？',{tag:'party_swap'});if(j>=0){const t=G.party[i];G.party[i]=G.party[j];G.party[j]=t;}}
+  else if(a===2){const m=G.party[i];if(m.ot&&m.ot!==G.name){await say(`${mname(m)}は ${m.ot}さんから 交換で 来た モノモン。\f名前を 変えるのは やめておこう。`);}else{const old=mname(m);await nickname(m);if(mname(m)!==old)await say(`${old}の 名前は ${mname(m)}に なった！`);}}}
  else if(v===2){const k=await bagScreen('field');if(k)await useItemField(k);}
  else if(v===3){await say([`${G.name}　バッジ ${badgeCount()}こ`,`お金 ${G.money}円　図鑑 ${Object.keys(G.caught).length}匹\nプレイ時間 ${playTimeStr()}`]);}
  else if(v===4){if(await saveConfirm()){if(save()){sfx('save');await say(`${G.name}は レポートに しっかり 書き残した！`);}else await say(window.tgAuto?'AUTOの 間は レポートを 書けません。':'レポートが 書けませんでした。');}}
@@ -1350,7 +1383,7 @@ async function talkNpc(o){const n=o.n;faceTo(o);
    G.party.splice(i,1);const isNew=!G.caught[give];const m=mkMon(give,n.lv,{iv:24});m.nick=n.nick||null;m.ot=n.ot||'？？？';G.flags[n.id]=1;giveMon(m);
    sfx('caught');await say([`${G.name}は ${DEX[want].n}と ${DEX[give].n}を 交換した！`,n.thanks||'ありがとう！ 大切に 育ててね！']);
    if(isNew){await say(`${DEX[give].n}の データが 新しく 図鑑に 登録されました！`);await dexEntry(give);}break;}
-  case 'giftmon':if(G.flags[n.id]){await say(n.after||'元気に してるかい？');break;}await say(n.text);if(await yesno('giftmon')){const isNew=!G.caught[DXI[n.sp]];const m=mkMon(DXI[n.sp],n.lv,{iv:20});G.flags[n.id]=1;if(n.flag)G.flags[n.flag]=1;sfx('caught');const where=giveMon(m);await say(`${G.name}は ${DEX[m.sp].n}を 受け取った！`+(where==='box'?'（ボックスに 送られた）':''));
+  case 'giftmon':if(G.flags[n.id]){await say(n.after||'元気に してるかい？');break;}await say(n.text);if(await yesno('giftmon')){const isNew=!G.caught[DXI[n.sp]];const m=mkMon(DXI[n.sp],n.lv,{iv:20});G.flags[n.id]=1;if(n.flag)G.flags[n.flag]=1;sfx('caught');await say(`${G.name}は ${DEX[m.sp].n}を 受け取った！`);await askNick(m);const where=giveMon(m);if(where==='box')await say(`${mname(m)}は ボックスに 送られた！`);
    if(isNew&&n.reg){await say(`${DEX[m.sp].n}の データが 新しく 図鑑に 登録されました！`);await dexEntry(m.sp);}}break;
   case 'story':await STORY[n.sid](o);break;
   case 'sleeper':if(has(n.need)){await say(n.wake||'……！ 目を 覚ました！');const m=mkMon(DXI[n.sp],n.lv,{iv:20});const res=await battle({kind:'wild',team:[m]});G.flags[n.id]=1;await afterBattle(res);}else await say(n.text);break;
@@ -1630,6 +1663,7 @@ async function throwBall(mult){const e=B.foe();await say(`${G.name}は ボール
  await wait(300);
  if(shakes>=3&&Math.random()<p/Math.max(.01,Math.pow(shakeP,3))||mult>=255){const _new=!G.caught[e.sp]&&(G.flags.dex||G.starter!=null);sfx('caught');setBgm('win');await say(`やったー！ ${mname(e)}を 捕まえたぞ！`);
   if(_new){G.caught[e.sp]=1;G.seen[e.sp]=1;await say(`${DEX[e.sp].n}の データが 新しく 図鑑に 登録されました！`);await dexEntry(e.sp);}
+  await askNick(e);
   const where=giveMon(e);B.ball=null;if(!G.caught._c)G.caught._c=0;
   if(where==='box'){await say(`手持ちが いっぱいだ！\f手持ちの モノモンを 1匹 ボックスに 送って ${mname(e)}を 連れて いきますか？`);
    let i=-1;if(await yesno('catch_swap')){hudKill();B.showAlly=false;i=await partyScreen('ボックスに 送る モノモンは？',{tag:'catch_swap_pick'});}
@@ -1761,7 +1795,7 @@ async function chooseStarter(){
   const v=await choose(names,{pos:{right:0,bottom:46},tag:'starter',onMove:k=>{g.clearRect(0,0,MC,MC);g.drawImage(monImg(DEX[STARTERS[k]].art,false),0,0);pv.querySelector('#spinfo').innerHTML=`${DEX[STARTERS[k]].n}　${DEX[STARTERS[k]].t.map(t=>TY[t]).join('/')}タイプ`;}});
   pv.remove();if(v<0)continue;
   if(!(await yesno('starter_ok')))continue;
-  const sp=STARTERS[v];G.starter=sp;const m=mkMon(sp,5,{iv:20});giveMon(m);sfx('caught');await say(`${G.name}は 博士から ${DEX[sp].n}を もらった！`);break;}
+  const sp=STARTERS[v];G.starter=sp;const m=mkMon(sp,5,{iv:20});giveMon(m);sfx('caught');await say(`${G.name}は 博士から ${DEX[sp].n}を もらった！`);await askNick(m);break;}
  await say(['博士「そして これが モノモン図鑑じゃ！','出会った モノモンは 自動で 記録される。たくさん 捕まえて、図鑑を 埋めて おくれ。」']);
  G.flags.dex=1;sfx('item');await say(`${G.name}は モノモン図鑑を もらった！`);
  await say([`${G.rival}「博士！ おれにも くれよ！」`,`博士「もちろんじゃ。ほれ、${G.rival}の 分じゃ。」`,`${G.rival}は モノモン図鑑を 受け取った！`,`${G.rival}「よっしゃ！ どっちが 先に 図鑑を 埋めるか 競争だぜ！」`]);
@@ -1902,7 +1936,7 @@ BOT.choose=function(tag,opts,o){
  if(tag.startsWith('learn:')){const id=+tag.split(':')[1];const mv=MOVES[id];const m=o&&o.ctx;return mv.cat==='status'?1:0;}
  if(tag.startsWith('forget:')){const id=+tag.split(':')[1];const m=o.ctx;let wi=0,wv=1e9;m.moves.forEach((x,i)=>{const mv=MOVES[x.id];const v=mv.cat==='status'?10:mv.p*(DEX[m.sp].t.includes(mv.t)?1.5:1);if(v<wv){wv=v;wi=i;}});const nv=MOVES[id].p*(DEX[m.sp].t.includes(MOVES[id].t)?1.5:1);return nv>wv?wi:4;}
  if(tag==='forget_ok')return 0;
- if(tag==='catch_swap')return 1;
+ if(tag==='catch_swap'||tag==='nick')return 1;
  if(tag==='save')return 1;
  if(tag==='start')return opts.length-1;
  if(tag==='shop_top'){BOT.buy=shopBuy(BOT.inv||[]);return BOT.buy?0:2;}
