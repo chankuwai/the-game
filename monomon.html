@@ -1497,9 +1497,9 @@ function moveMenu(ms,foe){return new Promise(res=>{const box=el('box',{left:0,ri
   return `<div data-i="${i}" style="display:flex;align-items:center;height:${U(10)};padding:0 ${U(2)} 0 ${U(1)};cursor:pointer;${sel?'background:#181818;color:#f8f8f8;':''}${dis?'color:#a8a8a8;':''}">
    <span class="sm" style="flex:1;white-space:nowrap;overflow:hidden">${mv.n}</span>
    <span class="xs" style="width:${U(5)};text-align:center">${mark(mv)}</span>
-   <span class="xs" style="width:${U(23)};text-align:center;border:${U(.5)} solid ${sel?'#f8f8f8':dis?'#a8a8a8':'#181818'};line-height:1.25">${TY[mv.t]}</span>
-   <span class="xs" style="width:${U(22)};text-align:right">${mv.cat==='status'?'変化':'威力'+(mv.p||'－')}</span>
-   <span class="xs" style="width:${U(27)};text-align:right;${low&&!sel?'font-weight:bold;':''}">PP${m.pp}/${mv.pp}</span></div>`;}).join('')+
+   <span class="xs" style="width:${U(23)};flex-shrink:0;white-space:nowrap;text-align:center;border:${U(.5)} solid ${sel?'#f8f8f8':dis?'#a8a8a8':'#181818'};line-height:1.25">${TY[mv.t]}</span>
+   <span class="xs" style="width:${U(13)};text-align:right">${{phys:'物理',spec:'特殊',status:'変化'}[mv.cat]}</span><span class="xs" style="width:${U(11)};margin-right:${U(2)};flex-shrink:0;text-align:right">${mv.cat==='status'?'－':(mv.p||'－')}</span>
+   <span class="xs" style="width:${U(25)};flex-shrink:0;white-space:nowrap;text-align:right;${low&&!sel?'font-weight:bold;':''}">PP${m.pp}/${mv.pp}</span></div>`;}).join('')+
   Array.from({length:4-ms.length},()=>`<div style="height:${U(10)};padding-left:${U(1)};color:#c8c8c8" class="sm">－</div>`).join('');};
  const done=v=>{uiPop(st);res(v);};
  st.onEv=ev=>{const n=ms.length;if(ev==='D0'){cur=(cur+n-1)%n;sfx('sel');draw();}else if(ev==='D2'){cur=(cur+1)%n;sfx('sel');draw();}
