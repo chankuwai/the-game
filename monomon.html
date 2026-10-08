@@ -972,7 +972,7 @@ function hpbar(hp,max,w){const k=clamp(hp/max,0,1);return `<span style="display:
 const STS={par:'まひ',brn:'やけど',psn:'どく',tox:'どく',slp:'ねむり',frz:'こおり'};
 // フル画面ボックス
 function fullBox(html){const b=el('box full',null,html);b.style.padding=U(4)+' '+U(6);return b;}
-function partyScreen(title,opt){opt=opt||{};return new Promise(res=>{const box=fullBox('');box.style.padding='0';const st={el:box};let cur=0;
+function partyScreen(title,opt){opt=opt||{};return new Promise(res=>{const box=fullBox('');box.style.padding='0';const st={el:box};let cur=Math.min(opt.start||0,G.party.length-1);
  const dis=i=>opt.dis&&opt.dis(G.party[i]);const RH=21;
  const render=()=>{box.innerHTML=`<div class="sm" style="position:absolute;left:${U(5)};right:${U(5)};top:${U(2.5)};height:${U(9)};display:flex;align-items:center;justify-content:space-between;border-bottom:${U(.6)} solid #181818"><span>${title||'モノモンを 選んでください'}</span>${opt.cancel!==false?`<span class="xs" data-close style="border:${U(.5)} solid #181818;padding:0 ${U(1.5)};cursor:pointer">もどる</span>`:''}</div>`+
   [0,1,2,3,4,5].map(i=>{const m=G.party[i],y=14+i*RH;
@@ -1052,19 +1052,19 @@ function summary(m,startPage){const d=DEX[m.sp];const box=fullBox('');box.style.
    const r=e.target.closest('[data-mv]');if(r){const i=+r.dataset.mv;if(i===cur)doA();else{cur=i;sfx('sel');draw();}return;}
    if(e.target.closest('[data-close]'))o.onEv('B');});
   uiPush(o);draw();if(window.tgAuto)setTimeout(close,AUTOWAIT());});}
-async function bagScreen(ctx){const keys=Object.keys(G.bag).filter(k=>G.bag[k]>0&&(ctx!=='battle'||!ITM[k].escape&&!ITM[k].repel&&!ITM[k].key&&!ITM[k].stone&&!ITM[k].scroll));
+async function bagScreen(ctx,last){const keys=Object.keys(G.bag).filter(k=>G.bag[k]>0&&(ctx!=='battle'||!ITM[k].escape&&!ITM[k].repel&&!ITM[k].key&&!ITM[k].stone&&!ITM[k].scroll));
  if(!keys.length){await say('道具を 何も 持っていない！');return null;}
- const v=await choose(keys.map(k=>`${ITM[k].n} <span style="float:right">×${G.bag[k]}</span>`).concat(['やめる']),{pos:{left:24,top:0,right:0},tag:'bag_'+ctx,onMove:c=>{}});
+ const v=await choose(keys.map(k=>`${ITM[k].n} <span style="float:right">×${G.bag[k]}</span>`).concat(['やめる']),{pos:{left:24,top:0,right:0},tag:'bag_'+ctx,start:Math.max(0,keys.indexOf(last)),onMove:c=>{}});
  if(v<0||v>=keys.length)return null;return keys[v];}
 async function flyMenu(){const ts=Object.keys(G.visited).filter(t=>MAPS[t]&&MAPS[t].fly);if(curMap().theme==='indoor'||curMap().theme==='cave'||curMap().noFly){await say('ここでは 使えない！');return;}
  if(!ts.length){await say('飛んでいける 場所が ない。');return;}
  const v=await choose(ts.map(t=>MAPS[t].name).concat(['やめる']),{pos:{left:0,top:0,right:0},tag:'fly'});if(v<0||v>=ts.length)return;
  await say('つばさのふえを 吹いた！',{auto:600});const t=MAPS[ts[v]];await warpTo(ts[v],t.fly[0],t.fly[1],2);}
 async function useItemField(k){const it=ITM[k];
- if(it.fly){await flyMenu();return;}
+ if(it.fly){const m0=G.map;await flyMenu();return G.map!==m0?'close':null;}
  if(k==='cert'){await certScreen();return;}
  if(it.key){await say(it.d);return;}
- if(it.escape){await say('あなぬけのヒモを 使った！');useBag(k);await warpTo(G.lastCenter.map,G.lastCenter.x,G.lastCenter.y,2);return;}
+ if(it.escape){await say('あなぬけのヒモを 使った！');useBag(k);await warpTo(G.lastCenter.map,G.lastCenter.x,G.lastCenter.y,2);return 'close';}
  if(it.repel){useBag(k);G.repel=it.repel;sfx('item');await say('むしよけスプレーを 使った！');return;}
  if(it.ball){await say('ここでは 使えません！');return;}
  if(it.scroll!=null){const id=it.scroll,mv=MOVES[id];await say(`${it.n}を 開いた。\f${moveInfo(mv)}`);
@@ -1075,10 +1075,13 @@ async function useItemField(k){const it=ITM[k];
  if(it.stone){const i=await partyScreen('誰に 使う？',{tag:'item_target_'+k});if(i<0)return;const m=G.party[i];
   if(DEX[m.sp].evoItem!==k){await say('使っても 効果が ないよ。');return;}
   useBag(k);sfx('item');await say(`${mname(m)}に ${it.n}を 使った！`);await evolve(m);return;}
- const i=await partyScreen('誰に 使う？',{tag:'item_target_'+k});if(i<0)return;const m=G.party[i];
- if(!applyItem(k,m)){await say('使っても 効果が ないよ。');return;}
- useBag(k);sfx('heal');
- if(it.candy){await say(`${mname(m)}の レベルが ${m.lv}に 上がった！`);await afterLevelUp(m,m.lv-1,true);}else await say(`${mname(m)}は 元気に なった！`);}
+ let at=0;while(G.bag[k]>0){
+  const i=await partyScreen(`${it.n} ×${G.bag[k]}　誰に 使う？`,{tag:'item_target_'+k,start:at});if(i<0)return;at=i;const m=G.party[i];
+  if(!applyItem(k,m)){await say('使っても 効果が ないよ。');if(window.tgAuto)return;continue;}
+  useBag(k);sfx('heal');
+  if(it.candy){await say(`${mname(m)}の レベルが ${m.lv}に 上がった！`);await afterLevelUp(m,m.lv-1,true);}else await say(`${mname(m)}は 元気に なった！`+(it.heal&&m.hp<m.st.hp?`（HP ${m.hp}／${m.st.hp}）`:''));
+  if(window.tgAuto)return;}
+ await say(`${it.n}を 使いきった。`);}
 function applyItem(k,m){const it=ITM[k];
  if(it.revive){if(m.hp>0)return false;m.hp=Math.max(1,Math.floor(m.st.hp*it.revive));m.status=null;return true;}
  if(m.hp<=0)return false;
@@ -1246,7 +1249,7 @@ async function startMenu(){while(true){const hasDex=G.flags.dex||G.starter!=null
   const a=await choose(['強さを 見る','入れ替える','ニックネーム','やめる'],{pos:{right:0,bottom:46},tag:'party_act'});
   if(a===0)await summary(G.party[i]);else if(a===1){const j=await partyScreen('どこへ 移動？',{tag:'party_swap'});if(j>=0){const t=G.party[i];G.party[i]=G.party[j];G.party[j]=t;}}
   else if(a===2){const m=G.party[i];if(m.ot&&m.ot!==G.name){await say(`${mname(m)}は ${m.ot}さんから 交換で 来た モノモン。\f名前を 変えるのは やめておこう。`);}else{const old=mname(m);await nickname(m);if(mname(m)!==old)await say(`${old}の 名前は ${mname(m)}に なった！`);}}}
- else if(v===2){const k=await bagScreen('field');if(k)await useItemField(k);}
+ else if(v===2){let last=null;for(;;){const k=await bagScreen('field',last);if(!k)break;last=k;if(await useItemField(k)==='close')break;}}
  else if(v===3){await say([`${G.name}　バッジ ${badgeCount()}こ`,`お金 ${G.money}円　図鑑 ${Object.keys(G.caught).length}匹\nプレイ時間 ${playTimeStr()}`]);}
  else if(v===4){if(await saveConfirm()){if(save()){sfx('save');await say(`${G.name}は レポートに しっかり 書き残した！`);}else await say(window.tgAuto?'AUTOの 間は レポートを 書けません。':'レポートが 書けませんでした。');}}
  else break;}}
@@ -1953,6 +1956,7 @@ BOT.choose=function(tag,opts,o){
  if(tag.startsWith('forget:')){const id=+tag.split(':')[1];const m=o.ctx;let wi=0,wv=1e9;m.moves.forEach((x,i)=>{const mv=MOVES[x.id];const v=mv.cat==='status'?10:mv.p*(DEX[m.sp].t.includes(mv.t)?1.5:1);if(v<wv){wv=v;wi=i;}});const nv=MOVES[id].p*(DEX[m.sp].t.includes(MOVES[id].t)?1.5:1);return nv>wv?wi:4;}
  if(tag==='forget_ok')return 0;
  if(tag==='catch_swap'||tag==='nick')return 1;
+ if(tag==='bag_field')return -1;
  if(tag==='save')return 1;
  if(tag==='start')return opts.length-1;
  if(tag==='shop_top'){BOT.buy=shopBuy(BOT.inv||[]);return BOT.buy?0:2;}
