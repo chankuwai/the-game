@@ -1099,10 +1099,37 @@ function summary(m,startPage){const d=DEX[m.sp];const box=fullBox('');box.style.
    const r=e.target.closest('[data-mv]');if(r){const i=+r.dataset.mv;if(i===cur)doA();else{cur=i;sfx('sel');draw();}return;}
    if(e.target.closest('[data-close]'))o.onEv('B');});
   uiPush(o);draw();if(window.tgAuto)setTimeout(close,AUTOWAIT());});}
-async function bagScreen(ctx,last){const keys=Object.keys(G.bag).filter(k=>G.bag[k]>0&&(ctx!=='battle'||!ITM[k].escape&&!ITM[k].repel&&!ITM[k].key&&!ITM[k].stone&&!ITM[k].scroll));
- if(!keys.length){await say('道具を 何も 持っていない！');return null;}
- const v=await choose(keys.map(k=>`${ITM[k].n} <span style="float:right">×${G.bag[k]}</span>`).concat(['やめる']),{pos:{left:24,top:0,right:0},tag:'bag_'+ctx,start:Math.max(0,keys.indexOf(last)),onMove:c=>{}});
- if(v<0||v>=keys.length)return null;return keys[v];}
+// バッグ：回復（ほかの 使う 道具も）・ボール・巻物・大切なもの の ポケットに 分ける
+const POCKETS=[['回復',it=>!it.ball&&!it.scroll&&!it.key],['ボール',it=>!!it.ball],['巻物',it=>it.scroll!=null],['大切なもの',it=>!!it.key]];
+let BAGTAB=0;
+function bagScreen(ctx,last){const okB=k=>ctx!=='battle'||!ITM[k].escape&&!ITM[k].repel&&!ITM[k].key&&!ITM[k].stone&&!ITM[k].scroll;
+ const order=Object.keys(ITM);const flat=order.filter(k=>G.bag[k]>0&&okB(k));
+ return new Promise(async res=>{
+ if(!flat.length){await say('道具を 何も 持っていない！');res(null);return;}
+ const tabs=POCKETS.map((p,i)=>i).filter(i=>ctx!=='battle'||i<2);
+ const list=t=>flat.filter(k=>POCKETS[t][1](ITM[k]));
+ let tab=last&&ITM[last]?POCKETS.findIndex(p=>p[1](ITM[last])):BAGTAB;if(!tabs.includes(tab))tab=tabs[0];
+ let cur=Math.max(0,list(tab).indexOf(last)),top=0;const V=8,RH=10.5;
+ const box=fullBox('');box.style.padding='0';const o={el:box};
+ const draw=()=>{const L=list(tab);if(cur>=L.length)cur=Math.max(0,L.length-1);if(cur<top)top=cur;if(cur>=top+V)top=cur-V+1;
+  const W=150/tabs.length;
+  box.innerHTML=`<div style="position:absolute;left:${U(5)};right:${U(5)};top:${U(2.5)};height:${U(10)};display:flex;border-bottom:${U(.6)} solid #181818">`+
+   tabs.map(t=>`<div data-tab="${t}" class="xs" style="flex:1;display:flex;align-items:center;justify-content:center;cursor:pointer;${t===tab?'background:#181818;color:#f8f8f8;':''}">${POCKETS[t][0]}</div>`).join('')+`</div>
+  <div style="position:absolute;left:${U(5)};right:${U(5)};top:${U(14)};height:${U(RH*V)}">`+
+   (L.length?L.slice(top,top+V).map((k,n)=>{const i=top+n,sel=i===cur;return `<div data-i="${i}" style="height:${U(RH)};display:flex;align-items:center;padding:0 ${U(2)};cursor:pointer;${sel?'background:#e4e4e4;outline:'+U(.6)+' solid #181818;':''}"><span class="xs" style="width:${U(5)}">${sel?'▶':''}</span><span class="sm" style="flex:1;white-space:nowrap;overflow:hidden">${ITM[k].n}</span>${ITM[k].key?'':`<span class="xs">×${G.bag[k]}</span>`}</div>`;}).join('')
+   :`<div class="sm" style="padding:${U(8)} ${U(4)};color:#a8a8a8">この ポケットは からっぽ</div>`)+`</div>
+  ${L.length>V?`<div style="position:absolute;right:${U(2.5)};top:${U(14+RH*V*top/L.length)};height:${U(RH*V*V/L.length)};width:${U(1.4)};background:#585858"></div>`:''}
+  <div class="xs" style="position:absolute;left:${U(5)};right:${U(5)};top:${U(100)};bottom:${U(3)};border-top:${U(.6)} solid #181818;padding-top:${U(2)};line-height:1.45;white-space:normal;overflow:hidden">${L.length?ITM[L[cur]].d:''}</div>
+  <div class="xs" data-close style="position:absolute;right:${U(5)};bottom:${U(3)};border:${U(.5)} solid #181818;padding:0 ${U(1.5)};cursor:pointer;background:#f8f8f8">とじる</div>`;};
+ const done=v=>{BAGTAB=tab;uiPop(o);res(v);};
+ o.onEv=ev=>{const L=list(tab),ti=tabs.indexOf(tab);
+  if(ev==='D1'||ev==='D3'){tab=tabs[(ti+(ev==='D1'?1:tabs.length-1))%tabs.length];cur=0;top=0;sfx('sel');draw();}
+  else if(ev==='D0'&&L.length){cur=(cur+L.length-1)%L.length;sfx('sel');draw();}else if(ev==='D2'&&L.length){cur=(cur+1)%L.length;sfx('sel');draw();}
+  else if(ev==='A'){if(!L.length){sfx('ng');return;}sfx('ok');done(L[cur]);}else if(ev==='B'){sfx('sel');done(null);}};
+ box.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();const t=e.target.closest('[data-tab]');if(t){tab=+t.dataset.tab;cur=0;top=0;sfx('sel');draw();return;}
+  if(e.target.closest('[data-close]')){o.onEv('B');return;}const r=e.target.closest('[data-i]');if(r){const i=+r.dataset.i;if(i===cur)o.onEv('A');else{cur=i;sfx('sel');draw();}}});
+ uiPush(o);draw();
+ if(window.tgAuto)setTimeout(()=>{if(!STACK.includes(o))return;const v=BOT.choose('bag_'+ctx,flat.map(k=>ITM[k].n).concat(['やめる']),{});uiPop(o);res(v>=0&&v<flat.length?flat[v]:null);},AUTOWAIT());});}
 async function flyMenu(){const ts=Object.keys(G.visited).filter(t=>MAPS[t]&&MAPS[t].fly);if(curMap().theme==='indoor'||curMap().theme==='cave'||curMap().noFly){await say('ここでは 使えない！');return;}
  if(!ts.length){await say('飛んでいける 場所が ない。');return;}
  const v=await choose(ts.map(t=>MAPS[t].name).concat(['やめる']),{pos:{left:0,top:0,right:0},tag:'fly'});if(v<0||v>=ts.length)return;
@@ -2019,7 +2046,7 @@ BOT.choose=function(tag,opts,o){
   // 不利なら交代
   return 0;}
  if(tag==='bmove')return bestMoveIdx(B.ally(),B.foe());
- if(tag==='bag_battle'){const keys=Object.keys(G.bag).filter(k=>G.bag[k]>0&&!ITM[k].escape&&!ITM[k].repel&&!ITM[k].key&&!ITM[k].stone&&!ITM[k].scroll);
+ if(tag==='bag_battle'){const keys=Object.keys(ITM).filter(k=>G.bag[k]>0&&!ITM[k].escape&&!ITM[k].repel&&!ITM[k].key&&!ITM[k].stone&&!ITM[k].scroll);
   const want=BOT.intent==='ball'?ballKeys()[0]:healKeys().slice(-1)[0];const i=keys.indexOf(want);return i>=0?i:keys.length;}
  if(tag.startsWith('bitem_'))return B?B.ai_:0;
  if(tag==='bswitch'&&BOT.intent==='switch'){let bi=-1,bv=-1;G.party.forEach((m,i)=>{if(m.hp<=m.st.hp*.3||m===B.ally())return;if(m.lv>bv){bv=m.lv;bi=i;}});return bi;}
