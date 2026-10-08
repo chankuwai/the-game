@@ -45,9 +45,9 @@
 .tgp-face{position:absolute;right:14px;bottom:calc(96px + env(safe-area-inset-bottom));width:166px;height:166px}
 .tgp-face .tgp-b{width:58px;height:58px}
 .tgp-A{right:0;top:54px}.tgp-B{left:54px;bottom:0}.tgp-X{left:54px;top:0}.tgp-Y{left:0;top:54px}
-.tgp-sh{position:absolute;bottom:min(calc(274px + env(safe-area-inset-bottom)),calc(100% - 44px));width:90px;height:37px;border-radius:12px 12px 8px 8px;display:flex;align-items:center;justify-content:center;gap:6px;color:#2a2d3a;font-weight:900;
+.tgp-sh{position:absolute;bottom:min(calc(304px + env(safe-area-inset-bottom)),calc(100% - 50px));width:110px;height:44px;border-radius:14px 14px 9px 9px;display:flex;align-items:center;justify-content:center;gap:6px;color:#2a2d3a;font-weight:900;
  background:linear-gradient(#f0f0f8,#a8a8b8);box-shadow:0 4px 0 #6a6a7a,0 6px 10px rgba(0,0,0,.45),inset 0 2px 0 rgba(255,255,255,.8);transition:transform .05s}
-.tgp-sh b{font-size:17px}.tgp-sh small{font-size:10px;font-weight:800}
+.tgp-sh b{font-size:20px}.tgp-sh small{font-size:11px;font-weight:800}
 .tgp-sh.on{transform:translateY(3px);box-shadow:0 1px 0 #6a6a7a,0 0 12px rgba(255,255,255,.6)}
 .tgp-L{left:16px}.tgp-R{right:16px}
 .tgp-sys{position:absolute;left:50%;bottom:calc(40px + env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;gap:10px}
@@ -59,7 +59,7 @@
 .tgp-off{opacity:.28;filter:grayscale(.6)}
 .tgp-glow{animation:tgpglow .55s ease-in-out infinite alternate}
 @keyframes tgpglow{to{box-shadow:0 5px 0 var(--sh),0 0 20px var(--c),0 0 6px #fff,inset 0 2px 0 rgba(255,255,255,.35);filter:brightness(1.25)}}
-@media (max-height:700px){.tgp-base{width:120px;height:120px;bottom:calc(76px + env(safe-area-inset-bottom))}.tgp-face{width:132px;height:132px}.tgp-face .tgp-b{width:46px;height:46px}.tgp-A,.tgp-Y{top:43px}.tgp-B,.tgp-X{left:43px}.tgp-sh{height:28px;bottom:min(calc(212px + env(safe-area-inset-bottom)),calc(100% - 34px))}.tgp-sys{bottom:calc(28px + env(safe-area-inset-bottom))}.tgp-face{bottom:calc(70px + env(safe-area-inset-bottom))}}`;
+@media (max-height:700px){.tgp-base{width:120px;height:120px;bottom:calc(76px + env(safe-area-inset-bottom))}.tgp-face{width:132px;height:132px}.tgp-face .tgp-b{width:46px;height:46px}.tgp-A,.tgp-Y{top:43px}.tgp-B,.tgp-X{left:43px}.tgp-sh{width:96px;height:36px;bottom:min(calc(236px + env(safe-area-inset-bottom)),calc(100% - 42px))}.tgp-sys{bottom:calc(28px + env(safe-area-inset-bottom))}.tgp-face{bottom:calc(70px + env(safe-area-inset-bottom))}}`;
  function shadeHex(c,k){const n=parseInt(c.slice(1),16);let r=n>>16,g=n>>8&255,b=n&255;const f=x=>Math.max(0,Math.min(255,Math.round(k<0?x*(1+k):x+(255-x)*k)));return `rgb(${f(r)},${f(g)},${f(b)})`;}
  let root=null,knob=null,base=null,stickId=null,opts={};const els={};
  function setBtn(b,src,v){if(!!st[src][b]===v)return;st[src][b]=v;}
