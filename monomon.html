@@ -379,6 +379,140 @@ DEX.forEach((d,i)=>{d.learn=buildLearnset(d,i);});
  d.learn=[...base.map(n=>[1,MVI[n]]),[7,MVI[first]],...rest].sort((a,b)=>a[0]-b[0]);});
 const NATURE_EXP=n=>Math.floor(n*n*n*.8);   // 必要経験値（やや早め）
 
+// 技の説明（フレーバーテキスト）
+const MOVE_TXT={
+'たいあたり':'体ごと 相手に ぶつかって 攻撃する。',
+'かきむしる':'するどい ツメで 相手を ひっかく。',
+'あまえごえ':'かわいい 声で 相手の 気を ゆるめ 攻撃を 下げる。',
+'ガンとばし':'するどく にらみつけ 相手の 防御を 下げる。',
+'はやてがけ':'風のような 速さで かけぬけ かならず 先に 攻撃できる。',
+'がぶり':'するどい 歯で かみつく。相手が ひるむ ことが ある。',
+'ヘビーナックル':'重たい こぶしを 力いっぱい たたきこむ。',
+'おしつぶし':'全身で のしかかる。相手が まひする ことが ある。',
+'もうしんげき':'わき目もふらず 突進する。自分も 少し ダメージを 受ける。',
+'スラッシュ':'すばやく 切りさく。急所に 当たりやすい。',
+'とぎすます':'心と 体を とぎすまし 攻撃を ぐーんと 上げる。',
+'じこしゅうふく':'体の 細胞を 作りかえ HPを 半分 回復する。',
+'すてみアタック':'命がけで 体当たりする。反動が 大きい。',
+'はめつのひかり':'すさまじい 光線を 放つ。次の ターンは 動けない。',
+'ギアチェンジ':'体の 力を ぬいて 身軽になり 素早さを ぐーんと 上げる。',
+'みがまえ':'体を 固くして 防御を 上げる。',
+'ひのたま':'小さな 火の玉を 飛ばす。やけどさせる ことが ある。',
+'ほむらがみ':'炎を まとった 牙で かみつく。やけどさせる ことが ある。',
+'ほのおのいき':'はげしい 炎を ふきつける。やけどさせる ことが ある。',
+'おおかがりび':'大きな 炎で 相手を つつみこむ。やけどさせやすい。',
+'きつねび':'あやしい 火で 相手を やけどにする。',
+'かえんとっしん':'炎を まとって 突っこむ。反動が 大きい。',
+'あつかぜ':'焼けつくような 熱い 風を ふかせる。',
+'みずしぶき':'勢いよく 水を ふきかけて 攻撃する。',
+'あわのつぶて':'たくさんの 泡を ぶつける。素早さを 下げる ことが ある。',
+'しおふき':'すばやく 水を ふき出し かならず 先に 攻撃できる。',
+'おおなみ':'大きな 波を 起こして 相手を のみこむ。',
+'だいこうずい':'あふれる 大水で 一気に おし流す。',
+'からごもり':'から に こもって 身を守り 防御を 上げる。',
+'うずしっぽ':'うずまく 水を まとった しっぽで たたきつける。',
+'ねっこすい':'相手の 養分を 吸い取り 与えた ダメージの 半分 回復する。',
+'きりばっぱ':'刃のような 葉っぱで 切りつける。急所に 当たりやすい。',
+'みつすい':'あまい 蜜と ともに 体力を 吸い取る。',
+'ねむりかふん':'眠くなる 花粉を まき 相手を 眠らせる。',
+'しびれかふん':'しびれる 花粉を まき 相手を まひさせる。',
+'からみヅタ':'ツタを からませ 毎ターン 相手の HPを 吸い取る。',
+'せいきをすう':'大地の 力ごと 相手の 体力を 大きく 吸い取る。',
+'ひだまりほう':'日の光を 集めて 放つ 強力な 光線。',
+'このはのあらし':'葉っぱの 嵐を 起こす。使うと 自分の 特攻が がくっと 下がる。',
+'はっぱつぶて':'固い 葉っぱを つぶてのように 投げつける。',
+'ビリビリ':'弱い 電気を 流す。まひさせる ことが ある。',
+'しびれでんぱ':'しびれる 電波を 当てて 相手を まひさせる。',
+'でんげきタックル':'電気を まとって 体当たり。まひさせる ことが ある。',
+'らいめいだん':'雷鳴と ともに 電撃の 玉を 放つ。',
+'いかずち':'空から 激しい 雷を 落とす。まひさせやすい。',
+'ほうでんりゅう':'周りに 電気を 放ちまくる。まひさせやすい。',
+'でんきのあみ':'電気の 網で 相手を つつみ まひさせる。',
+'しもかぜ':'冷たい 風を 吹きつける。凍らせる ことが ある。',
+'オーロラレイ':'にじ色の 光線。相手の 攻撃を 下げる ことが ある。',
+'つららがみ':'氷の 牙で かみつく。凍らせる ことが ある。',
+'ひょうけつほう':'すべてを 凍らせる 冷気の 光線を 放つ。',
+'ホワイトアウト':'視界を まっ白に する 猛吹雪。凍らせやすい。',
+'てがたなうち':'手を 刀のように して 打つ。急所に 当たりやすい。',
+'あしばらい':'足元を すくって 相手を 転ばせる。',
+'パンプアップ':'筋肉を ふくらませ 攻撃と 防御を 上げる。',
+'ゆさぶりけん':'強烈な 一撃で 相手を 混乱させる。ただし 外れやすい。',
+'ゼロきょりうち':'ふところに 飛びこみ 全力で 打つ。自分の 守りが 下がる。',
+'きこうだん':'体内の 気を 玉にして ぶつける。',
+'どくとげ':'毒の ある とげを 刺す。毒に する ことが ある。',
+'とかしえき':'とかす 液を かける。特防を 下げる ことが ある。',
+'どくのきり':'毒の 霧で つつみ 相手を 毒に する。',
+'もうどくえき':'猛毒の しずくを 浴びせる。ターンごとに ダメージが 増える。',
+'どろどくだん':'毒の 泥を 固めて 投げつける。毒に する ことが ある。',
+'どくのなだれ':'大量の 毒を 浴びせかける。毒に する ことが ある。',
+'すなけむり':'砂を 巻き上げて 相手の 命中率を 下げる。',
+'どろつぶて':'泥を 投げつけて 相手の 素早さを 下げる。',
+'もぐりこみ':'地面に もぐって 下から 突き上げる。',
+'ちかくへんどう':'大地を 大きく ゆらして 攻撃する。',
+'だいちのいぶき':'足元から 大地の 力を 噴き出させる。',
+'つっつき':'くちばしで つついて 攻撃する。',
+'はばたきうち':'大きく 広げた 翼で 打ちつける。',
+'かざきり':'風の 刃で 切りさく。相手が ひるむ ことが ある。',
+'はねづくろい':'翼を 休めて HPを 半分 回復する。',
+'もうきんダイブ':'空から 急降下して 突っこむ。反動が 大きい。',
+'てんくうげき':'天高く 舞い上がり 一気に 打ち下ろす。急所に 当たりやすい。',
+'まいあがり':'高く 舞い上がり 勢いを つけて 体当たりする。',
+'ねんぱ':'念の 波を 送る。相手を 混乱させる ことが ある。',
+'ゆめうつつ':'ゆらめく 動きで 相手を 眠らせる。外れやすい。',
+'ゆらぎこうせん':'ゆらめく 光線を 放つ。混乱させる ことが ある。',
+'むねんむそう':'心を 無にして 特防を ぐーんと 上げる。',
+'ねんどうりき':'強い 念の 力で 相手を 押しつぶす。',
+'よげんだん':'未来を 読み その 一点に 念の 弾を 撃ちこむ。',
+'ちすい':'相手の 体液を 吸い 与えた ダメージの 半分 回復する。',
+'かじりつき':'しつこく かじりついて 攻撃する。',
+'ねばいと':'ねばねばの 糸を はいて 素早さを ぐーんと 下げる。',
+'はさみぎり':'大きな はさみを 交差させて 切りつける。',
+'むしのはおと':'はげしい 羽音で 攻撃する。特防を 下げる ことが ある。',
+'いしつぶて':'小石を 投げつけて 攻撃する。',
+'いわけずり':'体の 岩を けずって 身軽になり 素早さを ぐーんと 上げる。',
+'がけくずれ':'岩を くずして 浴びせる。ひるませる ことが ある。',
+'とがりいし':'とがった 岩を 突き立てる。急所に 当たりやすい。',
+'がんせきずつき':'岩のような 頭で 頭突きする。反動が とても 大きい。',
+'おばけなめ':'冷たい 舌で なめる。まひさせる ことが ある。',
+'うらみのかげ':'うらみの 影を 見せる。自分の レベル分の ダメージ。',
+'まよいび':'ゆらめく 火で 惑わせ 相手を 混乱させる。',
+'かげのツメ':'影から のびる ツメで 切りさく。急所に 当たりやすい。',
+'かげだま':'影の かたまりを ぶつける。特防を 下げる ことが ある。',
+'じゅばく':'自分を しばる 呪い。攻撃と 防御が 上がり 素早さが 下がる。',
+'りゅうのうなり':'りゅうの うなり声。かならず 40の ダメージを 与える。',
+'りゅうのかぎづめ':'するどい かぎづめで 切りさく。',
+'りゅうのめざめ':'りゅうの 力を 目覚めさせ 攻撃と 素早さを 上げる。',
+'あばれりゅう':'暴れまわって 攻撃する。自分が 混乱する ことが ある。',
+'りゅうせいう':'流れ星を 降らせる。使うと 自分の 特攻が がくっと 下がる。',
+'りゅうのこどう':'りゅうの 鼓動を 衝撃波にして 放つ。',
+'まどわしうち':'油断させて すきを つく 一撃。',
+'やみうち':'暗闇から 不意を つき かならず 先に 攻撃できる。',
+'かみちぎり':'強く かみちぎる。防御を 下げる ことが ある。',
+'とおりま':'すれちがいざまに 切りつける。急所に 当たりやすい。',
+'はかりごと':'悪い 作戦を 練り 特攻を ぐーんと 上げる。',
+'あんこくのなみ':'暗黒の 波動を 放つ。ひるませる ことが ある。',
+'やみばくはつ':'闇の 力を 一気に 爆発させる。',
+'はがねのツメ':'鋼の ツメで 切りさく。攻撃が 上がる ことが ある。',
+'てつのよろい':'鋼の よろいで 身を固め 防御を ぐーんと 上げる。',
+'てつずつき':'鋼の 頭で 頭突きする。ひるませる ことが ある。',
+'ぎんこうほう':'銀色の 光の 弾を 撃つ。特防を 下げる ことが ある。',
+'いんせきおとし':'隕石のような 勢いで 突っこむ。',
+'ようせいのいき':'不思議な 息を 吹きかけて 攻撃する。',
+'うるうるめ':'うるんだ 瞳で 見つめ 相手の 攻撃を ぐーんと 下げる。',
+'あまいくちづけ':'あまい 口づけで 体力を 吸い取る。',
+'ふしぎなかがやき':'不思議な 光で 相手を 照らして 攻撃する。',
+'つきあかり':'月の 光を 浴びて HPを 半分 回復する。',
+'げっこうほう':'月の 光を 集めて 放つ。特防を 下げる ことが ある。',
+'ひかりのつぶ':'光の つぶを 飛ばして 攻撃する。',
+'まばゆいひかり':'まぶしい 光で 目を くらませ 素早さを 下げる。',
+'ひかりのかぜ':'光の 風を 吹かせて 攻撃する。',
+'ホーリーレイ':'聖なる 光線を 放つ。特防を 下げる ことが ある。',
+'あたたかいひかり':'あたたかい 光に つつまれ HPを 半分 回復する。',
+'シャイニングブレード':'光の 刃で 切りさく。急所に 当たりやすい。',
+'ジャッジメントレイ':'裁きの 光で 相手を 撃ちぬく。',
+'もがき':'技が 出せないとき 必死に もがく。反動を 受ける。',
+};
+
 
 /* ================= ドット絵（タイル・人物・モノモン） ================= */
 function mkCanvas(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d');g.imageSmoothingEnabled=false;return [c,g];}
@@ -636,12 +770,54 @@ function partyScreen(title,opt){opt=opt||{};return new Promise(res=>{const box=f
   else if(ev==='A'){if(dis(cur)){sfx('ng');return;}sfx('ok');done(cur);}else if(ev==='B'&&opt.cancel!==false){sfx('sel');done(-1);}};
  uiPush(st);render();
  if(window.tgAuto)setTimeout(()=>{if(!STACK.includes(st))return;const v=BOT.choose(opt.tag||'party',G.party,opt);if(v<0&&opt.cancel!==false)done(-1);else done(clamp(v<0?0:v,0,G.party.length-1));},AUTOWAIT());});}
-function summary(m){const d=DEX[m.sp];const box=fullBox('');const o={el:box};
- box.innerHTML=`<div style="display:flex;gap:${U(4)}"><canvas width="78" height="78" style="width:${U(48)};height:${U(48)};image-rendering:pixelated"></canvas><div class="sm">No.${String(d.no).padStart(3,'0')}<br><b>${mname(m)}</b> Lv${m.lv}<br>${d.t.map(t=>TY[t]).join('/')}<br>${m.status?STS[m.status]:'げんき'}<br>HP ${m.hp}/${m.st.hp}</div></div>
- <div class="xs" style="display:grid;grid-template-columns:1fr 1fr;margin-top:${U(2)}">${STK.slice(1).map(k=>`<span>${STN[k]} ${m.st[k]}</span>`).join('')}<span>次のLvまで ${Math.max(0,expFor(m.lv+1)-m.exp)}</span></div>
- <div class="xs" style="margin-top:${U(2)}">${m.moves.map(mv=>`${MOVES[mv.id].n}　<span style="float:right">${TY[MOVES[mv.id].t]} ${mv.pp}/${MOVES[mv.id].pp}</span>`).join('<br>')}</div>`;
- box.querySelector('canvas').getContext('2d').drawImage(monImg(d.art,false),0,0);
- return new Promise(res=>{o.onEv=ev=>{if(ev==='A'||ev==='B'||ev==='TAP'){uiPop(o);res();}};box.addEventListener('pointerdown',()=>o.onEv('TAP'));uiPush(o);if(window.tgAuto)setTimeout(()=>o.onEv('A'),AUTOWAIT());});}
+// 強さを見る：「能力」と「技」の 2ページ。技は 入れ替えと 性能・説明の 表示ができる
+function moveCat(mv){return {phys:'物理',spec:'特殊',status:'変化'}[mv.cat];}
+function moveEffText(mv){const ST={atk:'攻撃',def:'防御',spa:'特攻',sdf:'特防',spd:'素早さ',acc:'命中率'};const P={par:'まひ',brn:'やけど',slp:'ねむり',frz:'こおり',psn:'毒',conf:'混乱',flinch:'ひるみ'};
+ return mv.eff.map(e=>{const[k,a,b,c]=e;
+  if(k==='t'||k==='s'){const n=+b;return `${c?c+'%で ':''}${k==='t'?'相手':'自分'}の ${ST[a]}${n>0?'↑':'↓'}${Math.abs(n)>1?Math.abs(n):''}`;}
+  if(P[k]){if(a&&a.endsWith('self'))return `${parseInt(a)}%で 自分が ${P[k]}`;return mv.cat==='status'||a==='100'?`相手を ${P[k]}に`:`${a}%で ${P[k]}`;}
+  return {prio:'先制',recoil:`反動 ${a}%`,crit:'急所に 当たりやすい',heal:`HP ${a}% 回復`,recharge:'次の ターン 動けない',drain:`与えた ダメージの ${a}% 回復`,leech:'毎ターン HPを 吸う',tox:'猛毒に',level:'レベル分の ダメージ',fixed:`${a}の 固定ダメージ`}[k]||'';}).filter(Boolean).join('、');}
+function summary(m,startPage){const d=DEX[m.sp];const box=fullBox('');box.style.padding='0';const o={el:box};
+ let page=startPage||0,cur=0,pick=-1;
+ const chip=t=>`<span style="display:inline-block;border:${U(.5)} solid #181818;padding:0 ${U(1.2)};margin-right:${U(1)};line-height:1.25">${TY[t]}</span>`;
+ const bar=(v,mx,w)=>`<span style="display:inline-block;vertical-align:middle;width:${U(w)};height:${U(2.2)};border:${U(.5)} solid #181818;background:#f8f8f8"><span style="display:block;height:100%;width:${Math.round(clamp(v/mx,0,1)*100)}%;background:#181818"></span></span>`;
+ const tabs=()=>`<div style="position:absolute;left:${U(3)};right:${U(3)};top:${U(2)};height:${U(10)};display:flex;align-items:flex-end;gap:${U(2)};border-bottom:${U(.6)} solid #181818">
+  ${['能力','技'].map((n,i)=>`<span class="xs" data-tab="${i}" style="padding:${U(.8)} ${U(4)};border:${U(.6)} solid #181818;border-bottom:none;${i===page?'background:#181818;color:#f8f8f8':''}">${n}</span>`).join('')}
+  <span class="xs" style="margin-left:auto;color:#585858;padding-bottom:${U(1)}">◀▶ 切替　B 戻る</span></div>`;
+ const pageStats=()=>{const lo=expFor(m.lv),hi=expFor(m.lv+1);const S=['atk','def','spa','sdf','spd'];const mx=Math.max(...S.map(k=>m.st[k]));
+  return `<canvas width="78" height="78" style="position:absolute;left:${U(4)};top:${U(15)};width:${U(52)};height:${U(52)};image-rendering:pixelated;border:${U(.5)} solid #a8a8a8;background:#fff"></canvas>
+  <div style="position:absolute;left:${U(61)};right:${U(4)};top:${U(15)}">
+   <div class="xs" style="color:#585858">No.${String(d.no).padStart(3,'0')}</div>
+   <div class="sm"><b>${mname(m)}</b>　Lv${m.lv}</div>
+   <div class="xs" style="margin:${U(1)} 0">${d.t.map(chip).join('')}</div>
+   <div class="xs">状態：${m.hp<=0?'ひんし':m.status?STS[m.status]:'げんき'}</div>
+   <div class="xs" style="margin-top:${U(1.5)}">HP ${bar(m.hp,m.st.hp,40)} ${m.hp}/${m.st.hp}</div>
+   <div class="xs">EXP ${bar(m.exp-lo,Math.max(1,hi-lo),37)} <span style="color:#585858">あと${Math.max(0,hi-m.exp)}</span></div></div>
+  <div class="xs" style="position:absolute;left:${U(5)};right:${U(5)};top:${U(71)};display:grid;grid-template-columns:${U(22)} ${U(14)} 1fr;row-gap:${U(.6)};align-items:center">
+   ${S.map(k=>`<span>${STN[k]}</span><span style="text-align:right;padding-right:${U(3)}">${m.st[k]}</span>${bar(m.st[k],mx*1.05,92)}`).join('')}</div>
+  <div class="xs" style="position:absolute;left:${U(5)};right:${U(5)};top:${U(115)};border-top:${U(.5)} solid #a8a8a8;padding-top:${U(1.5)};color:#585858;line-height:1.45;white-space:normal">${G.caught[m.sp]?d.desc:''}</div>`;};
+ const pageMoves=()=>{const mv=MOVES[m.moves[cur].id],s=m.moves[cur];const ef=moveEffText(mv);
+  return `<div style="position:absolute;left:${U(3)};right:${U(3)};top:${U(15)}">${m.moves.map((x,i)=>{const v=MOVES[x.id];const sel=i===cur,pk=i===pick;
+   return `<div class="xs" data-mv="${i}" style="display:flex;align-items:center;height:${U(11)};padding:0 ${U(2)} 0 ${U(7)};position:relative;${sel?'background:#181818;color:#f8f8f8;':''}${pk?'outline:'+U(.6)+' dashed #585858;':''}">
+    <span style="position:absolute;left:${U(1.5)}">${pk?'⇅':sel?'▶':''}</span><span style="flex:1">${v.n}</span><span style="width:${U(30)}">${TY[v.t]}</span><span style="width:${U(20)};text-align:right">${x.pp}/${v.pp}</span></div>`;}).join('')}</div>
+  <div class="xs" style="position:absolute;left:${U(4)};right:${U(4)};top:${U(64)};bottom:${U(4)};border:${U(.6)} solid #181818;padding:${U(2)} ${U(3)};line-height:1.5;white-space:normal">
+   <div style="display:grid;grid-template-columns:repeat(4,1fr);text-align:center;border-bottom:${U(.5)} solid #a8a8a8;padding-bottom:${U(1)};margin-bottom:${U(1.5)}">
+    <span><span style="color:#585858">分類</span><br>${moveCat(mv)}</span><span><span style="color:#585858">威力</span><br>${mv.p||'－'}</span><span><span style="color:#585858">命中</span><br>${mv.acc}</span><span><span style="color:#585858">PP</span><br>${s.pp}/${mv.pp}</span></div>
+   ${ef?`<div>${ef}</div>`:''}<div style="color:#585858">${MOVE_TXT[mv.n]||''}</div>
+   <div style="position:absolute;right:${U(3)};bottom:${U(1)};color:#585858">${pick>=0?'入れ替える 先を 選んで A':'A：並べ替え'}</div></div>`;};
+ const draw=()=>{box.innerHTML=tabs()+(page===0?pageStats():pageMoves());
+  if(page===0){const g=box.querySelector('canvas').getContext('2d');g.imageSmoothingEnabled=false;g.drawImage(monImg(d.art,false),0,0);}};
+ const doA=()=>{if(page===0){page=1;sfx('sel');draw();return;}
+  if(pick<0){pick=cur;sfx('sel');}else{if(pick!==cur){const t=m.moves[pick];m.moves[pick]=m.moves[cur];m.moves[cur]=t;sfx('ok');}pick=-1;}draw();};
+ return new Promise(res=>{const close=()=>{uiPop(o);res();};
+  o.onEv=ev=>{if(ev==='B'){if(pick>=0){pick=-1;draw();}else close();}
+   else if(ev==='D1'||ev==='D3'){page=1-page;pick=-1;sfx('sel');draw();}
+   else if(page===1&&(ev==='D0'||ev==='D2')){cur=(cur+(ev==='D2'?1:m.moves.length-1))%m.moves.length;sfx('sel');draw();}
+   else if(ev==='A')doA();};
+  box.addEventListener('pointerdown',e=>{const t=e.target.closest('[data-tab]');if(t){page=+t.dataset.tab;pick=-1;draw();return;}
+   const r=e.target.closest('[data-mv]');if(r){const i=+r.dataset.mv;if(i===cur)doA();else{cur=i;sfx('sel');draw();}return;}
+   if(page===0&&!e.target.closest('[data-tab]'))close();});
+  uiPush(o);draw();if(window.tgAuto)setTimeout(close,AUTOWAIT());});}
 async function bagScreen(ctx){const keys=Object.keys(G.bag).filter(k=>G.bag[k]>0&&(ctx!=='battle'||!ITM[k].escape&&!ITM[k].repel&&!ITM[k].key));
  if(!keys.length){await say('道具を 何も 持っていない！');return null;}
  const v=await choose(keys.map(k=>`${ITM[k].n} <span style="float:right">×${G.bag[k]}</span>`).concat(['やめる']),{pos:{left:24,top:0,right:0},tag:'bag_'+ctx,onMove:c=>{}});
@@ -670,7 +846,9 @@ function applyItem(k,m){const it=ITM[k];
  return false;}
 // 図鑑：一覧（左に番号と名前、右に姿）→ A／タップで くわしい ページ
 async function dexScreen(){
- const seen=Object.keys(G.seen).length,caught=Object.keys(G.caught).length,N=DEX.length,V=10,RH=11.6;
+ const seen=Object.keys(G.seen).length,caught=Object.keys(G.caught).length,V=10,RH=11.6;
+ // 見つけた 中で いちばん 大きい 番号まで だけ 見られる
+ const N=Math.max(1,...Object.keys(G.seen).map(k=>+k+1));
  const box=fullBox('');box.style.padding='0';const o={el:box};uiPush(o);
  const P=(css,html)=>{const d=document.createElement('div');d.style.cssText='position:absolute;'+css;if(html!=null)d.innerHTML=html;box.appendChild(d);return d;};
  const head=P(`left:${U(5)};right:${U(5)};top:${U(3)};height:${U(9)};display:flex;justify-content:space-between;align-items:center;border-bottom:${U(.6)} solid #181818`,
@@ -1175,7 +1353,7 @@ function moveInfo(mv){const cat={phys:'物理',spec:'特殊',status:'変化'}[mv
   if(k==='t'||k==='s'){const n=+b;return `${c?c+'%で ':''}${k==='t'?'相手':'自分'}の ${ST[a]}${n>0?'↑':'↓'}${Math.abs(n)>1?Math.abs(n):''}`;}
   if(P[k]){if(a&&a.endsWith('self'))return `${parseInt(a)}%で 自分が ${P[k]}`;return mv.cat==='status'||a==='100'?`相手を ${P[k]}に`:`${a}%で ${P[k]}`;}
   return {prio:'先制',recoil:`反動 ${a}%`,crit:'急所に 当たりやすい',heal:`HP ${a}% 回復`,recharge:'次の ターン 動けない',drain:`与えた ダメージの ${a}% 回復`,leech:'毎ターン HPを 吸う',tox:'猛毒に',level:'レベル分の ダメージ',fixed:`${a}の 固定ダメージ`}[k]||'';}).filter(Boolean).join('、');
- return `${mv.n}（${TY[mv.t]}・${cat}）\n威力${mv.p||'－'} 命中${mv.acc>=100?'－':mv.acc} PP${mv.pp}${ef?' '+ef:''}`;}
+ return `${mv.n}（${TY[mv.t]}・${cat}）\n威力${mv.p||'－'} 命中${mv.acc} PP${mv.pp}${ef?' '+ef:''}`;}
 async function learnMove(m,id){const mv=MOVES[id];
  if(m.moves.length<4){m.moves.push({id,pp:mv.pp});sfx('lvup');await say(`${mname(m)}は 新しく ${mv.n}を 覚えた！`);return;}
  await say(`${mname(m)}は ${mv.n}を 覚えたい……\fしかし 技を 4つ 覚えるので 精一杯だ！`);
