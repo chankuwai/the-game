@@ -502,6 +502,7 @@ const ITM={
  ticket:{n:'ふねのチケット',p:0,key:1,d:'ステラ号の 乗船券'},
  ekey:{n:'エレベーターのカギ',p:0,key:1,d:'ミライタワーの エレベーターの カギ'},
  mkey:{n:'やかたのカギ',p:0,key:1,d:'ユキネタウンの ジムの 扉の カギ'},
+ cert:{n:'表彰状',p:0,key:1,d:'図鑑を 完成させた あかし。博士から もらった'},
 };
 const SHOPS={
  tsugi:['potion','antidote','parlyz','ball','repel'],
@@ -620,6 +621,7 @@ async function flyMenu(){const ts=Object.keys(G.visited).filter(t=>MAPS[t]&&MAPS
  await say('つばさのふえを 吹いた！',{auto:600});const t=MAPS[ts[v]];await warpTo(ts[v],t.fly[0],t.fly[1],2);}
 async function useItemField(k){const it=ITM[k];
  if(it.fly){await flyMenu();return;}
+ if(k==='cert'){await certScreen();return;}
  if(it.key){await say(it.d);return;}
  if(it.escape){await say('あなぬけのヒモを 使った！');useBag(k);await warpTo(G.lastCenter.map,G.lastCenter.x,G.lastCenter.y,2);return;}
  if(it.repel){useBag(k);G.repel=it.repel;sfx('item');await say('むしよけスプレーを 使った！');return;}
@@ -706,6 +708,21 @@ async function startMenu(){while(true){const v=await choose(['図鑑','モノモ
  else if(v===3){await say([`${G.name}　バッジ ${badgeCount()}こ`,`お金 ${G.money}円　図鑑 ${Object.keys(G.caught).length}匹`]);}
  else if(v===4){if(await yesno('save')){if(save()){sfx('save');await say(`${G.name}は レポートに しっかり 書き残した！`);}else await say(window.tgAuto?'AUTOの 間は レポートを 書けません。':'レポートが 書けませんでした。');}}
  else break;}}
+// 表彰状（図鑑完成）
+function certScreen(){return new Promise(res=>{
+ const box=fullBox('');box.style.padding='0';const o={el:box};
+ const n=DEX.length,starters=[DXI.m001,DXI.m004,DXI.m007];
+ box.innerHTML=`<div style="position:absolute;left:${U(4)};top:${U(4)};right:${U(4)};bottom:${U(4)};border:${U(1.6)} solid #181818;box-shadow:inset 0 0 0 ${U(1.2)} #f8f8f8,inset 0 0 0 ${U(2)} #585858"></div>
+ ${['left:'+U(6)+';top:'+U(6),'right:'+U(6)+';top:'+U(6),'left:'+U(6)+';bottom:'+U(6),'right:'+U(6)+';bottom:'+U(6)].map(p=>`<div class="xs" style="position:absolute;${p}">◆</div>`).join('')}
+ <div style="position:absolute;left:0;right:0;top:${U(12)};text-align:center;font-weight:bold;font-size:calc(var(--u)*11);letter-spacing:calc(var(--u)*4)">表彰状</div>
+ <div class="sm" style="position:absolute;left:${U(16)};right:${U(16)};top:${U(30)};text-align:right">${G.name}　殿</div>
+ <div class="xs" style="position:absolute;left:${U(16)};right:${U(16)};top:${U(42)};line-height:1.7;white-space:normal">あなたは モノモン図鑑 全${n}種を みごとに 完成させました。<br>その 努力と モノモンたちへの 深い 愛情を たたえ、ここに 表彰します。</div>
+ <div style="position:absolute;left:0;right:0;top:${U(86)};display:flex;justify-content:center;gap:${U(4)}">${starters.map(()=>`<canvas width="78" height="78" style="width:${U(22)};height:${U(22)};image-rendering:pixelated"></canvas>`).join('')}</div>
+ <div class="sm" style="position:absolute;left:${U(16)};right:${U(36)};top:${U(113)};text-align:right">モノクロ博士</div>
+ <div style="position:absolute;right:${U(15)};top:${U(108)};width:${U(16)};height:${U(16)};border:${U(1)} solid #181818;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:calc(var(--u)*7);font-weight:bold;transform:rotate(-12deg);opacity:.85">印</div>`;
+ box.querySelectorAll('canvas').forEach((c,i)=>{const g=c.getContext('2d');g.imageSmoothingEnabled=false;g.drawImage(monImg(DEX[starters[i]].art,false),0,0);});
+ const close=()=>{uiPop(o);res();};o.onEv=ev=>{if(ev==='A'||ev==='B'||ev==='TAP')close();};
+ box.addEventListener('pointerdown',e=>{e.preventDefault();close();});uiPush(o);if(window.tgAuto)setTimeout(close,AUTOWAIT()*4);});}
 
 
 /* ================= フィールド ================= */
@@ -804,7 +821,13 @@ async function talkNpc(o){const n=o.n;faceTo(o);
   case 'nurse':await say('ようこそ！ モノモンセンターへ。\fお預かりした モノモンを 元気に しますね。');setBgm('none');sfx('heal');await wait(1400);healAll();G.lastCenter={map:G.map,x:G.x,y:G.y};setBgmFor(curMap());await say('お待ちどうさまでした！\fまた いつでも どうぞ！');break;
   case 'clerk':await say('いらっしゃいませ！');await shopScreen(n.shop);break;
   case 'mom':if(!G.starter){await say([`ママ「${G.name}、博士が 呼んでいたわよ。`,'となりの 研究所に いってらっしゃい！」']);}else{await say('ママ「少し 休んで いきなさい」');healAll();sfx('heal');await wait(900);await say('ママ「元気に なったわね。いってらっしゃい！」');G.lastCenter={map:'home',x:G.x,y:G.y};}break;
-  case 'prof':if(G.starter==null){await chooseStarter();}else{const c=Object.keys(G.caught).length;await say([`博士「図鑑の 調子は どうかね？ 今 ${c}匹 捕まえておるな。`,c<10?'もっと いろいろな モノモンを 見つけるのじゃ！':c<30?'なかなか やるのう！ その 調子じゃ！':'素晴らしい！ 君こそ 本物の トレーナーじゃ！']);}break;
+  case 'prof':if(G.starter==null){await chooseStarter();}
+   else if(Object.keys(G.caught).length>=DEX.length&&!G.flags.cert){
+    await say(['博士「……なんと！ 図鑑が ついに 完成したのか！',`全${DEX.length}種の モノモン、ひとつ残らず 捕まえたのじゃな。`,'わしが 長年 夢見てきた ことを、君が やりとげて くれた。','これは わしからの 気持ちじゃ。受け取って くれ！']);
+    G.flags.cert=1;addItem('cert',1);sfx('caught');await say(`${G.name}は 博士から 表彰状を もらった！`);await certScreen();
+    await say(['博士「モノモンたちとの 旅は、これからも 続く。','色が なくても、君たちの 思い出は きっと 輝いておる。ありがとう！」']);}
+   else if(G.flags.cert){await say(['博士「おお、図鑑を 完成させた 君か！','あの 表彰状は わしの 自慢でも あるのじゃ。」']);}
+   else{const c=Object.keys(G.caught).length;await say([`博士「図鑑の 調子は どうかね？ 今 ${c}匹 捕まえておるな。`,c<10?'もっと いろいろな モノモンを 見つけるのじゃ！':c<30?'なかなか やるのう！ その 調子じゃ！':'素晴らしい！ 君こそ 本物の トレーナーじゃ！']);}break;
   case 'item':G.flags[n.id]=1;addItem(n.item,n.n||1);sfx('item');await say(`${G.name}は ${ITM[n.item].n}を 拾った！`);break;
   case 'gift':if(n.req&&!G.flags[n.req]){await say(n.pre||n.text||['……']);break;}
    if(G.flags[n.id]||!n.item){await say(n.after||(n.item?'大切に 使ってね。':(n.text||['……'])));}else{await say(n.text);G.flags[n.id]=1;addItem(n.item,n.n||(n.item==='ultra'?5:n.item==='candy'?3:1));sfx('item');await say(`${G.name}は ${ITM[n.item].n}を もらった！`);if(ITM[n.item].hint)await say(ITM[n.item].hint);if(n.flag)G.flags[n.flag]=1;}break;
