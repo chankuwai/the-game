@@ -1431,7 +1431,9 @@ function hudInit(){HUD.en=el('hud sm',{right:U(4),top:U(1)});HUD.al=el('hud sm',
 function hudKill(){for(const k in HUD){if(HUD[k]&&HUD[k].remove)HUD[k].remove();}HUD={};}
 function ghostSil(art){const k='ghost'+art;if(SPR[k])return SPR[k];const src=monImg(art,false);const [c,g]=mkCanvas(MC,MC);g.drawImage(src,0,0);g.globalCompositeOperation='source-in';g.fillStyle=C2;g.fillRect(0,0,MC,MC);if(ATLAS.complete)SPR[k]=c;return c;}
 function hudUpdate(){if(!B||!HUD.en)return;const e=B.foe(),a=B.ally();
- HUD.en.innerHTML=e&&B.showFoe?`${B.ghost?'幽霊':mname(e)}<span class="xs">　:L${e.lv} ${e.status?STS[e.status]:''}</span>`:'';
+ // 野生は 名前の 横に 捕まえたことが あれば ●、なければ ○
+ const mk=e&&B.kind==='wild'&&!B.ghost?`<span title="${G.caught[e.sp]?'捕まえた ことが ある':'まだ 捕まえて いない'}" style="display:inline-block;width:${U(4.6)};height:${U(4.6)};border-radius:50%;border:${U(.8)} solid #181818;background:${G.caught[e.sp]?'#181818':'#f8f8f8'};margin-right:${U(1.6)};vertical-align:middle;box-sizing:border-box"></span>`:'';
+ HUD.en.innerHTML=e&&B.showFoe?`${mk}${B.ghost?'幽霊':mname(e)}<span class="xs">　:L${e.lv} ${e.status?STS[e.status]:''}</span>`:'';
  HUD.al.innerHTML=a&&B.showAlly?`${mname(a)}<span class="xs">　:L${a.lv} ${a.status?STS[a.status]:''}</span>`:'';
  HUD.alHp.innerHTML=a&&B.showAlly?`${Math.max(0,Math.round(B.dispA))}/ ${a.st.hp}`:'';}
 function drawHpBar(g,x,y,w,hp,max){const k=clamp(hp/max,0,1);g.fillStyle=C3;g.fillRect(x,y,w+4,6);g.fillStyle=C0;g.fillRect(x+1,y+1,w+2,4);g.fillStyle=k>.5?C2:k>.2?C1:C3;g.fillRect(x+2,y+2,Math.round(w*k),2);}
