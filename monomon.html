@@ -796,7 +796,7 @@ function bStat(m,side,k){let v=m.st[k]*STAGE_MUL(side.st[k]);if(k==='spd'&&m.sta
 function eff(mv,name){return mv.eff.find(e=>e[0]===name);}
 /* ---- HUD ---- */
 let HUD={};
-function hudInit(){HUD.en=el('hud sm',{left:U(4),top:U(1)});HUD.al=el('hud sm',{right:U(4),top:U(1)});HUD.alHp=el('hud xs',{right:U(5),top:U(20)});}
+function hudInit(){HUD.en=el('hud sm',{right:U(4),top:U(1)});HUD.al=el('hud sm',{left:U(4),top:U(1)});HUD.alHp=el('hud xs',{right:U(86),top:U(20)});}
 function hudKill(){for(const k in HUD){if(HUD[k]&&HUD[k].remove)HUD[k].remove();}HUD={};}
 function ghostSil(art){const k='ghost'+art;if(SPR[k])return SPR[k];const src=monImg(art,false);const [c,g]=mkCanvas(MC,MC);g.drawImage(src,0,0);g.globalCompositeOperation='source-in';g.fillStyle=C2;g.fillRect(0,0,MC,MC);if(ATLAS.complete)SPR[k]=c;return c;}
 function hudUpdate(){if(!B||!HUD.en)return;const e=B.foe(),a=B.ally();
@@ -804,7 +804,7 @@ function hudUpdate(){if(!B||!HUD.en)return;const e=B.foe(),a=B.ally();
  HUD.al.innerHTML=a&&B.showAlly?`${mname(a)}<span class="xs">　:L${a.lv} ${a.status?STS[a.status]:''}</span>`:'';
  HUD.alHp.innerHTML=a&&B.showAlly?`${Math.max(0,Math.round(B.dispA))}/ ${a.st.hp}`:'';}
 function drawHpBar(g,x,y,w,hp,max){const k=clamp(hp/max,0,1);g.fillStyle=C3;g.fillRect(x,y,w+4,6);g.fillStyle=C0;g.fillRect(x+1,y+1,w+2,4);g.fillStyle=k>.5?C2:k>.2?C1:C3;g.fillRect(x+2,y+2,Math.round(w*k),2);}
-// 横並びの戦闘画面：左に相手、右に自分。元絵の向きを見て反転し、向かい合わせる
+// 横並びの戦闘画面：左に自分、右に相手。元絵の向きを見て反転し、向かい合わせる
 function drawMon(g,sp,x,y,size,flip){g.save();if(flip){g.translate(x+size,y);g.scale(-1,1);g.drawImage(sp,0,0,size,size);}else g.drawImage(sp,x,y,size,size);g.restore();}
 function drawBattle(g,t){g.fillStyle=C0;g.fillRect(0,0,SW,SH);if(!B)return;
  const e=B.foe(),a=B.ally();
@@ -812,19 +812,19 @@ function drawBattle(g,t){g.fillStyle=C0;g.fillRect(0,0,SW,SH);if(!B)return;
  g.fillStyle=C1;g.fillRect(8,90,62,4);g.fillRect(90,90,62,4);g.fillStyle=C0;g.fillRect(12,91,54,2);g.fillRect(94,91,54,2);
  g.fillStyle=C1;g.fillRect(79,44,2,42);   // まんなかの区切り
  if(B.intro){const k=B.intro;// トレーナーの登場（左に相手、右に自分）
-  if(B.tStyle){g.save();g.imageSmoothingEnabled=false;g.drawImage(personImg(B.tStyle,1,0),15-(1-k)*80,42,48,48);g.restore();}
-  g.save();g.imageSmoothingEnabled=false;g.drawImage(personImg('hero',3,0),97+(1-k)*80,42,48,48);g.restore();}
- if(e&&B.showFoe&&B.foeVis){const sp=B.ghost?ghostSil(DEX[e.sp].art):monImg(DEX[e.sp].art,false);const oy=B.foeY||0;g.save();g.beginPath();g.rect(0,26,79,68);g.clip();drawMon(g,sp,13+(B.foeOx||0),38+oy,52,faceOf(DEX[e.sp].art)==='L');g.restore();}
- if(a&&B.showAlly&&B.allyVis){const sp=monImg(DEX[a.sp].art,false);const oy=B.allyY||0;g.save();g.beginPath();g.rect(81,26,79,68);g.clip();drawMon(g,sp,95+(B.allyOx||0),38+oy,52,faceOf(DEX[a.sp].art)==='R');g.restore();}
+  if(B.tStyle){g.save();g.imageSmoothingEnabled=false;g.drawImage(personImg(B.tStyle,3,0),97+(1-k)*80,42,48,48);g.restore();}
+  g.save();g.imageSmoothingEnabled=false;g.drawImage(personImg('hero',1,0),15-(1-k)*80,42,48,48);g.restore();}
+ if(e&&B.showFoe&&B.foeVis){const sp=B.ghost?ghostSil(DEX[e.sp].art):monImg(DEX[e.sp].art,false);const oy=B.foeY||0;g.save();g.beginPath();g.rect(81,26,79,68);g.clip();drawMon(g,sp,95+(B.foeOx||0),38+oy,52,faceOf(DEX[e.sp].art)==='R');g.restore();}
+ if(a&&B.showAlly&&B.allyVis){const sp=monImg(DEX[a.sp].art,false);const oy=B.allyY||0;g.save();g.beginPath();g.rect(0,26,79,68);g.clip();drawMon(g,sp,13+(B.allyOx||0),38+oy,52,faceOf(DEX[a.sp].art)==='L');g.restore();}
  if(B.ball){const b=B.ball;ballIcon(g,Math.round(b.x),Math.round(b.y),b.open);}
  // HPバー
- if(e&&B.showFoe){g.font='bold 6px monospace';g.fillStyle=C3;g.fillText('HP',4,17);drawHpBar(g,14,12,58,B.dispE,e.st.hp);}
- if(a&&B.showAlly){g.font='bold 6px monospace';g.fillStyle=C3;g.fillText('HP',86,17);drawHpBar(g,96,12,58,B.dispA,a.st.hp);
+ if(e&&B.showFoe){g.font='bold 6px monospace';g.fillStyle=C3;g.fillText('HP',86,17);drawHpBar(g,96,12,58,B.dispE,e.st.hp);}
+ if(a&&B.showAlly){g.font='bold 6px monospace';g.fillStyle=C3;g.fillText('HP',4,17);drawHpBar(g,14,12,58,B.dispA,a.st.hp);
   // 経験値
-  const lo=expFor(a.lv),hi=expFor(a.lv+1);const k=clamp((a.exp-lo)/Math.max(1,hi-lo),0,1);g.fillStyle=C1;g.fillRect(98,20,58,1);g.fillStyle=C3;g.fillRect(98,20,Math.round(58*k),1);}
+  const lo=expFor(a.lv),hi=expFor(a.lv+1);const k=clamp((a.exp-lo)/Math.max(1,hi-lo),0,1);g.fillStyle=C1;g.fillRect(16,20,58,1);g.fillStyle=C3;g.fillRect(16,20,Math.round(58*k),1);}
  if(B.flash>0){g.fillStyle=B.flashC||C3;g.globalAlpha=B.flash;g.fillRect(0,0,SW,SH);g.globalAlpha=1;}
  if(B.party){// 相手の手持ちボール表示
-  const n=B.party;for(let i=0;i<6;i++){const x=6+i*9;if(i<n.length){ballIcon(g,x,22,n[i]===0);}}}}
+  const n=B.party;for(let i=0;i<6;i++){const x=148-i*9;if(i<n.length){ballIcon(g,x,22,n[i]===0);}}}}
 function battleTick(dt){if(!B)return;const e=B.foe(),a=B.ally();
  if(e)B.dispE=lerp(B.dispE,e.hp,Math.min(1,dt*6));if(a)B.dispA=lerp(B.dispA,a.hp,Math.min(1,dt*6));
  if(Math.abs(B.dispE-(e?e.hp:0))<.5&&e)B.dispE=e.hp;if(a&&Math.abs(B.dispA-a.hp)<.5)B.dispA=a.hp;
@@ -841,7 +841,7 @@ async function battle(o){const prevBusy=busy;mode='battle';busy=true;const prevB
  for(let i=0;i<6;i++){B.flash=i%2?0:1;B.flashC=C3;await wait(70);}B.flash=0;
  hudInit();
  B.ai_=G.party.findIndex(m=>m.hp>0);if(B.ai_<0)B.ai_=0;
- if(o.kind==='wild'){B.showFoe=true;B.dispE=B.foe().hp;B.foeOx=-80;for(let i=0;i<10;i++){B.foeOx=-80*(1-i/9);await wait(25);}B.foeOx=0;await say(B.ghost?'あっ！ ゆうれいが あらわれた！':`あ！ やせいの ${mname(B.foe())}が とびだしてきた！`);if(B.ghost)await say('しょうたいが わからない！');}
+ if(o.kind==='wild'){B.showFoe=true;B.dispE=B.foe().hp;B.foeOx=80;for(let i=0;i<10;i++){B.foeOx=80*(1-i/9);await wait(25);}B.foeOx=0;await say(B.ghost?'あっ！ ゆうれいが あらわれた！':`あ！ やせいの ${mname(B.foe())}が とびだしてきた！`);if(B.ghost)await say('しょうたいが わからない！');}
  else{B.intro=1;B.party=o.team.map(m=>m.hp>0?1:0);await say(`${o.tname}が しょうぶを しかけてきた！`);B.party=null;B.intro=0;await sendFoe(true);}
  await sendAlly(true);
  try{await battleLoop();}catch(err){console.error(err);B.res=B.res||'win';}
@@ -953,7 +953,7 @@ function calcDmg(atk,def,sa,sd,mv,confusion){
  if(DEX[atk.sp].t.includes(mv.t))d=Math.floor(d*1.5);
  const mul=typeMul(mv.t,DEX[def.sp].t);d=Math.floor(d*mul*rnd(.85,1));if(mul>0)d=Math.max(1,d);
  return {d,mul,crit};}
-async function shake(side){for(let i=0;i<6;i++){if(side===0)B.allyOx=i%2?5:0;else B.foeOx=i%2?-5:0;await wait(30);}B.allyOx=0;B.foeOx=0;}
+async function shake(side){for(let i=0;i<6;i++){if(side===0)B.allyOx=i%2?-5:0;else B.foeOx=i%2?5:0;await wait(30);}B.allyOx=0;B.foeOx=0;}
 async function blink(side){for(let i=0;i<6;i++){if(side===0)B.allyVis=i%2===1;else B.foeVis=i%2===1;await wait(45);}B.allyVis=B.foeVis=true;}
 /* ---- 敵の行動 ---- */
 function enemyAct(){const e=B.foe(),a=B.ally();const sd=B.sides[1];if(sd.recharge)return {type:'move',mv:-1};
@@ -977,11 +977,11 @@ async function useItemBattle(k){const it=ITM[k];
  const i=await partyScreen('だれに つかう？',{tag:'bitem_'+k});if(i<0)return 'cancel';const m=G.party[i];
  if(!applyItem(k,m)){await say('つかっても こうかが ないよ。');return 'cancel';}useBag(k);sfx('heal');if(m===B.ally()){B.dispA=B.dispA;}await settle();await say(`${mname(m)}は げんきに なった！`);if(it.candy)await afterLevelUp(m,m.lv-1,true);return 'used';}
 async function throwBall(mult){const e=B.foe();await say(`${G.name}は ボールを なげた！`);sfx('ball');if(B.ghost){await say('ボールは ゆうれいを すりぬけた！');return false;}
- B.ball={x:128,y:70,open:false};for(let i=0;i<=16;i++){const k=i/16;B.ball.x=lerp(128,36,k);B.ball.y=lerp(70,62,k)-Math.sin(k*Math.PI)*34;await wait(25);}
+ B.ball={x:30,y:70,open:false};for(let i=0;i<=16;i++){const k=i/16;B.ball.x=lerp(30,118,k);B.ball.y=lerp(70,62,k)-Math.sin(k*Math.PI)*34;await wait(25);}
  B.ball.open=true;B.foeVis=false;B.flash=.6;B.flashC=C0;await wait(250);B.ball.open=false;B.ball.y=84;
  const rate=DEX[e.sp].cr;let a=((3*e.st.hp-2*e.hp)*rate*mult)/(3*e.st.hp);if(e.status==='slp'||e.status==='frz')a*=2;else if(e.status)a*=1.5;
  const p=mult>=255?1:clamp(a/255,0,1);const shakeP=Math.pow(p,.25);let shakes=0;for(;shakes<3;shakes++){if(Math.random()>shakeP)break;}
- for(let i=0;i<shakes;i++){await wait(350);sfx('wob');for(let j=0;j<4;j++){B.ball.x=36+(j%2?-2:2);await wait(50);}B.ball.x=36;}
+ for(let i=0;i<shakes;i++){await wait(350);sfx('wob');for(let j=0;j<4;j++){B.ball.x=118+(j%2?-2:2);await wait(50);}B.ball.x=118;}
  await wait(300);
  if(shakes>=3&&Math.random()<p/Math.max(.01,Math.pow(shakeP,3))||mult>=255){sfx('caught');setBgm('win');await say(`やったー！ ${mname(e)}を つかまえたぞ！`);
   const where=giveMon(e);B.ball=null;if(!G.caught._c)G.caught._c=0;
