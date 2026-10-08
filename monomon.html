@@ -1490,18 +1490,20 @@ async function sendAlly(first){const a=B.ally();B.sides[0]=mkSide();B.showAlly=t
 /* ---- ループ ---- */
 // 技を 選ぶ 窓：1行に 技名・タイプ・威力・PP・相手への 効き目
 function moveMenu(ms,foe){return new Promise(res=>{const box=el('box',{left:0,right:0,bottom:0,height:U(46)});box.style.padding=`${U(2.2)} ${U(3)}`;const st={el:box};let cur=Math.max(0,ms.findIndex(m=>m.pp>0));
+ // 同じ 戦闘の 間は モノモンごとに 前に 選んだ 技を 覚えておく
+ const mem=B.mvCur||(B.mvCur={}),me=B.ally().uid;if(mem[me]!=null&&ms[mem[me]]&&ms[mem[me]].pp>0)cur=mem[me];
  const mark=mv=>{if(B.ghost||mv.cat==='status')return '';const k=typeMul(mv.t,DEX[foe.sp].t);return k===0?'×':k>1?'◎':k<1?'△':'';};
  const draw=()=>{box.innerHTML=ms.map((m,i)=>{const mv=MOVES[m.id],sel=i===cur,dis=m.pp<=0,low=m.pp>0&&m.pp<=Math.max(1,mv.pp/4);
   return `<div data-i="${i}" style="display:flex;align-items:center;height:${U(10)};padding:0 ${U(2)} 0 ${U(1)};cursor:pointer;${sel?'background:#181818;color:#f8f8f8;':''}${dis?'color:#a8a8a8;':''}">
    <span class="sm" style="flex:1;white-space:nowrap;overflow:hidden">${mv.n}</span>
    <span class="xs" style="width:${U(5)};text-align:center">${mark(mv)}</span>
-   <span class="xs" style="width:${U(23)};text-align:center;border:${U(.5)} solid ${sel?'#f8f8f8':dis?'#a8a8a8':'#181818'};line-height:1.25">${TY[mv.t]}</span>
-   <span class="xs" style="width:${U(22)};text-align:right">${mv.cat==='status'?'変化':'威力'+(mv.p||'－')}</span>
-   <span class="xs" style="width:${U(27)};text-align:right;${low&&!sel?'font-weight:bold;':''}">PP${m.pp}/${mv.pp}</span></div>`;}).join('')+
+   <span class="xs" style="width:${U(23)};flex-shrink:0;white-space:nowrap;text-align:center;border:${U(.5)} solid ${sel?'#f8f8f8':dis?'#a8a8a8':'#181818'};line-height:1.25">${TY[mv.t]}</span>
+   <span class="xs" style="width:${U(13)};text-align:right">${{phys:'物理',spec:'特殊',status:'変化'}[mv.cat]}</span><span class="xs" style="width:${U(11)};margin-right:${U(2)};flex-shrink:0;text-align:right">${mv.cat==='status'?'－':(mv.p||'－')}</span>
+   <span class="xs" style="width:${U(25)};flex-shrink:0;white-space:nowrap;text-align:right;${low&&!sel?'font-weight:bold;':''}">PP${m.pp}/${mv.pp}</span></div>`;}).join('')+
   Array.from({length:4-ms.length},()=>`<div style="height:${U(10)};padding-left:${U(1)};color:#c8c8c8" class="sm">－</div>`).join('');};
  const done=v=>{uiPop(st);res(v);};
  st.onEv=ev=>{const n=ms.length;if(ev==='D0'){cur=(cur+n-1)%n;sfx('sel');draw();}else if(ev==='D2'){cur=(cur+1)%n;sfx('sel');draw();}
-  else if(ev==='A'){if(ms[cur].pp<=0){sfx('ng');return;}sfx('ok');done(cur);}else if(ev==='B'){sfx('sel');done(-1);}};
+  else if(ev==='A'){if(ms[cur].pp<=0){sfx('ng');return;}sfx('ok');mem[me]=cur;done(cur);}else if(ev==='B'){sfx('sel');mem[me]=cur;done(-1);}};
  box.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();const r=e.target.closest('[data-i]');if(!r)return;const i=+r.dataset.i;if(i!==cur){cur=i;draw();}st.onEv('A');});
  uiPush(st);draw();
  if(window.tgAuto)setTimeout(()=>{if(!STACK.includes(st))return;const v=BOT.choose('bmove',ms.map(m=>({t:MOVES[m.id].n,dis:m.pp<=0})),{});done(clamp(v<0?0:v,0,ms.length-1));},AUTOWAIT());});}
