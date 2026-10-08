@@ -1155,11 +1155,54 @@ async function shopScreen(town){const inv=SHOPS[town]||SHOPS.tsugi;BOT.inv=inv;
    const i=await choose(keys.map(k=>`${ITM[k].n} ×${G.bag[k]}<span style="float:right;margin-left:${U(6)}">${ITM[k].p>>1}</span>`).concat(['やめる']),{pos:{left:0,top:0,right:0},tag:'shop_sell'});
    if(i<0||i>=keys.length)continue;const k=keys[i];useBag(k);G.money+=ITM[k].p>>1;sfx('money');await say(`${ITM[k].n}を 売りました。`);}}
  await say('またの お越しを お待ちしています！');}
-async function pcScreen(){await say(`${G.name}は パソコンの スイッチを 入れた！`);
- while(true){const v=await choose(['預ける','引き出す','やめる'],{pos:{left:0,top:0},tag:'pc'});
-  if(v===0){if(G.party.length<=1){await say('手持ちが いなくなって しまいます！');continue;}const i=await partyScreen('どの モノモンを 預ける？',{tag:'pc_dep'});if(i<0)continue;const m=G.party.splice(i,1)[0];G.box.push(m);await say(`${mname(m)}を 預けた。`);}
-  else if(v===1){if(!G.box.length){await say('ボックスに 誰も いない。');continue;}if(G.party.length>=6){await say('手持ちが いっぱいです！');continue;}
-   const i=await choose(G.box.map(m=>`${mname(m)} Lv${m.lv}`).concat(['やめる']),{pos:{left:0,top:0,right:0},tag:'pc_wd'});if(i<0||i>=G.box.length)continue;const m=G.box.splice(i,1)[0];G.party.push(m);await say(`${mname(m)}を 引き出した。`);}
+// ボックスの 一覧（左に アイコンつきの 一覧、右に 大きな 姿と くわしい 情報）
+function boxScreen(title,opt){opt=opt||{};return new Promise(res=>{const box=fullBox('');box.style.padding='0';const o={el:box};const V=8,RH=15.4;let cur=0,top=0;
+ const P=(css,html)=>{const d=document.createElement('div');d.style.cssText='position:absolute;'+css;if(html!=null)d.innerHTML=html;box.appendChild(d);return d;};
+ P(`left:${U(5)};right:${U(5)};top:${U(2.5)};height:${U(9)};display:flex;align-items:center;justify-content:space-between;border-bottom:${U(.6)} solid #181818`,
+  `<span class="sm">${title}</span><span class="xs">ボックス ${G.box.length}匹　<span data-close style="border:${U(.5)} solid #181818;padding:0 ${U(1.5)};cursor:pointer">もどる</span></span>`);
+ const lv=P(`left:${U(3)};top:${U(14)};width:${U(92)};height:${U(RH*V)}`);
+ const sb=P(`left:${U(96)};top:${U(14)};width:${U(1.6)};height:${U(RH*V)};background:#d8d8d8`),sbk=P(`left:${U(96)};width:${U(1.6)};background:#585858`);
+ const pv=P(`left:${U(100)};right:${U(4)};top:${U(14)};text-align:center`,`<canvas width="78" height="78" style="width:${U(50)};height:${U(50)};image-rendering:pixelated;border:${U(.5)} solid #a8a8a8;background:#fff"></canvas><div class="sm" id="bn" style="margin-top:${U(1.5)}"></div><div class="xs" id="bl"></div><div class="xs" id="bt" style="display:flex;gap:${U(1.5)};justify-content:center;margin-top:${U(1)}"></div><div class="xs" id="bh" style="margin-top:${U(2)}"></div><div class="xs" style="margin-top:${U(4)};color:#585858;line-height:1.4">${opt.hint||''}</div>`);
+ const cg=pv.querySelector('canvas').getContext('2d');cg.imageSmoothingEnabled=false;
+ const icons=[];
+ const draw=()=>{const n=G.box.length;
+  if(!n){lv.innerHTML=`<div class="sm" style="padding:${U(10)} ${U(4)};color:#a8a8a8">ボックスは からっぽ</div>`;pv.style.visibility='hidden';sbk.style.display='none';return;}
+  if(cur<top)top=cur;if(cur>=top+V)top=cur-V+1;
+  lv.innerHTML=G.box.slice(top,top+V).map((m,k)=>{const i=top+k,sel=i===cur;return `<div data-i="${i}" style="position:absolute;left:0;right:0;top:${U(k*RH)};height:${U(RH-1.4)};display:flex;align-items:center;border:${U(sel?.9:.4)} solid ${sel?'#181818':'#c8c8c8'};background:${sel?'#e4e4e4':'#f8f8f8'};cursor:pointer;${m.hp<=0?'color:#a8a8a8;':''}">
+   <canvas data-ic="${i}" width="78" height="78" style="width:${U(13)};height:${U(13)};margin:0 ${U(2)} 0 ${U(1)};image-rendering:pixelated"></canvas><span class="sm" style="flex:1;white-space:nowrap;overflow:hidden">${mname(m)}</span><span class="xs" style="margin-right:${U(2)}">Lv${m.lv}</span></div>`;}).join('');
+  lv.querySelectorAll('[data-ic]').forEach(c=>{const g=c.getContext('2d');g.imageSmoothingEnabled=false;g.drawImage(monImg(DEX[G.box[+c.dataset.ic].sp].art,false),0,0);});
+  const h=U(RH*V*Math.min(1,V/n)),t=U(14+RH*V*top/n);sbk.style.display=n>V?'':'none';sbk.style.height=h;sbk.style.top=t;sb.style.display=n>V?'':'none';
+  const m=G.box[cur],d=DEX[m.sp];pv.style.visibility='';cg.clearRect(0,0,78,78);cg.drawImage(monImg(d.art,false),0,0);
+  pv.querySelector('#bn').textContent=mname(m);pv.querySelector('#bl').textContent=`Lv${m.lv}　No.${String(d.no).padStart(3,'0')}`;
+  pv.querySelector('#bt').innerHTML=d.t.map(t=>`<span style="border:${U(.5)} solid #181818;padding:0 ${U(1.2)}">${TY[t]}</span>`).join('');
+  pv.querySelector('#bh').innerHTML=`HP ${hpbar(m.hp,m.st.hp,30)}<br>${m.hp}／${m.st.hp}${m.hp<=0?' ひんし':m.status?' '+STS[m.status]:''}`;};
+ const done=v=>{uiPop(o);res(v);};
+ o.onEv=ev=>{const n=G.box.length;
+  if(ev==='B'){sfx('sel');done(-1);return;}if(!n){if(ev==='A')done(-1);return;}
+  if(ev==='D0'){cur=(cur+n-1)%n;sfx('sel');draw();}else if(ev==='D2'){cur=(cur+1)%n;sfx('sel');draw();}
+  else if(ev==='D1'){cur=Math.min(n-1,cur+V);sfx('sel');draw();}else if(ev==='D3'){cur=Math.max(0,cur-V);sfx('sel');draw();}
+  else if(ev==='A'){sfx('ok');done(cur);}};
+ box.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();if(e.target.closest('[data-close]')){o.onEv('B');return;}
+  const r=e.target.closest('[data-i]');if(r){const i=+r.dataset.i;if(i===cur)o.onEv('A');else{cur=i;sfx('sel');draw();}}});
+ // 一覧の ホイール／スワイプで スクロール
+ let ty=null;lv.addEventListener('wheel',e=>{e.preventDefault();if(!G.box.length)return;cur=clamp(cur+(e.deltaY>0?1:-1),0,G.box.length-1);draw();},{passive:false});
+ lv.addEventListener('touchstart',e=>{ty=e.touches[0].clientY;},{passive:true});
+ lv.addEventListener('touchmove',e=>{if(ty==null||!G.box.length)return;const dy=e.touches[0].clientY-ty,rh=lv.getBoundingClientRect().height/V;if(Math.abs(dy)>=rh){const k=dy>0?-1:1;ty=e.touches[0].clientY;top=clamp(top+k,0,Math.max(0,G.box.length-V));cur=clamp(cur,top,top+V-1);draw();}},{passive:true});
+ uiPush(o);draw();
+ if(window.tgAuto)setTimeout(()=>{if(!STACK.includes(o))return;const v=BOT.choose(opt.tag||'box',G.box,opt);done(v>=0&&v<G.box.length?v:-1);},AUTOWAIT());});}
+async function pcScreen(){await say(`${G.name}は パソコンの スイッチを 入れた！\fモノモン 預かり システムに つなぎました。`);
+ while(true){const info=el('box',{right:0,top:0},`<div class="xs">手持ち ${G.party.length}／6</div><div class="xs">ボックス ${G.box.length}匹</div>`);
+  const v=await choose(['預ける','引き出す','ボックスを 見る','やめる'],{pos:{left:0,top:0},tag:'pc'});info.remove();
+  if(v===0){if(G.party.length<=1){await say('手持ちが いなくなって しまいます！');continue;}
+   const i=await partyScreen('どの モノモンを 預ける？',{tag:'pc_dep'});if(i<0)continue;
+   if(G.party.filter((m,k)=>k!==i&&m.hp>0).length===0){await say('戦える モノモンが いなくなって しまいます！');continue;}
+   const m=G.party.splice(i,1)[0];G.box.push(m);sfx('ok');await say(`${mname(m)}を ボックスに 預けた。`);}
+  else if(v===1){if(!G.box.length){await say('ボックスに 誰も いない。');continue;}
+   const full=G.party.length>=6;
+   const i=await boxScreen('引き出す モノモンは？',{tag:'pc_wd',hint:full?'手持ちと 入れかえに なります':'タップで 引き出す'});if(i<0)continue;const m=G.box[i];
+   if(full){const j=await partyScreen(`${mname(m)}と 入れかえる モノモンは？`,{tag:'pc_swap'});if(j<0)continue;const old=G.party[j];G.party[j]=m;G.box.splice(i,1,old);sfx('ok');await say(`${mname(old)}を 預けて ${mname(m)}を 引き出した。`);}
+   else{G.box.splice(i,1);G.party.push(m);sfx('ok');await say(`${mname(m)}を 引き出した。`);}}
+  else if(v===2){for(;;){const i=await boxScreen('ボックス',{tag:'pc_view',hint:'タップで くわしく 見る'});if(i<0)break;await summary(G.box[i]);}}
   else break;}}
 async function startMenu(){while(true){const hasDex=G.flags.dex||G.starter!=null;const L=(hasDex?['図鑑']:[]).concat(['モノモン','バッグ',G.name,'レポート','閉じる']);
  const c=await choose(L,{pos:{right:0,top:0},w:62,tag:'start'});const v=c<0?5:c+(hasDex?0:1);  // 図鑑を もらう までは メニューに 出さない
@@ -1385,7 +1428,7 @@ function battleTick(dt){if(!B)return;const e=B.foe(),a=B.ally();
  B.flash=Math.max(0,B.flash-dt*3);hudUpdate();}
 const settle=async()=>{for(let i=0;i<40;i++){const e=B.foe(),a=B.ally();if((!e||Math.abs(B.dispE-e.hp)<.6)&&(!a||Math.abs(B.dispA-a.hp)<.6))break;await wait(30);}};
 /* ---- 開始 ---- */
-async function battle(o){const prevBusy=busy;mode='battle';busy=true;const prevBgm=BGM.mode;
+async function battle(o){const prevBusy=busy;if(typeof banner!=='undefined'&&banner){banner.remove();banner=null;}mode='battle';busy=true;const prevBgm=BGM.mode;
  B={kind:o.kind,oneLevel:!!o.oneLevel,foeTeam:o.team,fi:0,ai_:0,tName:o.tname,tStyle:o.tstyle,ai:o.ai||(o.kind==='wild'?'wild':'trainer'),potions:o.potions||0,
   sides:[mkSide(),mkSide()],part:new Set(),dispE:0,dispA:0,flash:0,showFoe:false,showAlly:false,foeVis:true,allyVis:true,runTry:0,intro:0,res:null,noBlackout:o.noBlackout,ghost:!!o.ghost,money:o.money||0,
   foe(){return this.foeTeam[this.fi];},ally(){return G.party[this.ai_];}};
@@ -1585,7 +1628,11 @@ async function throwBall(mult){const e=B.foe();await say(`${G.name}は ボール
  if(shakes>=3&&Math.random()<p/Math.max(.01,Math.pow(shakeP,3))||mult>=255){const _new=!G.caught[e.sp]&&(G.flags.dex||G.starter!=null);sfx('caught');setBgm('win');await say(`やったー！ ${mname(e)}を 捕まえたぞ！`);
   if(_new){G.caught[e.sp]=1;G.seen[e.sp]=1;await say(`${DEX[e.sp].n}の データが 新しく 図鑑に 登録されました！`);await dexEntry(e.sp);}
   const where=giveMon(e);B.ball=null;if(!G.caught._c)G.caught._c=0;
-  if(where==='box')await say(`${mname(e)}は ボックスに 送られた！`);return 'caught';}
+  if(where==='box'){await say(`手持ちが いっぱいだ！\f手持ちの モノモンを 1匹 ボックスに 送って ${mname(e)}を 連れて いきますか？`);
+   let i=-1;if(await yesno('catch_swap')){hudKill();B.showAlly=false;i=await partyScreen('ボックスに 送る モノモンは？',{tag:'catch_swap_pick'});}
+   if(i>=0){const old=G.party[i];G.box.splice(G.box.indexOf(e),1);G.party[i]=e;G.box.push(old);await say(`${mname(old)}を ボックスに 送った。\f${mname(e)}が 手持ちに 加わった！`);}
+   else await say(`${mname(e)}は ボックスに 送られた！`);}
+  return 'caught';}
  B.ball=null;B.foeVis=true;await say(shakes===0?'ああ！ モノモンが ボールから 出てしまった！':shakes===1?'ああっ！ もう少しで 捕まえられたのに！':'くうっ！ あと ちょっと だったのに！');return 'used';}
 /* ---- ひんし処理 ---- */
 async function checkFaint(){const e=B.foe(),a=B.ally();
@@ -1842,7 +1889,7 @@ BOT.choose=function(tag,opts,o){
   // 不利なら交代
   return 0;}
  if(tag==='bmove')return bestMoveIdx(B.ally(),B.foe());
- if(tag==='bag_battle'){const keys=Object.keys(G.bag).filter(k=>G.bag[k]>0&&!ITM[k].escape&&!ITM[k].repel&&!ITM[k].key);
+ if(tag==='bag_battle'){const keys=Object.keys(G.bag).filter(k=>G.bag[k]>0&&!ITM[k].escape&&!ITM[k].repel&&!ITM[k].key&&!ITM[k].stone&&!ITM[k].scroll);
   const want=BOT.intent==='ball'?ballKeys()[0]:healKeys().slice(-1)[0];const i=keys.indexOf(want);return i>=0?i:keys.length;}
  if(tag.startsWith('bitem_'))return B?B.ai_:0;
  if(tag==='bswitch'&&BOT.intent==='switch'){let bi=-1,bv=-1;G.party.forEach((m,i)=>{if(m.hp<=m.st.hp*.3||m===B.ally())return;if(m.lv>bv){bv=m.lv;bi=i;}});return bi;}
@@ -1852,6 +1899,7 @@ BOT.choose=function(tag,opts,o){
  if(tag.startsWith('learn:')){const id=+tag.split(':')[1];const mv=MOVES[id];const m=o&&o.ctx;return mv.cat==='status'?1:0;}
  if(tag.startsWith('forget:')){const id=+tag.split(':')[1];const m=o.ctx;let wi=0,wv=1e9;m.moves.forEach((x,i)=>{const mv=MOVES[x.id];const v=mv.cat==='status'?10:mv.p*(DEX[m.sp].t.includes(mv.t)?1.5:1);if(v<wv){wv=v;wi=i;}});const nv=MOVES[id].p*(DEX[m.sp].t.includes(MOVES[id].t)?1.5:1);return nv>wv?wi:4;}
  if(tag==='forget_ok')return 0;
+ if(tag==='catch_swap')return 1;
  if(tag==='save')return 1;
  if(tag==='start')return opts.length-1;
  if(tag==='shop_top'){BOT.buy=shopBuy(BOT.inv||[]);return BOT.buy?0:2;}
