@@ -172,6 +172,7 @@ const MV_RAW=[
 ['ひかりのつぶ','L',40,100,30,'',5],['まばゆいひかり','L',0,100,20,'t:spd:-1',8],['ひかりのかぜ','L',60,100,20,'',14],['ホーリーレイ','L',70,100,15,'t:spc:-1:10',22],['あたたかいひかり','L',0,100,10,'heal:50',26],['シャイニングブレード','L',90,100,15,'crit',38],['ジャッジメントレイ','L',110,90,5,'',48],
 ['でんきのいと','E',0,95,20,'par:100',14],['そらをとぶ','Y',90,95,15,'',30],
 ['わるあがき','N',50,100,999,'recoil:25',99],
+['はっぱうち','G',40,100,30,'',6],
 ];
 const MOVES=MV_RAW.map((m,i)=>{const o={id:i,n:m[0],t:m[1],p:m[2],acc:m[3],pp:m[4],lv:m[6],eff:[]};if(m[5])m[5].split(',').forEach(e=>{const a=e.split(':');o.eff.push(a);});o.cat=o.p===0&&!o.eff.some(e=>e[0]==='fixed'||e[0]==='level')?'status':(PHYS.has(o.t)?'phys':'spec');return o;});
 const MVI={};MOVES.forEach(m=>MVI[m.n]=m.id);
@@ -336,7 +337,7 @@ const DXI={};DEX.forEach((d,i)=>DXI[d.art]=i);
 // 習得わざ：タイプから自動生成（決まった並びになるよう擬似乱数）
 function srand(seed){let s=seed>>>0;return ()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
 function buildLearnset(sp,idx){const r=srand(idx*7919+13);const types=sp.t.slice();const pool=[];
- for(const m of MOVES){if(m.id===STRUGGLE)continue;let ok=types.includes(m.t);if(!ok&&m.t==='N'&&(m.lv<=12||r()<.35))ok=true;if(!ok&&r()<.06)ok=true;if(ok)pool.push(m);}
+ for(const m of MOVES){if(m.id===STRUGGLE||m.n==='はっぱうち')continue;let ok=types.includes(m.t);if(!ok&&m.t==='N'&&(m.lv<=12||r()<.35))ok=true;if(!ok&&r()<.06)ok=true;if(ok)pool.push(m);}
  const ls=[];const used=new Set();
  const sorted=pool.sort((a,b)=>a.lv-b.lv);
  for(const m of sorted){if(used.has(m.id))continue;const keep=types.includes(m.t)?r()<.85:r()<.45;if(!keep)continue;used.add(m.id);let lv=Math.max(1,Math.round(m.lv+(r()*6-3)));ls.push([lv,m.id]);}
@@ -344,6 +345,11 @@ function buildLearnset(sp,idx){const r=srand(idx*7919+13);const types=sp.t.slice
  const atk1=ls.filter(x=>x[0]<=5&&MOVES[x[1]].cat!=='status');if(!atk1.length)ls.push([1,PHYS.has(types[0])?MVI['たいあたり']:MVI['ひっかく']]);
  return ls.sort((a,b)=>a[0]-b[0]).slice(0,18);}
 DEX.forEach((d,i)=>{d.learn=buildLearnset(d,i);});
+// 御三家：もらった時はタイプ技なし。Lv7で最初のタイプ技を覚える（最初のライバル戦を公平に）
+[['m001',['たいあたり','なきごえ'],'はっぱうち'],['m004',['ひっかく','なきごえ'],'ひのこ'],['m007',['たいあたり','なきごえ'],'みずでっぽう']].forEach(([k,base,first])=>{
+ const d=DEX[DXI[k]];const own=MOVES[MVI[first]].t;
+ const rest=d.learn.filter(([lv,id])=>lv>=8&&!(MOVES[id].t===own&&MOVES[id].cat!=='status'&&lv<12)&&!base.includes(MOVES[id].n));
+ d.learn=[...base.map(n=>[1,MVI[n]]),[7,MVI[first]],...rest].sort((a,b)=>a[0]-b[0]);});
 const NATURE_EXP=n=>Math.floor(n*n*n*.8);   // 必要経験値（やや早め）
 
 
