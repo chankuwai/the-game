@@ -1485,6 +1485,23 @@ async function sendFoe(first){const e=B.foe();B.sides[1]=mkSide();B.showFoe=true
 async function sendAlly(first){const a=B.ally();B.sides[0]=mkSide();B.showAlly=true;B.allyVis=true;B.dispA=a.hp;B.part.add(a.uid);B.allyY=40;
  for(let i=0;i<8;i++){B.allyY=40*(1-i/7);await wait(25);}B.allyY=0;await say(first?`ゆけっ！ ${mname(a)}！`:`いけっ！ ${mname(a)}！`);}
 /* ---- ループ ---- */
+// 技を 選ぶ 窓：1行に 技名・タイプ・威力・PP・相手への 効き目
+function moveMenu(ms,foe){return new Promise(res=>{const box=el('box',{left:0,right:0,bottom:0,height:U(46)});box.style.padding=`${U(2.2)} ${U(3)}`;const st={el:box};let cur=Math.max(0,ms.findIndex(m=>m.pp>0));
+ const mark=mv=>{if(B.ghost||mv.cat==='status')return '';const k=typeMul(mv.t,DEX[foe.sp].t);return k===0?'×':k>1?'◎':k<1?'△':'';};
+ const draw=()=>{box.innerHTML=ms.map((m,i)=>{const mv=MOVES[m.id],sel=i===cur,dis=m.pp<=0,low=m.pp>0&&m.pp<=Math.max(1,mv.pp/4);
+  return `<div data-i="${i}" style="display:flex;align-items:center;height:${U(10)};padding:0 ${U(2)} 0 ${U(1)};cursor:pointer;${sel?'background:#181818;color:#f8f8f8;':''}${dis?'color:#a8a8a8;':''}">
+   <span class="sm" style="flex:1;white-space:nowrap;overflow:hidden">${mv.n}</span>
+   <span class="xs" style="width:${U(5)};text-align:center">${mark(mv)}</span>
+   <span class="xs" style="width:${U(23)};text-align:center;border:${U(.5)} solid ${sel?'#f8f8f8':dis?'#a8a8a8':'#181818'};line-height:1.25">${TY[mv.t]}</span>
+   <span class="xs" style="width:${U(22)};text-align:right">${mv.cat==='status'?'変化':'威力'+(mv.p||'－')}</span>
+   <span class="xs" style="width:${U(27)};text-align:right;${low&&!sel?'font-weight:bold;':''}">PP${m.pp}/${mv.pp}</span></div>`;}).join('')+
+  Array.from({length:4-ms.length},()=>`<div style="height:${U(10)};padding-left:${U(1)};color:#c8c8c8" class="sm">－</div>`).join('');};
+ const done=v=>{uiPop(st);res(v);};
+ st.onEv=ev=>{const n=ms.length;if(ev==='D0'){cur=(cur+n-1)%n;sfx('sel');draw();}else if(ev==='D2'){cur=(cur+1)%n;sfx('sel');draw();}
+  else if(ev==='A'){if(ms[cur].pp<=0){sfx('ng');return;}sfx('ok');done(cur);}else if(ev==='B'){sfx('sel');done(-1);}};
+ box.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();const r=e.target.closest('[data-i]');if(!r)return;const i=+r.dataset.i;if(i!==cur){cur=i;draw();}st.onEv('A');});
+ uiPush(st);draw();
+ if(window.tgAuto)setTimeout(()=>{if(!STACK.includes(st))return;const v=BOT.choose('bmove',ms.map(m=>({t:MOVES[m.id].n,dis:m.pp<=0})),{});done(clamp(v<0?0:v,0,ms.length-1));},AUTOWAIT());});}
 async function battleLoop(){
  while(true){
   const a=B.ally(),e=B.foe();
@@ -1495,8 +1512,7 @@ async function battleLoop(){
    const box=el('box msg',null,`${mname(a)}は\nどうする？`);box.style.right=U(84);
    const c=await choose(['戦う','バッグ','モノモン','逃げる'],{cols:2,pos:{right:0,bottom:0},w:86,cls:'sm',gap:3,cancel:false,tag:'bcmd'});box.remove();
    if(c===0){const ms=a.moves;const usable=ms.some(m=>m.pp>0);if(!usable){act={type:'move',mv:STRUGGLE};break;}
-    const info=el('box xs',{right:0,bottom:U(46),width:U(64)});
-    const i=await choose(ms.map(m=>({t:MOVES[m.id].n,dis:m.pp<=0})),{pos:{left:0,bottom:0,right:0},tag:'bmove',onMove:k=>{const m=ms[k];if(m)info.innerHTML=`タイプ/${TY[MOVES[m.id].t]}<br>PP ${m.pp}/${MOVES[m.id].pp}`;}});info.remove();
+    const i=await moveMenu(ms,e);
     if(i>=0)act={type:'move',slot:i,mv:ms[i].id};}
    else if(c===1){const k=await bagScreen('battle');if(k){act={type:'item',k};}}
    else if(c===2){const i=await partyScreen('どの モノモンと 入れ替える？',{tag:'bswitch',dis:m=>m.hp<=0||m===a});if(i>=0&&i!==B.ai_){act={type:'switch',i};}}
