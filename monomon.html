@@ -1347,7 +1347,7 @@ function across(mid,x,y){const m=MAPS[mid];if(x>=0&&y>=0&&x<m.w&&y<m.h)return {m
  if(side==='w')return {mid:c.to,x:t.w-1,y:y+c.off};return {mid:c.to,x:0,y:y+c.off};}
 function setBgmFor(m){setBgm(m.bgm||'route');}
 function showBanner(t){if(banner)banner.remove();banner=el('box',{left:U(4),top:U(4)},t);bannerT=1.8;}
-async function warpTo(mid,x,y,dir){busy=true;if(G.starter==null&&mid!=='lab')RIVALNPC=null;sfx('door');fade=1;await wait(180);const prevName=curMap().name;G.map=mid;G.x=x;G.y=y;if(dir!=null)G.dir=dir;P.moving=false;syncP();setBgmFor(curMap());
+async function warpTo(mid,x,y,dir){busy=true;if(G.starter==null&&mid!=='lab')RIVALNPC=null;sfx('door');fade=1;await wait(180);const prevName=curMap().name;G.map=mid;G.x=x;G.y=y;if(dir!=null)G.dir=dir;P.moving=false;syncP();if(MAPS[mid].npcs.some(n=>n.kind==='nurse'))G.lastCenter={map:mid,x,y};setBgmFor(curMap());
  if(curMap().theme!=='indoor'&&curMap().name!==prevName)showBanner(curMap().name);await wait(120);fade=0;busy=false;
  if(mid==='lab'&&G.starter==null){if(!G.flags.rival_meet)runEvent(rivalMeet);else RIVALNPC={x:7,y:3,dir:2};}}
 function syncP(){P.px=G.x*16;P.py=G.y*16;}
@@ -1414,7 +1414,7 @@ async function talkNpc(o){const n=o.n;faceTo(o);
  switch(n.kind){
   case 'nurse':await say('ようこそ！ モノモンセンターへ。\fお預かりした モノモンを 元気に しますね。');setBgm('none');sfx('heal');await wait(1400);healAll();G.lastCenter={map:G.map,x:G.x,y:G.y};setBgmFor(curMap());await say('お待たせしました！\fお預かりした モノモンは みんな 元気に なりましたよ。\fまた いつでも どうぞ！');break;
   case 'clerk':await say('いらっしゃいませ！');await shopScreen(n.shop);break;
-  case 'mom':if(!G.starter){await say([`ママ「${G.name}、博士が 呼んでいたわよ。`,'となりの 研究所に いってらっしゃい！」']);}else{await say('ママ「少し 休んで いきなさい」');healAll();sfx('heal');await wait(900);await say('ママ「元気に なったわね。いってらっしゃい！」');G.lastCenter={map:'home',x:G.x,y:G.y};}break;
+  case 'mom':if(!G.starter){await say([`ママ「${G.name}、博士が 呼んでいたわよ。`,'となりの 研究所に いってらっしゃい！」']);}else{await say('ママ「少し 休んで いきなさい」');healAll();sfx('heal');await wait(900);await say('ママ「元気に なったわね。いってらっしゃい！」');}break;
   case 'prof':if(G.starter==null){await chooseStarter();}
    else if(Object.keys(G.caught).length>=DEX.length&&!G.flags.cert){
     await say(['博士「……なんと！ 図鑑が ついに 完成したのか！',`全${DEX.length}種の モノモン、ひとつ残らず 捕まえたのじゃな。`,'わしが 長年 夢見てきた ことを、君が やりとげて くれた。','これは わしからの 気持ちじゃ。受け取って くれ！']);
@@ -1811,7 +1811,10 @@ async function afterBattle(res,o){
  if(res==='lose'){if(o&&o.noBlackout){healAll();return res;}
   await say(`${G.name}は 目の前が 真っ暗に なった！`);const lost=Math.floor(G.money/2);G.money-=lost;
   fade=1;await wait(400);G.map=G.lastCenter.map;G.x=G.lastCenter.x;G.y=G.lastCenter.y;G.dir=0;enterMap();healAll();fade=0;
-  await say(lost?`${lost}円を 落として しまった……`:'……');await say('モノモンたちは すっかり 元気に なった。');return res;}
+  // 最後に 立ち寄った モノモンセンターへ。まだ なければ 家の ママの ところへ
+  await say(lost?`${lost}円を 落として しまった……`:'……');
+  if(G.lastCenter.map==='home')await say(['ママ「まあ、どうしたの！ そんなに ボロボロに なって……','ゆっくり 休んで いきなさい。」','モノモンたちは すっかり 元気に なった。']);
+  else await say(['急いで モノモンセンターに 戻った！','モノモンたちは すっかり 元気に なった。']);return res;}
  await postBattleEvolutions();return res;}
 async function wildBattle(w,o){const m=mkMon(w.sp,w.lv);const res=await battle({kind:'wild',team:[m],ghost:o&&o.ghost});await afterBattle(res);}
 // せりふを「名前「……」」の 形に
@@ -1842,7 +1845,7 @@ async function hallOfFame(){setBgm('title');await say(['博士「……見てお
  for(const m of G.party){const c=document.createElement('canvas');c.width=MC;c.height=MC;c.style.cssText=`width:${U(40)};height:${U(40)};image-rendering:pixelated;display:block;margin:0 auto`;c.getContext('2d').drawImage(monImg(DEX[m.sp].art,false),0,0);const d=document.createElement('div');d.className='xs';d.style.textAlign='center';d.appendChild(c);d.appendChild(document.createTextNode(`${mname(m)} Lv${m.lv}`));box.querySelector('#hof').appendChild(d);sfx('sel');await wait(300);}
  if(window.tgClear)tgClear('monomon');
  await say([`${G.name}は モノクロリーグの チャンピオンに なった！`,'――THE END――','（クリアの ごほうび：ゼッタイボールを 手に入れた！）','リュウジシティの 謎の 洞窟に、何かが 待っている……']);box.remove();addItem('master',1);
- G.map='home';G.x=3;G.y=4;G.dir=2;enterMap();healAll();G.lastCenter={map:'home',x:3,y:4};}
+ G.map='home';G.x=3;G.y=4;G.dir=2;enterMap();healAll();}
 async function legendBattle(o){const n=o.n;await say(n.text);const m=mkMon(DXI[n.sp],n.lv,{iv:30});const res=await battle({kind:'wild',team:[m],bgm:'league'});
  if(res==='caught'||res==='win')G.flags[n.id]=1;await afterBattle(res);}
 // 研究所に 入ると ライバルが 走りこんでくる
