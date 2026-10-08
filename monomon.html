@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><style id="tg-notouch">*{touch-action:manipulation;-webkit-tap-highlight-color:transparent}body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}input,textarea,select,[contenteditable="true"]{-webkit-user-select:text;user-select:text}img,canvas{-webkit-user-drag:none}</style><script id="tg-notouch-js">(function(){var ok=function(t){return t&&t.closest&&t.closest('input,textarea,select,[contenteditable="true"]')};["gesturestart","gesturechange","gestureend"].forEach(function(n){document.addEventListener(n,function(e){e.preventDefault()},{passive:false})});document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length>1)e.preventDefault()},{passive:false});document.addEventListener("dblclick",function(e){if(!ok(e.target))e.preventDefault()},{passive:false});document.addEventListener("contextmenu",function(e){if(!ok(e.target))e.preventDefault()});document.addEventListener("selectstart",function(e){if(!ok(e.target))e.preventDefault()});})();</script>
 <meta name="theme-color" content="#14161c">
 <title>モノクロモンスター</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -992,7 +992,7 @@ function summary(m,startPage){const d=DEX[m.sp];const box=fullBox('');box.style.
  const bar=(v,mx,w)=>`<span style="display:inline-block;vertical-align:middle;width:${U(w)};height:${U(2.2)};border:${U(.5)} solid #181818;background:#f8f8f8"><span style="display:block;height:100%;width:${Math.round(clamp(v/mx,0,1)*100)}%;background:#181818"></span></span>`;
  const tabs=()=>`<div style="position:absolute;left:${U(3)};right:${U(3)};top:${U(2)};height:${U(10)};display:flex;align-items:flex-end;gap:${U(2)};border-bottom:${U(.6)} solid #181818">
   ${['能力','技'].map((n,i)=>`<span class="xs" data-tab="${i}" style="padding:${U(.8)} ${U(4)};border:${U(.6)} solid #181818;border-bottom:none;${i===page?'background:#181818;color:#f8f8f8':''}">${n}</span>`).join('')}
-  <span class="xs" style="margin-left:auto;color:#585858;padding-bottom:${U(1)}">◀▶ 切替　B 戻る</span></div>`;
+  <span class="xs" style="margin-left:auto;color:#585858;padding-bottom:${U(1)}">◀▶ 切替　<span data-close style="border:${U(.5)} solid #181818;padding:0 ${U(1.5)};color:#181818;cursor:pointer">戻る</span></span></div>`;
  const pageStats=()=>{const lo=expFor(m.lv),hi=expFor(m.lv+1);const S=['atk','def','spa','sdf','spd'];const mx=Math.max(...S.map(k=>m.st[k]));
   return `<canvas width="78" height="78" style="position:absolute;left:${U(4)};top:${U(15)};width:${U(52)};height:${U(52)};image-rendering:pixelated;border:${U(.5)} solid #a8a8a8;background:#fff"></canvas>
   <div style="position:absolute;left:${U(61)};right:${U(4)};top:${U(15)}">
@@ -1025,7 +1025,7 @@ function summary(m,startPage){const d=DEX[m.sp];const box=fullBox('');box.style.
    else if(ev==='A')doA();};
   box.addEventListener('pointerdown',e=>{const t=e.target.closest('[data-tab]');if(t){page=+t.dataset.tab;pick=-1;draw();return;}
    const r=e.target.closest('[data-mv]');if(r){const i=+r.dataset.mv;if(i===cur)doA();else{cur=i;sfx('sel');draw();}return;}
-   if(page===0&&!e.target.closest('[data-tab]'))close();});
+   if(e.target.closest('[data-close]'))o.onEv('B');});
   uiPush(o);draw();if(window.tgAuto)setTimeout(close,AUTOWAIT());});}
 async function bagScreen(ctx){const keys=Object.keys(G.bag).filter(k=>G.bag[k]>0&&(ctx!=='battle'||!ITM[k].escape&&!ITM[k].repel&&!ITM[k].key&&!ITM[k].stone));
  if(!keys.length){await say('道具を 何も 持っていない！');return null;}
@@ -1066,9 +1066,9 @@ function dexEntry(sp){const d=DEX[sp];return new Promise(res=>{const box=fullBox
  <div style="position:absolute;left:${U(72)};top:${U(18)};right:${U(4)}"><div class="xs">No.${String(d.no).padStart(3,'0')}</div><div class="sm" style="font-weight:bold;margin:${U(1)} 0">${d.n}</div>
  <div class="xs" style="display:flex;gap:${U(2)};flex-wrap:wrap">${d.t.map(t=>`<span style="border:${U(.5)} solid #181818;padding:0 ${U(1.5)}">${TY[t]}</span>`).join('')}</div><div class="xs" style="margin-top:${U(3)}">${hw(sp,true)}</div></div>
  <div class="sm" style="position:absolute;left:${U(5)};right:${U(5)};top:${U(82)};bottom:${U(11)};border-top:${U(.6)} solid #181818;padding-top:${U(2.5)};line-height:1.5;white-space:normal;overflow:hidden">${dexText(sp)}</div>
- <div class="xs" style="position:absolute;right:${U(5)};bottom:${U(3)};color:#585858">A：閉じる</div>`;
+ <div class="xs" data-close style="position:absolute;right:${U(5)};bottom:${U(3)};border:${U(.5)} solid #181818;padding:0 ${U(1.5)};color:#181818;cursor:pointer">閉じる</div>`;
  const g=box.querySelector('canvas').getContext('2d');g.imageSmoothingEnabled=false;g.drawImage(monImg(d.art,false),0,0);sfx('item');
- const close=()=>{uiPop(o);res();};o.onEv=ev=>{if(ev==='A'||ev==='B'||ev==='TAP')close();};box.addEventListener('pointerdown',e=>{e.preventDefault();close();});
+ const close=()=>{uiPop(o);res();};o.onEv=ev=>{if(ev==='A'||ev==='B')close();};box.addEventListener('pointerdown',e=>{e.preventDefault();if(e.target.closest('[data-close]'))close();});
  uiPush(o);if(window.tgAuto)setTimeout(close,AUTOWAIT()*2);});}
 // 図鑑：一覧（左に番号と名前、右に姿）→ A／タップで くわしい ページ
 async function dexScreen(){
@@ -1103,7 +1103,7 @@ async function dexScreen(){
   <div class="xs" style="display:flex;gap:${U(2)};flex-wrap:wrap">${d.t.map(t=>`<span style="border:${U(.5)} solid #181818;padding:0 ${U(1.5)}">${TY[t]}</span>`).join('')}</div>
   <div class="xs" style="margin-top:${U(2)}">${hw(cur,c)}</div><div class="xs">${c?'● 捕まえた':'○ 見つけた'}</div>${evo?`<div class="xs" style="color:#585858">${evo}</div>`:''}</div>
   <div class="sm" style="position:absolute;left:${U(5)};right:${U(5)};top:${U(70)};bottom:${U(12)};border-top:${U(.6)} solid #181818;padding-top:${U(2.5)};line-height:1.5;white-space:normal;overflow:hidden">${c?dexText(cur):'まだ 捕まえていないので くわしい ことは わからない。'}</div>
-  <div class="xs" style="position:absolute;left:${U(5)};right:${U(5)};bottom:${U(3)};display:flex;justify-content:space-between;color:#585858"><span id="dpv">◀ 前</span><span>B：戻る</span><span id="dnx">次 ▶</span></div>`;
+  <div class="xs" style="position:absolute;left:${U(5)};right:${U(5)};bottom:${U(3)};display:flex;justify-content:space-between;color:#585858"><span id="dpv">◀ 前</span><span id="dbk" style="border:${U(.5)} solid #181818;padding:0 ${U(1.5)};color:#181818;cursor:pointer">戻る</span><span id="dnx">次 ▶</span></div>`;
   const g=dt.querySelector('canvas').getContext('2d');g.imageSmoothingEnabled=false;g.drawImage(monImg(d.art,false),0,0);
   dt.querySelector('#dpv').addEventListener('pointerdown',e=>{e.stopPropagation();step(-1);});dt.querySelector('#dnx').addEventListener('pointerdown',e=>{e.stopPropagation();step(1);});};
  const step=dir=>{for(let k=1;k<N;k++){const i=(cur+dir*k+N*k)%N;if(G.seen[i]){cur=i;break;}}sfx('sel');drawDetail();};
@@ -1116,7 +1116,7 @@ async function dexScreen(){
    else if(ev==='D1'){cur=Math.min(N-1,cur+V);drawList();}else if(ev==='D3'){cur=Math.max(0,cur-V);drawList();}
    else if(ev==='A')open();else if(ev==='B')close();};
   lv.addEventListener('pointerdown',e=>{const r=e.target.closest('[data-i]');if(!r)return;const i=+r.dataset.i;if(i===cur)open();else{cur=i;sfx('sel');drawList();}});
-  pv.addEventListener('pointerdown',()=>open());dt.addEventListener('pointerdown',()=>back());
+  pv.addEventListener('pointerdown',e=>{if(e.target.closest('canvas,#ph'))open();});dt.addEventListener('pointerdown',e=>{if(e.target.closest('#dbk'))back();});
   head.querySelector('#dxx').addEventListener('pointerdown',e=>{e.stopPropagation();close();});
   uiPush(st);drawList();if(window.tgAuto)setTimeout(()=>st.onEv('B'),AUTOWAIT());});}
 async function shopScreen(town){const inv=SHOPS[town]||SHOPS.tsugi;BOT.inv=inv;
@@ -1157,8 +1157,9 @@ function certScreen(){return new Promise(res=>{
  <div class="sm" style="position:absolute;left:${U(16)};right:${U(36)};top:${U(113)};text-align:right">モノクロ博士</div>
  <div style="position:absolute;right:${U(15)};top:${U(108)};width:${U(16)};height:${U(16)};border:${U(1)} solid #181818;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:calc(var(--u)*7);font-weight:bold;transform:rotate(-12deg);opacity:.85">印</div>`;
  box.querySelectorAll('canvas').forEach((c,i)=>{const g=c.getContext('2d');g.imageSmoothingEnabled=false;g.drawImage(monImg(DEX[starters[i]].art,false),0,0);});
- const close=()=>{uiPop(o);res();};o.onEv=ev=>{if(ev==='A'||ev==='B'||ev==='TAP')close();};
- box.addEventListener('pointerdown',e=>{e.preventDefault();close();});uiPush(o);if(window.tgAuto)setTimeout(close,AUTOWAIT()*4);});}
+ const close=()=>{uiPop(o);res();};o.onEv=ev=>{if(ev==='A'||ev==='B')close();};
+ const cb=document.createElement('div');cb.className='xs';cb.textContent='閉じる';cb.style.cssText=`position:absolute;left:50%;transform:translateX(-50%);bottom:${U(8)};border:${U(.5)} solid #181818;padding:0 ${U(3)};color:#181818;cursor:pointer;background:#f8f8f8`;box.appendChild(cb);
+ box.addEventListener('pointerdown',e=>{e.preventDefault();if(e.target===cb)close();});uiPush(o);if(window.tgAuto)setTimeout(close,AUTOWAIT()*4);});}
 
 
 /* ================= フィールド ================= */
