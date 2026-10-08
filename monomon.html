@@ -628,7 +628,27 @@ function ballIcon(g,x,y,open){const P=open?BALLO:BALL,C=[C0,C1,C2,C3];for(let r=
 
 // 建物の看板（ブロックの左上を見つけて中央に描く）
 const FONT3={S:['333','3..','333','..3','333'],H:['3.3','3.3','333','3.3','3.3'],O:['333','3.3','3.3','3.3','333'],P:['333','3.3','333','3..','3..']};
-function drawSigns(g,m,camX,camY){for(let y=0;y<m.h;y++)for(let x=0;x<m.w;x++){const c=m.rows[y][x];if(c!=='M'&&c!=='C')continue;if(x>0&&m.rows[y][x-1]===c||y>0&&m.rows[y-1][x]===c)continue;
+// モノクロ研究所の 建物（ハジメタウン：左上 4,9 から 6x3 マス）。丸屋根の 観測ドームと アンテナ、大きな ガラス窓
+const LABTXT={L:['3..','3..','3..','3..','333'],A:['.3.','3.3','333','3.3','3.3'],B:['33.','3.3','33.','3.3','33.']};
+function drawLab(g,x,y){if(x<-110||x>170||y<-60||y>150)return;
+ // 屋根（平らな 屋上＋ふち）
+ R(g,x,y+4,96,28,C3);R(g,x+1,y+5,94,26,C2);for(let i=0;i<5;i++)R(g,x+1,y+9+i*5,94,1,C1);R(g,x,y+28,96,4,C3);R(g,x+1,y+29,94,2,C1);
+ // 観測ドーム
+ const cx=x+30,cy=y+14;g.fillStyle=C3;g.beginPath();g.arc(cx,cy,14,Math.PI,0);g.fill();g.fillStyle=C0;g.beginPath();g.arc(cx,cy,12.5,Math.PI,0);g.fill();
+ g.fillStyle=C1;g.beginPath();g.arc(cx,cy,12.5,Math.PI,Math.PI*1.5);g.lineTo(cx,cy);g.fill();
+ R(g,cx-2,cy-13,4,13,C3);R(g,cx-1,cy-12,2,11,C2);R(g,cx-15,cy,30,2,C3);
+ for(const a of [.25,.5,.75]){const ax=cx-Math.cos(a*Math.PI)*12;g.fillStyle=C3;g.fillRect(Math.round(ax),cy-Math.round(Math.sin(a*Math.PI)*12),1,Math.round(Math.sin(a*Math.PI)*12));}
+ // アンテナ
+ const ax=x+76;R(g,ax,y-6,1,14,C3);R(g,ax-4,y-6,9,1,C3);R(g,ax-3,y-9,7,1,C3);g.fillStyle=C3;g.beginPath();g.arc(ax+8,y+2,4,Math.PI*.6,Math.PI*1.6);g.lineWidth=1.5;g.strokeStyle=C3;g.stroke();R(g,ax+4,y+1,4,1,C3);
+ if(Math.floor(performance.now()/500)%2===0)R(g,ax-1,y-8,3,2,C3);
+ // かべ（白い かべに 大きな ガラス窓）
+ R(g,x,y+32,96,16,C0);R(g,x,y+32,1,16,C3);R(g,x+95,y+32,1,16,C3);R(g,x,y+47,96,1,C3);
+ for(const wx of [x+4,x+66]){R(g,wx,y+34,26,10,C3);R(g,wx+1,y+35,24,8,C1);for(let k=1;k<4;k++)R(g,wx+k*6.5,y+35,1,8,C3);R(g,wx+2,y+36,3,2,C0);}
+ R(g,x+33,y+34,12,10,C3);R(g,x+34,y+35,10,8,C1);R(g,x+39,y+35,1,8,C3);
+ // 入口（扉は 7,11 のマス）の 上に「LAB」の 看板
+ const dx=x+48;R(g,dx+1,y+33,14,15,C3);R(g,dx+2,y+38,12,10,C2);R(g,dx+7,y+38,1,10,C3);R(g,dx+5,y+42,1,1,C0);R(g,dx+10,y+42,1,1,C0);
+ R(g,dx-1,y+26,18,8,C3);R(g,dx,y+27,16,6,C0);let px=dx+2;for(const ch of 'LAB'){pat(g,px,y+28,LABTXT[ch]);px+=4;}}
+function drawSigns(g,m,camX,camY){if(m.id==='hajime')drawLab(g,4*16-camX,9*16-camY);for(let y=0;y<m.h;y++)for(let x=0;x<m.w;x++){const c=m.rows[y][x];if(c!=='M'&&c!=='C')continue;if(x>0&&m.rows[y][x-1]===c||y>0&&m.rows[y-1][x]===c)continue;
  let w=0;while(x+w<m.w&&m.rows[y][x+w]===c)w++;const cx=x*16+w*8-camX,cy=y*16+10-camY;if(cx<-40||cx>200||cy<-30||cy>170)continue;
  if(c==='M'){const pw=22;R(g,cx-pw/2-1,cy-1,pw+2,9,C3);R(g,cx-pw/2,cy,pw,7,C0);let px=cx-pw/2+2;for(const ch of 'SHOP'){pat(g,px,cy+1,FONT3[ch]);px+=4+1;}}
  else{R(g,cx-6,cy-2,12,12,C3);R(g,cx-5,cy-1,10,10,C0);R(g,cx-1,cy,2,8,C3);R(g,cx-4,cy+3,8,2,C3);}}}
@@ -854,6 +874,17 @@ function applyItem(k,m){const it=ITM[k];
  if(it.cure){if(!m.status)return false;if(it.cure==='all'||it.cure===m.status||(it.cure==='psn'&&m.status==='tox')){m.status=null;return true;}return false;}
  if(it.candy){if(m.lv>=100)return false;m.lv++;m.exp=Math.max(m.exp,expFor(m.lv));const old=m.st.hp;calcStats(m);m.hp+=m.st.hp-old;return true;}
  return false;}
+// 図鑑に 登録した ときの ページ（姿・番号・名前・タイプ・説明）
+function dexEntry(sp){const d=DEX[sp];return new Promise(res=>{const box=fullBox('');box.style.padding='0';const o={el:box};
+ box.innerHTML=`<div style="position:absolute;left:${U(5)};right:${U(5)};top:${U(3)};height:${U(9)};display:flex;justify-content:space-between;align-items:center;border-bottom:${U(.6)} solid #181818"><b class="sm">図鑑</b><span class="xs">新しく 登録！</span></div>
+ <canvas width="78" height="78" style="position:absolute;left:${U(5)};top:${U(16)};width:${U(62)};height:${U(62)};image-rendering:pixelated;border:${U(.5)} solid #a8a8a8;background:#fff"></canvas>
+ <div style="position:absolute;left:${U(72)};top:${U(18)};right:${U(4)}"><div class="xs">No.${String(d.no).padStart(3,'0')}</div><div class="sm" style="font-weight:bold;margin:${U(1)} 0">${d.n}</div>
+ <div class="xs" style="display:flex;gap:${U(2)};flex-wrap:wrap">${d.t.map(t=>`<span style="border:${U(.5)} solid #181818;padding:0 ${U(1.5)}">${TY[t]}</span>`).join('')}</div></div>
+ <div class="xs" style="position:absolute;left:${U(5)};right:${U(5)};top:${U(84)};border-top:${U(.6)} solid #181818;padding-top:${U(3)};line-height:1.6;white-space:normal">${d.desc}</div>
+ <div class="xs" style="position:absolute;right:${U(5)};bottom:${U(3)};color:#585858">A：閉じる</div>`;
+ const g=box.querySelector('canvas').getContext('2d');g.imageSmoothingEnabled=false;g.drawImage(monImg(d.art,false),0,0);sfx('item');
+ const close=()=>{uiPop(o);res();};o.onEv=ev=>{if(ev==='A'||ev==='B'||ev==='TAP')close();};box.addEventListener('pointerdown',e=>{e.preventDefault();close();});
+ uiPush(o);if(window.tgAuto)setTimeout(close,AUTOWAIT()*2);});}
 // 図鑑：一覧（左に番号と名前、右に姿）→ A／タップで くわしい ページ
 async function dexScreen(){
  const seen=Object.keys(G.seen).length,caught=Object.keys(G.caught).length,V=10,RH=11.6;
@@ -1327,7 +1358,8 @@ async function throwBall(mult){const e=B.foe();await say(`${G.name}は ボール
  const p=mult>=255?1:clamp(a/255,0,1);const shakeP=Math.pow(p,.25);let shakes=0;for(;shakes<3;shakes++){if(Math.random()>shakeP)break;}
  for(let i=0;i<shakes;i++){await wait(350);sfx('wob');for(let j=0;j<4;j++){B.ball.x=118+(j%2?-2:2);await wait(50);}B.ball.x=118;}
  await wait(300);
- if(shakes>=3&&Math.random()<p/Math.max(.01,Math.pow(shakeP,3))||mult>=255){sfx('caught');setBgm('win');await say(`やったー！ ${mname(e)}を 捕まえたぞ！`);
+ if(shakes>=3&&Math.random()<p/Math.max(.01,Math.pow(shakeP,3))||mult>=255){const _new=!G.caught[e.sp]&&(G.flags.dex||G.starter!=null);sfx('caught');setBgm('win');await say(`やったー！ ${mname(e)}を 捕まえたぞ！`);
+  if(_new){G.caught[e.sp]=1;G.seen[e.sp]=1;await say(`${DEX[e.sp].n}の データが 新しく 図鑑に 登録されました！`);await dexEntry(e.sp);}
   const where=giveMon(e);B.ball=null;if(!G.caught._c)G.caught._c=0;
   if(where==='box')await say(`${mname(e)}は ボックスに 送られた！`);return 'caught';}
  B.ball=null;B.foeVis=true;await say(shakes===0?'ああ！ モノモンが ボールから 出てしまった！':shakes===1?'ああっ！ もう少しで 捕まえられたのに！':'くうっ！ あと ちょっと だったのに！');return 'used';}
@@ -1449,6 +1481,7 @@ async function chooseStarter(){
   const sp=STARTERS[v];G.starter=sp;const m=mkMon(sp,5,{iv:20});giveMon(m);sfx('caught');await say(`${G.name}は 博士から ${DEX[sp].n}を もらった！`);break;}
  await say(['博士「そして これが モノモン図鑑じゃ！','出会った モノモンは 自動で 記録される。たくさん 捕まえて、図鑑を 埋めて おくれ。」']);
  G.flags.dex=1;sfx('item');await say(`${G.name}は モノモン図鑑を もらった！`);
+ await say([`${G.rival}「博士！ おれにも くれよ！」`,`博士「もちろんじゃ。ほれ、${G.rival}の 分じゃ。」`,`${G.rival}は モノモン図鑑を 受け取った！`,`${G.rival}「よっしゃ！ どっちが 先に 図鑑を 埋めるか 競争だぜ！」`]);
  const rl=rivalLine();
  await say([`${G.rival}「おれは こいつに するぜ！」`,`${G.rival}は ${DEX[DXI[rl[0]]].n}を 受け取った！`,`${G.rival}「せっかく だし、勝負 しようぜ！」`]);
  const res=await battle({kind:'trainer',team:teamFrom(rivalTeam(1)),tname:'ライバルの '+G.rival,tstyle:'rival',noBlackout:true});
