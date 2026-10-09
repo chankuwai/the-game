@@ -118,37 +118,78 @@ const NT={C:0,'C#':1,D:2,'D#':3,E:4,F:5,'F#':6,G:7,'G#':8,A:9,'A#':10,B:11};
 function nf(s){if(!s||s==='.'||s==='-')return 0;const m=s.match(/^([A-G]#?)(\d)$/);return 440*Math.pow(2,(NT[m[1]]+(+m[2]+1)*12-69)/12);}
 function seq(str){return str.trim().split(/\s+/);}
 const BGMS={
- title:{bpm:120,m:'C5 - - G4 C5 - E5 - G5 - - - E5 - C5 - A4 - - C5 F5 - E5 D5 E5 - - - - - . . C5 - - G4 C5 - E5 - G5 - - - C6 - B5 A5 G5 - F5 - E5 - D5 - C5 - - - - - . .',
+ title:{key:'C',h:'arp',bpm:120,m:'C5 - - G4 C5 - E5 - G5 - - - E5 - C5 - A4 - - C5 F5 - E5 D5 E5 - - - - - . . C5 - - G4 C5 - E5 - G5 - - - C6 - B5 A5 G5 - F5 - E5 - D5 - C5 - - - - - . .',
   b:'C3 C3 G2 G2 C3 C3 E3 E3 F2 F2 F2 G2 C3 C3 G2 G2 C3 C3 G2 G2 E3 E3 A2 A2 F2 F2 G2 G2 C3 C3 C3 C3',d:1},
- town:{bpm:112,m:'E5 - D5 C5 D5 - G4 - C5 - E5 - G5 - - - A5 - G5 E5 F5 - D5 - E5 - - - - - . . F5 - E5 D5 E5 - C5 - D5 - B4 G4 C5 - E5 - D5 - - B4 G4 - A4 B4 C5 - - - - - . .',
+ town:{key:'C',h:'arp',bpm:112,m:'E5 - D5 C5 D5 - G4 - C5 - E5 - G5 - - - A5 - G5 E5 F5 - D5 - E5 - - - - - . . F5 - E5 D5 E5 - C5 - D5 - B4 G4 C5 - E5 - D5 - - B4 G4 - A4 B4 C5 - - - - - . .',
   b:'C3 G2 C3 G2 A2 E3 A2 E3 F2 C3 G2 D3 C3 G2 C3 G2 F2 C3 F2 C3 G2 D3 A2 E3 G2 D3 G2 D3 C3 G2 C3 C3'},
- route:{bpm:138,m:'D5 - G5 - B5 - A5 G5 F#5 - D5 - E5 - F#5 - G5 - B5 - D6 - C6 B5 A5 - - - - - . . C6 - B5 A5 B5 - G5 - A5 - F#5 D5 E5 - F#5 - G5 - A5 - B5 - A5 F#5 G5 - - - - - . .',
+ route:{key:'G',h:'arp',bpm:138,m:'D5 - G5 - B5 - A5 G5 F#5 - D5 - E5 - F#5 - G5 - B5 - D6 - C6 B5 A5 - - - - - . . C6 - B5 A5 B5 - G5 - A5 - F#5 D5 E5 - F#5 - G5 - A5 - B5 - A5 F#5 G5 - - - - - . .',
   b:'G2 D3 G2 D3 D2 A2 D2 A2 G2 D3 E2 B2 D2 A2 D2 A2 C3 G2 G2 D3 D2 A2 C3 D3 G2 D3 D2 A2 G2 D3 G2 G2',d:1},
- cave:{bpm:92,m:'A4 - - E5 - - D5 C5 B4 - - - G#4 - - - A4 - - C5 - - E5 - D5 - - - - - . . F5 - - E5 - - D5 C5 B4 - - D5 - - C5 B4 A4 - - - G#4 - B4 - A4 - - - - - . .',
+ cave:{key:'A',min:1,h:'pad',bpm:92,m:'A4 - - E5 - - D5 C5 B4 - - - G#4 - - - A4 - - C5 - - E5 - D5 - - - - - . . F5 - - E5 - - D5 C5 B4 - - D5 - - C5 B4 A4 - - - G#4 - B4 - A4 - - - - - . .',
   b:'A2 . E2 . E2 . B1 . A2 . E2 . D2 . A1 . F2 . C2 . G2 . D2 . E2 . E2 . A1 . A1 .'},
- battle:{bpm:168,m:'A4 C5 E5 A5 G5 E5 C5 E5 F5 A5 C6 A5 G5 F5 E5 D5 E5 - E5 F5 G5 - A5 - B5 - G#5 - E5 - . . A5 G5 F5 E5 F5 E5 D5 C5 D5 E5 F5 G5 A5 - F5 - E5 D5 C5 B4 C5 D5 E5 G#5 A5 - - - A4 . . .',
+ battle:{key:'A',min:1,h:'arp',bpm:168,m:'A4 C5 E5 A5 G5 E5 C5 E5 F5 A5 C6 A5 G5 F5 E5 D5 E5 - E5 F5 G5 - A5 - B5 - G#5 - E5 - . . A5 G5 F5 E5 F5 E5 D5 C5 D5 E5 F5 G5 A5 - F5 - E5 D5 C5 B4 C5 D5 E5 G#5 A5 - - - A4 . . .',
   b:'A2 A3 A2 A3 F2 F3 F2 F3 C3 C4 C3 C4 E2 E3 E2 E3 D2 D3 D2 D3 F2 F3 F2 F3 E2 E3 E2 E3 A2 A3 A2 A2',d:2},
- trainer:{bpm:176,m:'E5 - B4 E5 G5 - F#5 E5 D5 - A4 D5 F#5 - E5 D5 C5 - E5 G5 C6 - B5 A5 B5 - - - D#5 - F#5 - E5 G5 B5 E6 D6 - B5 - C6 - A5 - F#5 - D5 - G5 F#5 E5 D5 C5 B4 C5 D#5 E5 - - - E4 . . .',
+ trainer:{key:'E',min:1,h:'arp',bpm:176,m:'E5 - B4 E5 G5 - F#5 E5 D5 - A4 D5 F#5 - E5 D5 C5 - E5 G5 C6 - B5 A5 B5 - - - D#5 - F#5 - E5 G5 B5 E6 D6 - B5 - C6 - A5 - F#5 - D5 - G5 F#5 E5 D5 C5 B4 C5 D#5 E5 - - - E4 . . .',
   b:'E2 E3 E2 E3 D2 D3 D2 D3 C2 C3 C2 C3 B1 B2 B1 B2 E2 E3 G2 G3 A1 A2 D2 D3 C2 C3 B1 B2 E2 E3 E2 E2',d:2},
- gym:{bpm:184,m:'D5 D5 F5 D5 A5 - G5 F5 E5 E5 G5 E5 A#5 - A5 G5 F5 F5 A5 F5 C6 - A#5 A5 G5 - A5 - C#6 - - - D6 - A5 - F5 - D5 - A#5 - G5 - E5 - C#5 - D5 E5 F5 G5 A5 G5 F5 E5 D5 - - - D4 . . .',
+ gym:{key:'D',min:1,h:'arp',bpm:184,m:'D5 D5 F5 D5 A5 - G5 F5 E5 E5 G5 E5 A#5 - A5 G5 F5 F5 A5 F5 C6 - A#5 A5 G5 - A5 - C#6 - - - D6 - A5 - F5 - D5 - A#5 - G5 - E5 - C#5 - D5 E5 F5 G5 A5 G5 F5 E5 D5 - - - D4 . . .',
   b:'D2 D3 D2 D3 C2 C3 C2 C3 A#1 A#2 A#1 A#2 A1 A2 A1 A2 D2 D3 D2 D3 G1 G2 A1 A2 A#1 A#2 A1 A2 D2 D3 D2 D2',d:2},
- center:{bpm:104,m:'E5 - G5 - C6 - B5 - A5 - G5 - E5 - - - F5 - A5 - G5 - E5 - D5 - - - - - . . E5 - G5 - C6 - D6 - E6 - D6 - C6 - A5 - G5 - A5 - B5 - D6 - C6 - - - - - . .',
+ center:{key:'C',h:'pad',bpm:104,m:'E5 - G5 - C6 - B5 - A5 - G5 - E5 - - - F5 - A5 - G5 - E5 - D5 - - - - - . . E5 - G5 - C6 - D6 - E6 - D6 - C6 - A5 - G5 - A5 - B5 - D6 - C6 - - - - - . .',
   b:'C3 . G3 . A2 . E3 . F2 . C3 . G2 . D3 . C3 . G3 . A2 . F3 . G2 . G2 . C3 . C3 .'},
- evolve:{bpm:152,m:'E4 G4 B4 E5 G4 B4 E5 G5 F4 A4 C5 F5 A4 C5 F5 A5 G4 B4 D5 G5 B4 D5 G5 B5 A4 C#5 E5 A5 C#5 E5 A5 C#6 E4 G4 B4 E5 G4 B4 E5 G5 F4 A4 C5 F5 A4 C5 F5 A5 G4 B4 D5 G5 B4 D5 G5 B5 G#4 B4 D5 G#5 B4 D5 G#5 B5',
+ evolve:{key:'E',min:1,h:'none',bpm:152,m:'E4 G4 B4 E5 G4 B4 E5 G5 F4 A4 C5 F5 A4 C5 F5 A5 G4 B4 D5 G5 B4 D5 G5 B5 A4 C#5 E5 A5 C#5 E5 A5 C#6 E4 G4 B4 E5 G4 B4 E5 G5 F4 A4 C5 F5 A4 C5 F5 A5 G4 B4 D5 G5 B4 D5 G5 B5 G#4 B4 D5 G#5 B4 D5 G#5 B5',
   b:'E2 E2 E3 E2 F2 F2 F3 F2 G2 G2 G3 G2 A2 A2 A3 A2 E2 E2 E3 E2 F2 F2 F3 F2 G2 G2 G3 G2 E2 E2 E3 E2',d:2},
- win:{bpm:132,m:'C5 E5 G5 C6 - - G5 - A5 - F5 - G5 - - - E5 G5 C6 E6 - - D6 - C6 - - - - - . .',b:'C3 G3 C3 G3 F2 C3 G2 D3 C3 G3 A2 E3 F2 G2 C3 C3',d:1},
- league:{bpm:150,m:'C5 - D#5 - G5 - F5 D#5 D5 - C5 - G4 - - - G#4 - C5 - D#5 - D5 C5 B4 - G4 - - - . . C5 D#5 G5 C6 - - A#5 G#5 G5 - F5 - D#5 - D5 - G#5 - G5 - F5 - D5 - C5 - - - C4 . . .',
+ win:{key:'C',h:'pad',bpm:132,m:'C5 E5 G5 C6 - - G5 - A5 - F5 - G5 - - - E5 G5 C6 E6 - - D6 - C6 - - - - - . .',b:'C3 G3 C3 G3 F2 C3 G2 D3 C3 G3 A2 E3 F2 G2 C3 C3',d:1},
+ league:{key:'C',min:1,h:'arp',bpm:150,m:'C5 - D#5 - G5 - F5 D#5 D5 - C5 - G4 - - - G#4 - C5 - D#5 - D5 C5 B4 - G4 - - - . . C5 D#5 G5 C6 - - A#5 G#5 G5 - F5 - D#5 - D5 - G#5 - G5 - F5 - D5 - C5 - - - C4 . . .',
   b:'C2 C3 C2 C3 G#1 G#2 G#1 G#2 F1 F2 F1 F2 G1 G2 G1 G2 C2 C3 C2 C3 D#2 D#3 F2 F3 G#1 G#2 G1 G2 C2 C3 C2 C2',d:2},
+ home:{key:'F',h:'pad',bpm:96,m:'C5 - A4 - F4 - A4 C5 D5 - C5 - A4 - - - A#4 - D5 - F5 - E5 D5 C5 - - - - - . . C5 - A4 - F4 - A4 C5 D5 - F5 - E5 - D5 - C5 - A#4 - A4 - G4 - F4 - - - - - . .',
+  b:'F2 C3 F2 C3 D2 A2 D2 A2 A#1 F2 A#1 F2 C2 G2 C2 G2 F2 C3 F2 C3 D2 A2 D2 A2 A#1 F2 C2 G2 F2 C3 F2 F2'},
+ forest:{key:'D',min:1,h:'arp',bpm:100,m:'D5 - - A4 - - F5 - E5 - D5 - C5 - A4 - A#4 - - D5 - - F5 - G5 - F5 E5 D5 - - - D5 - - A4 - - F5 - G5 - A5 - C6 - A5 - A#5 - A5 G5 F5 - E5 - D5 - - - - - . .',
+  b:'D2 . A2 . D2 . A2 . A#1 . F2 . C2 . G2 . D2 . A2 . D2 . A2 . A#1 . F2 . A1 . D2 .'},
+ snow:{key:'E',min:1,h:'arp',bpm:96,m:'B5 - - G5 - - E5 - F#5 - - D5 - - B4 - C5 - E5 - G5 - B5 - A5 - - - - - . . B5 - - G5 - - E5 - F#5 - A5 - D6 - B5 - C6 - B5 - A5 - G5 - F#5 - - - E5 - . .',
+  b:'E2 B2 E3 B2 D2 A2 D3 A2 C2 G2 C3 G2 D2 A2 D3 A2 E2 B2 E3 B2 D2 A2 D3 A2 C2 G2 D2 A2 E2 B2 E2 E2'},
+ ship:{key:'C',h:'arp',bpm:126,d:1,m:'G4 - C5 - C5 D5 E5 - D5 - C5 - A4 - G4 - E4 - G4 - C5 - E5 - D5 - - - - - . . G4 - C5 - C5 D5 E5 - F5 - E5 - D5 - C5 - A4 - B4 - D5 - G4 - C5 - - - - - . . . .',
+  b:'C3 G2 C3 G2 F2 C3 F2 C3 C3 G2 A2 E2 G2 D3 G2 D3 C3 G2 C3 G2 F2 C3 D3 A2 G2 D3 G2 D3 C3 G2 C3 C3'},
+ hq:{key:'C',min:1,h:'arp',bpm:132,d:2,m:'C5 C5 - C5 D#5 - C5 - G5 - F5 - D#5 - D5 - C5 C5 - C5 D#5 - G5 - A#5 - G#5 - G5 - - - C6 - A#5 - G#5 - G5 - F5 - G5 - G#5 - G5 - F5 - D#5 - D5 - D#5 - F5 - G5 - - - . . . .',
+  b:'C2 C3 C2 C3 C2 C3 C2 C3 G#1 G#2 G#1 G#2 G1 G2 G1 G2 C2 C3 C2 C3 F1 F2 F1 F2 G#1 G#2 G1 G2 C2 C3 C2 C2'},
+ spooky:{key:'A',min:1,h:'pad',bpm:84,m:'E5 - - - D#5 - - - E5 - C5 - A4 - - - F5 - - - E5 - - - D5 - B4 - G#4 - - - E5 - - - D#5 - - - E5 - G5 - A5 - - - G5 - F5 - E5 - D5 - C5 - B4 - A4 - - -',
+  b:'A1 . E2 . A1 . E2 . D2 . A2 . E2 . E2 . A1 . E2 . C2 . G2 . D2 . A2 . E2 . A1 .'},
+ lava:{key:'E',min:1,h:'arp',bpm:150,d:2,m:'E5 - F5 - E5 - B4 - C5 - B4 - A4 - B4 - E5 - F5 - G5 - A5 - G5 - F5 - E5 - - - E5 - F5 - E5 - B4 - C5 - D5 - E5 - F5 - G5 - F5 - E5 - D5 - E5 - - - - - . .',
+  b:'E2 E3 E2 E3 F2 F3 F2 F3 E2 E3 E2 E3 D2 D3 D2 D3 E2 E3 E2 E3 F2 F3 F2 F3 G2 G3 F2 F3 E2 E3 E2 E2'},
+ rival:{key:'G',min:1,h:'arp',bpm:172,d:2,m:'G5 - D5 - G5 A5 A#5 - A5 - G5 - F#5 - D5 - D#5 - G5 - A#5 - D6 - C6 - A#5 - A5 - - - G5 - D5 - G5 A5 A#5 - C6 - D6 - D#6 - D6 - C6 - A#5 - A5 - G5 - F#5 - G5 - - - G4 . . .',
+  b:'G2 G3 G2 G3 G2 G3 D2 D3 D#2 D#3 D#2 D#3 D2 D3 D2 D3 G2 G3 G2 G3 C2 C3 C2 C3 D#2 D#3 D2 D3 G2 G3 G2 G2'},
+ champion:{key:'B',min:1,h:'arp',bpm:160,d:2,m:'B4 - D5 - F#5 - B5 - A5 - F#5 - E5 - D5 - C#5 - E5 - G5 - B5 - A#5 - - - F#5 - - - B5 - A5 - G5 - F#5 - E5 - G5 - F#5 - E5 - D5 - C#5 - D5 - E5 - F#5 - A#5 - B5 - - - B4 . . .',
+  b:'B1 B2 B1 B2 G1 G2 G1 G2 E2 E3 E2 E3 F#1 F#2 F#1 F#2 B1 B2 B1 B2 G1 G2 A1 A2 E2 E3 F#1 F#2 B1 B2 B1 B1'},
 };
-for(const k in BGMS){BGMS[k].m=seq(BGMS[k].m);BGMS[k].b=seq(BGMS[k].b);}
+for(const k in BGMS){BGMS[k].m=seq(BGMS[k].m);if(BGMS[k].m.length>64)BGMS[k].m.length=64;BGMS[k].b=seq(BGMS[k].b);}
 const BGM={mode:'none',next:0,step:0};
 function setBgm(m){if(BGM.mode!==m){BGM.mode=m;BGM.step=0;BGM.next=0;}}
 // 8分音符ずつ 先読みで 鳴らす。'-' は のばす、'.' は 休み。d:1 は 軽い リズム、d:2 は 戦闘用の 強い リズム
+// 音色：主旋律は 25% の パルス波（ゲーム機の 音）に ビブラート、伴奏は 和音の アルペジオ／パッド、ベースは 三角波、残響つき
+let MUS=null,PW25=null;
+function musBus(){if(MUS)return MUS;MUS=AC.createGain();MUS.gain.value=1;MUS.connect(MG);
+ const dl=AC.createDelay(1),fb=AC.createGain(),lp=AC.createBiquadFilter(),wet=AC.createGain();dl.delayTime.value=.21;fb.gain.value=.28;lp.type='lowpass';lp.frequency.value=2400;wet.gain.value=.22;
+ MUS.connect(dl);dl.connect(lp);lp.connect(fb);fb.connect(dl);lp.connect(wet);wet.connect(MG);
+ const N=32,re=new Float32Array(N),im=new Float32Array(N);for(let k=1;k<N;k++){re[k]=0;im[k]=(2/(k*Math.PI))*Math.sin(k*Math.PI*.25);}PW25=AC.createPeriodicWave(re,im);return MUS;}
+function mnote(f,dur,at,o){const bus=musBus();const t=at,os=AC.createOscillator(),g=AC.createGain();
+ if(o.wave==='pw')os.setPeriodicWave(PW25);else os.type=o.wave;os.frequency.setValueAtTime(f,t);
+ if(o.vib&&dur>.28){const l=AC.createOscillator(),lg=AC.createGain();l.frequency.value=5.5;lg.gain.setValueAtTime(0,t);lg.gain.linearRampToValueAtTime(f*.007,t+.25);l.connect(lg);lg.connect(os.frequency);l.start(t);l.stop(t+dur+.05);}
+ const v=o.vol,a=o.att||.006,su=o.sus==null?.7:o.sus;g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(v,t+a);g.gain.linearRampToValueAtTime(v*su,t+a+.09);g.gain.setValueAtTime(v*su,t+Math.max(a+.09,dur*.85));g.gain.exponentialRampToValueAtTime(.0001,t+dur+(o.rel||.04));
+ os.connect(g);g.connect(bus);os.start(t);os.stop(t+dur+(o.rel||.04)+.05);}
+const SCALE_MAJ=[0,2,4,5,7,9,11],SCALE_MIN=[0,2,3,5,7,8,11];
+// ベースの 音から その 調の 中の 三和音を つくる（調に ない 音なら 5度だけ）
+function triad(bf,S){const key=NT[S.key||'C'],sc=S.min?SCALE_MIN:SCALE_MAJ;const midi=Math.round(69+12*Math.log2(bf/440));const pc=((midi-key)%12+12)%12;const d=sc.indexOf(pc);
+ const up=k=>{const oct=Math.floor((d+k)/7);return sc[(d+k)%7]+12*oct-sc[d];};const iv=d<0?[0,7,12]:[0,up(2),up(4)];return iv.map(x=>bf*Math.pow(2,(x+24)/12));}
 setInterval(()=>{if(!AC||!sndOn()||!BGMS[BGM.mode])return;const S_=BGMS[BGM.mode],sp=60/S_.bpm/2,now=AC.currentTime;if(BGM.next<now)BGM.next=now+.05;let n=0;
- while(BGM.next<now+.25&&n<8){const i=BGM.step,L=S_.m.length;const s=S_.m[i%L];const mf=nf(s);
-  if(mf){let k=1;while(k<8&&S_.m[(i+k)%L]==='-')k++;tone(mf,sp*k*.92,'square',.034,0,0,BGM.next);tone(mf*2,sp*Math.min(k,2)*.5,'square',.006,0,0,BGM.next);}
-  if(i%2===0){const bf=nf(S_.b[(i>>1)%S_.b.length]);if(bf)tone(bf,sp*1.8,'triangle',.075,0,0,BGM.next);}
-  if(S_.d){const st=i%8;if(st===0)tone(110,.08,'triangle',.08,.35,0,BGM.next);if(S_.d>1&&st===4)noise(.08,.07,2200,0,BGM.next);else if(S_.d>1&&st===6)tone(110,.06,'triangle',.06,.35,0,BGM.next);if(st%2===1)noise(.025,S_.d>1?.035:.02,7000,0,BGM.next);}
+ while(BGM.next<now+.25&&n<8){const i=BGM.step,L=S_.m.length,T=BGM.next;const s=S_.m[i%L];const mf=nf(s);
+  if(mf){let k=1;while(k<8&&S_.m[(i+k)%L]==='-')k++;mnote(mf,sp*k*.95,T,{wave:'pw',vol:.05,vib:1,sus:.75});mnote(mf*2.005,sp*Math.min(k,2)*.6,T,{wave:'square',vol:.006,sus:.4});}
+  const BL=S_.b.length,bf=nf(S_.b[(i>>1)%BL]);
+  if(i%2===0&&bf)mnote(bf,sp*1.85,T,{wave:'triangle',vol:.11,sus:.85,att:.004});
+  // 伴奏：直前の ベースの 音を 根音に した 和音
+  let rb=bf;for(let q=1;!rb&&q<5;q++)rb=nf(S_.b[(((i>>1)-q)%BL+BL)%BL]);
+  if(rb&&S_.h==='arp'){const tr=triad(rb,S_);mnote(tr[[0,1,2,1][i%4]],sp*.8,T,{wave:'square',vol:.013,sus:.5,att:.003});}
+  if(rb&&S_.h==='pad'&&i%8===0){for(const f of triad(rb,S_))mnote(f,sp*7.6,T,{wave:'triangle',vol:.022,sus:.8,att:.12,rel:.3});}
+  if(rb&&S_.h==='pad'&&i%8===4){mnote(triad(rb,S_)[2]*2,sp*.6,T,{wave:'square',vol:.007,sus:.4});}
+  if(S_.d){const st=i%8;const kick=()=>tone(110,.09,'triangle',.11,.32,0,T);
+   if(S_.d===1){if(st===0||st===5)kick();if(st%2===1)noise(.025,.02,7000,0,T);if(st===4)noise(.06,.035,2600,0,T);}
+   else{if(st===0||st===3||(st===6&&i%16>=8))kick();if(st===2||st===6)noise(.09,.075,2400,0,T);noise(.022,st%2?.03:.018,8000,0,T);if(i%64===62)noise(.18,.06,4000,0,T);}}
   BGM.next+=sp;BGM.step++;n++;}},60);
 addEventListener('keydown',()=>{if(sndOn())ac();},{capture:true});
 
@@ -1575,7 +1616,9 @@ function across(mid,x,y){const m=MAPS[mid];if(x>=0&&y>=0&&x<m.w&&y<m.h)return {m
  const side=x<0?'w':x>=m.w?'e':y<0?'n':'s';const c=m.conns[side];if(!c)return null;const t=MAPS[c.to];
  if(side==='n')return {mid:c.to,x:x+c.off,y:t.h-1};if(side==='s')return {mid:c.to,x:x+c.off,y:0};
  if(side==='w')return {mid:c.to,x:t.w-1,y:y+c.off};return {mid:c.to,x:0,y:y+c.off};}
-function setBgmFor(m){setBgm(m.bgm||'route');}
+function setBgmFor(m){const th=m.theme,id=m.id||'';
+ const b=['hajime','home','myroom','lab'].includes(id)?'home':th==='forest'?'forest':(th==='snow'||th==='icecave')?'snow':th==='ship'?'ship':th==='hq'?'hq':(th==='mansion'||th==='tower')?'spooky':th==='lava'?'lava':null;
+ setBgm(m.bgm==='center'||m.bgm==='gym'||m.bgm==='league'?m.bgm:(b||m.bgm||'route'));}
 function showBanner(t){if(banner)banner.remove();banner=el('box',{left:U(4),top:U(4)},t);bannerT=1.8;}
 async function warpTo(mid,x,y,dir){busy=true;if(G.starter==null&&mid!=='lab')RIVALNPC=null;sfx('door');fade=1;await wait(180);const prevName=curMap().name;G.map=mid;G.x=x;G.y=y;if(dir!=null)G.dir=dir;P.moving=false;syncP();if(MAPS[mid].npcs.some(n=>n.kind==='nurse'))G.lastCenter={map:mid,x,y};setBgmFor(curMap());
  if(curMap().theme!=='indoor'&&curMap().name!==prevName)showBanner(curMap().name);await wait(120);fade=0;busy=false;
@@ -2119,7 +2162,7 @@ async function rematchRival(o){await rematch({name:'ライバルの '+G.rival,st
 async function championBattle(o){if(G.flags.champ){await rematch({name:'チャンピオン グレイ',style:'raika_b',team:reLv(CHAMP_TEAM,l=>l+12),money:20000,
   pre:['グレイ「来たのね、チャンピオン。','今度は 私が 挑戦者。全力で いくわ！」'],winre:['グレイ「……やっぱり あなたは 強い。','また 鍛え直して くるわ」']});return;}
  await say(o.n.text.map(s=>s));
- const res=await battle({kind:'trainer',team:teamFrom(CHAMP_TEAM,28),tname:'チャンピオン グレイ',tstyle:'raika_b',ai:'smart',potions:3,bgm:'league'});
+ const res=await battle({kind:'trainer',team:teamFrom(CHAMP_TEAM,28),tname:'チャンピオン グレイ',tstyle:'raika_b',ai:'smart',potions:3,bgm:'champion'});
  if(res==='win'){G.flags.champ=1;G.money+=10000;await say(['グレイ「……見事ね。','灰色の 世界でも、あなたと モノモンたちの 色が はっきり 見えたわ。','今日から あなたが 新しい チャンピオンよ！」']);await hallOfFame();}
  await afterBattle(res,{boss:1});}
 async function hallOfFame(){setBgm('title');await say(['博士「……見ておったぞ！ おめでとう！','君と モノモンたちの きずなが、この 結果を 生んだのじゃ！']);
@@ -2180,7 +2223,7 @@ async function rivalEvent(ev,tr){const stage={rival2:2,rival3:3,rival4:4,rival5:
  const lines={2:[`${G.rival}「よう、${G.name}！ もう モノモンは 育ってきたか？`,'おれの 強さを 見せてやる！」'],3:[`${G.rival}「${G.name}！ お前も ステラ号に 乗ってたのか。`,'船長に 会う 前に、腕試しだ！」'],
   4:[`${G.rival}「クリア団の ボスは この 上だ。`,'でも その 前に……おれが 先に 行く！ どけ！」'],5:[`${G.rival}「ここまで 来れたのは 認めてやる。`,'けど、この 先へは 行かせない！」']}[stage];
  await say(lines);
- const res=await battle({kind:'trainer',team:teamFrom(rivalTeam(stage),stage*4),tname:'ライバルの '+G.rival,tstyle:'rival',ai:stage>=4?'smart':'trainer'});
+ const res=await battle({kind:'trainer',team:teamFrom(rivalTeam(stage),stage*4),tname:'ライバルの '+G.rival,tstyle:'rival',ai:stage>=4?'smart':'trainer',bgm:'rival'});
  if(res==='win'){G.flags[ev]=1;G.money+=stage*600;await say([`${G.rival}「くっ……！ やるじゃないか！」`,`${stage*600}円を もらった！`,`${G.rival}「次に 会うときは 負けないからな！」`]);}
  RIVALNPC=null;await afterBattle(res);if(res==='win')setBgmFor(curMap());}
 
