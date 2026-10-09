@@ -1804,6 +1804,8 @@ function drawBattle(g,t){g.fillStyle=C0;g.fillRect(0,0,SW,SH);if(!B)return;
   if(B.tStyle){if(tp)g.drawImage(tp,100+(1-k)*80,22,40,72);else g.drawImage(personImg(B.tStyle,2,0),94+(1-k)*80,30,54,60);}
   if(hp)g.drawImage(hp,20-(1-k)*80,22,40,72);else g.drawImage(personImg('hero',2,0),12-(1-k)*80,30,54,60);
   g.restore();}
+ if(B.outro){const k=B.outro,tp=B.tStyle&&portraitImg(B.tStyle);g.save();g.imageSmoothingEnabled=false;
+  if(tp)g.drawImage(tp,100+(1-k)*80,22,40,72);else if(B.tStyle)g.drawImage(personImg(B.tStyle,2,0),94+(1-k)*80,30,54,60);g.restore();}
  if(e&&B.showFoe&&B.foeVis){const sp=B.ghost?ghostSil(DEX[e.sp].art):monPic(e,false);const oy=B.foeY||0;g.save();g.beginPath();g.rect(81,26,79,68);g.clip();{const s=52*(B.foeS??1);drawMon(g,sp,121-s/2+(B.foeOx||0),90-s+oy,s,faceOf(DEX[e.sp].art)==='R');}g.restore();}
  if(a&&B.showAlly&&B.allyVis){const sp=monPic(a,false);const oy=B.allyY||0;g.save();g.beginPath();g.rect(0,26,79,68);g.clip();{const s=52*(B.allyS??1);drawMon(g,sp,39-s/2+(B.allyOx||0),90-s+oy,s,faceOf(DEX[a.sp].art)==='L');}g.restore();}
  if(B.ball){const b=B.ball;ballIcon(g,Math.round(b.x),Math.round(b.y),b.open);}
@@ -1846,7 +1848,7 @@ const settle=async()=>{for(let i=0;i<40;i++){const e=B.foe(),a=B.ally();if((!e||
 /* ---- 開始 ---- */
 async function battle(o){const prevBusy=busy;if(typeof banner!=='undefined'&&banner){banner.remove();banner=null;}mode='battle';busy=true;const prevBgm=BGM.mode;
  B={kind:o.kind,oneLevel:!!o.oneLevel,foeTeam:o.team,fi:0,ai_:0,tName:o.tname,tStyle:o.tstyle,ai:o.ai||(o.kind==='wild'?'wild':'trainer'),potions:o.potions||0,
-  sides:[mkSide(),mkSide()],part:new Set(),dispE:0,dispA:0,flash:0,showFoe:false,showAlly:false,foeVis:true,allyVis:true,runTry:0,intro:0,res:null,noBlackout:o.noBlackout,ghost:!!o.ghost,money:o.money||0,
+  sides:[mkSide(),mkSide()],part:new Set(),dispE:0,dispA:0,flash:0,showFoe:false,showAlly:false,foeVis:true,allyVis:true,runTry:0,intro:0,res:null,noBlackout:o.noBlackout,ghost:!!o.ghost,money:o.money||0,win:o.win,
   foe(){return this.foeTeam[this.fi];},ally(){return G.party[this.ai_];}};
  for(const m of o.team)G.seen[m.sp]=1;
  setBgm(o.bgm||(o.kind==='wild'?'battle':'trainer'));sfx('encounter');
@@ -1917,6 +1919,8 @@ async function battleLoop(){
   B.swapped=false;
   for(const o of order){const atk=o.side===0?B.ally():B.foe(),def=o.side===0?B.foe():B.ally();if(atk.hp<=0||def.hp<=0)continue;
    await doMove(o.side,o.mv,o.slot);
+   // 相手が 倒れたら その 場で 倒れる 演出。やけど・毒などは この あと すぐ 受けて、経験値は その 後
+   if(B.foe().hp<=0){if(!B.foeDown)await foeDownAnim();break;}
    if(await checkFaint())return;
    if(B.swapped)break;}  // 倒れて 入れ替わったら その ターンは おしまい
   // ターン終了
@@ -2072,12 +2076,18 @@ async function throwBall(mult){const e=B.foe();await say(`${G.name}は ボール
   return 'caught';}
  B.ball=null;B.foeVis=true;await say(shakes===0?'ああ！ モノモンが ボールから 出てしまった！':shakes===1?'ああっ！ もう少しで 捕まえられたのに！':'くうっ！ あと ちょっと だったのに！');return 'used';}
 /* ---- ひんし処理 ---- */
+async function foeDownAnim(){const e=B.foe();for(let i=0;i<6;i++){B.foeVis=i%2===1;await wait(55);}B.foeVis=true;sfx('faint');quake(.2,1.5);for(let i=0;i<10;i++){B.foeY=i*6;await wait(30);}B.showFoe=false;B.foeY=0;B.foeDown=true;await say(`${pre(1)}${mname(e)}は 倒れた！`);}
+// トレーナーに 勝ったら もう 一度 トレーナーが 出てきて ひとこと → 賞金
+async function trainerOutro(){const w=B.win;if(!w)return;B.showAlly=false;await wait(150);
+ for(let i=0;i<=10;i++){B.outro=i/10;await wait(25);}
+ if(w.lines&&w.lines.length)await say(w.lines);
+ if(w.money){G.money+=w.money;sfx('money');await say(`${G.name}は ${w.money}円を もらった！`);}}
 async function checkFaint(){const e=B.foe(),a=B.ally();
- if(e.hp<=0){for(let i=0;i<6;i++){B.foeVis=i%2===1;await wait(55);}B.foeVis=true;sfx('faint');quake(.2,1.5);for(let i=0;i<10;i++){B.foeY=i*6;await wait(30);}B.showFoe=false;B.foeY=0;await say(`${pre(1)}${mname(e)}は 倒れた！`);
+ if(e.hp<=0){if(!B.foeDown)await foeDownAnim();B.foeDown=false;
   await giveExp(e);
   if(B.ally().hp<=0){}
   const next=B.foeTeam.findIndex((m,i)=>i>B.fi&&m.hp>0);
-  if(next<0){B.res='win';if(B.kind!=='wild'){setBgm('win');await say(`${B.tName}との 勝負に 勝った！`);}return true;}
+  if(next<0){B.res='win';if(B.kind!=='wild'){setBgm('win');await say(`${B.tName}との 勝負に 勝った！`);await trainerOutro();}return true;}
   B.fi=next;B.swapped=true;
   if(B.ally().hp>0&&B.kind!=='wild'&&!window.tgAuto&&partyAlive().length>1){
    await say(`${B.tName}は ${mname(B.foe())}を 繰り出そうとしている！`);
@@ -2153,16 +2163,16 @@ async function wildBattle(w,o){const m=mkMon(w.sp,w.lv);if(Math.random()<1/128&&
 // せりふを「名前「……」」の 形に
 function talkLines(name,lines){lines=[].concat(lines||['勝負だ！']);return lines.map((t,i)=>(i===0?`${name}「`:'')+t+(i===lines.length-1?'」':''));}
 async function trainerBattle(o){const n=o.n;await say(talkLines(n.name,n.text));
- const res=await battle({kind:'trainer',team:teamFrom(n.team),tname:n.name,tstyle:n.style});
- if(res==='win'){G.flags[n.id]=1;G.money+=n.money||100;await say([...talkLines(n.name,n.win||['負けた……']),`${G.name}は ${n.money||100}円を もらった！`]);}
+ const res=await battle({kind:'trainer',team:teamFrom(n.team),tname:n.name,tstyle:n.style,win:{lines:talkLines(n.name,n.win||['負けた……']),money:n.money||100}});
+ if(res==='win')G.flags[n.id]=1;
  await afterBattle(res);}
 async function leaderBattle(o){const n=o.n;await say(n.text);
- const res=await battle({kind:'trainer',team:teamFrom(n.team,24),tname:n.name,tstyle:n.style,ai:'smart',potions:n.badge?Math.min(2,Math.ceil(n.badge/3)):(n.give||n.setf||n.id==='shiro'||n.id==='kuro'||n.id==='sumi')?1:2,bgm:n.badge?'gym':/^lg/.test(n.id)?'league':'trainer'});
- if(res==='win'){G.flags[n.id]=1;const pay=n.badge?n.money*2:n.money;G.money+=pay;
-  if(n.badge){G.flags['b'+n.badge]=1;sfx('item');await say([...n.win,`${G.name}は ${['','ロック','アクア','サンダー','リーフ','シャドウ','マインド','アイス','ドラゴン'][n.badge]}バッジを 手に入れた！`,`${pay}円を もらった！`]);addItem('candy',2);await say(`ふしぎなアメを 2こ もらった！`);
+ const res=await battle({kind:'trainer',team:teamFrom(n.team,24),tname:n.name,tstyle:n.style,ai:'smart',potions:n.badge?Math.min(2,Math.ceil(n.badge/3)):(n.give||n.setf||n.id==='shiro'||n.id==='kuro'||n.id==='sumi')?1:2,bgm:n.badge?'gym':/^lg/.test(n.id)?'league':'trainer',win:{lines:n.win,money:n.badge?n.money*2:n.money}});
+ if(res==='win'){G.flags[n.id]=1;
+  if(n.badge){G.flags['b'+n.badge]=1;sfx('item');await say(`${G.name}は ${['','ロック','アクア','サンダー','リーフ','シャドウ','マインド','アイス','ドラゴン'][n.badge]}バッジを 手に入れた！`);addItem('candy',2);await say(`ふしぎなアメを 2こ もらった！`);
    if(n.scroll&&ITM[n.scroll]){addItem(n.scroll,1);sfx('item');await say([`ジムに 伝わる 技の 巻物も もらえた！`,`${G.name}は ${ITM[n.scroll].n}を もらった！`,'巻物は バッグから 使うと モノモンに 技を 覚えさせられるよ。']);}
    if(n.badge===8){G.flags.lgpass=1;await say('これで リーグへの 道が 開けた！ リュウジシティの 北へ 進め！');}}
-  else{await say([...n.win,`${n.money}円を もらった！`]);
+  else{
    for(const k of n.give||[]){addItem(k,1);sfx('item');await say(`${G.name}は ${ITM[k].n}を もらった！`);if(ITM[k].hint)await say(ITM[k].hint);}
    if(n.setf)G.flags[n.setf]=1;}}
  await afterBattle(res,{boss:1});}
@@ -2172,8 +2182,7 @@ const CHAMP_TEAM=[['m037',64],['m112',64],['m103',65],['m054',65],['m057',66],['
 async function rematch(o){const n=o.name?o:o.n;
  await say(n.pre||[`${n.name}「チャンピオンに なったそうだな。`,'今の 本気の 手持ちで、もう 一度 勝負しないか？」']);
  if(!(await yesno('rematch'))){await say(`${n.name}「そうか。気が 向いたら また 来い」`);return;}
- const res=await battle({kind:'trainer',team:teamFrom(n.team,30),tname:n.name,tstyle:n.style,ai:'smart',potions:3,bgm:n.bgm||'league'});
- if(res==='win'){const m=n.money;G.money+=m;await say([...(n.winre||[`${n.name}「……見事だ。チャンピオンの 名は だてじゃないな」`]),`${m}円を もらった！`]);}
+ const res=await battle({kind:'trainer',team:teamFrom(n.team,30),tname:n.name,tstyle:n.style,ai:'smart',potions:3,bgm:n.bgm||'league',win:{lines:n.winre||[`${n.name}「……見事だ。チャンピオンの 名は だてじゃないな」`],money:n.money}});
  await afterBattle(res,{boss:1});}
 const reLv=(team,f)=>team.map(([a,l],i)=>[a,f(l,i)]);
 async function rematchLeader(o){const n=o.n;
@@ -2185,8 +2194,8 @@ async function rematchRival(o){await rematch({name:'ライバルの '+G.rival,st
 async function championBattle(o){if(G.flags.champ){await rematch({name:'チャンピオン グレイ',style:'raika_b',team:reLv(CHAMP_TEAM,l=>l+12),money:20000,
   pre:['グレイ「来たのね、チャンピオン。','今度は 私が 挑戦者。全力で いくわ！」'],winre:['グレイ「……やっぱり あなたは 強い。','また 鍛え直して くるわ」']});return;}
  await say(o.n.text.map(s=>s));
- const res=await battle({kind:'trainer',team:teamFrom(CHAMP_TEAM,28),tname:'チャンピオン グレイ',tstyle:'raika_b',ai:'smart',potions:3,bgm:'champion'});
- if(res==='win'){G.flags.champ=1;G.money+=10000;await say(['グレイ「……見事ね。','灰色の 世界でも、あなたと モノモンたちの 色が はっきり 見えたわ。','今日から あなたが 新しい チャンピオンよ！」']);await hallOfFame();}
+ const res=await battle({kind:'trainer',team:teamFrom(CHAMP_TEAM,28),tname:'チャンピオン グレイ',tstyle:'raika_b',ai:'smart',potions:3,bgm:'champion',win:{lines:['グレイ「……見事ね。','灰色の 世界でも、あなたと モノモンたちの 色が はっきり 見えたわ。','今日から あなたが 新しい チャンピオンよ！」'],money:10000}});
+ if(res==='win'){G.flags.champ=1;await postBattleEvolutions();await hallOfFame();}
  await afterBattle(res,{boss:1});}
 async function hallOfFame(){setBgm('title');await say(['博士「……見ておったぞ！ おめでとう！','君と モノモンたちの きずなが、この 結果を 生んだのじゃ！']);
  const box=fullBox(`<div style="text-align:center;margin-top:${U(6)}">殿堂入り</div><div id="hof" style="display:grid;grid-template-columns:repeat(3,1fr);gap:${U(2)};margin-top:${U(4)}"></div>`);
@@ -2222,8 +2231,8 @@ async function chooseStarter(){
  await say([`${G.rival}「博士！ おれにも くれよ！」`,`博士「もちろんじゃ。ほれ、${G.rival}の 分じゃ。」`,`${G.rival}は モノモン図鑑を 受け取った！`,`${G.rival}「よっしゃ！ どっちが 先に 図鑑を 埋めるか 競争だぜ！」`]);
  const rl=rivalLine();
  await say([`${G.rival}「おれは こいつに するぜ！」`,`${G.rival}は ${DEX[DXI[rl[0]]].n}を 受け取った！`,`${G.rival}「せっかく だし、勝負 しようぜ！」`]);
- const res=await battle({kind:'trainer',team:teamFrom(rivalTeam(1)),tname:'ライバルの '+G.rival,tstyle:'rival',noBlackout:true,oneLevel:true});
- await say(res==='win'?`${G.rival}「くっそー！ 次は 負けないからな！」`:`${G.rival}「やったー！ おれの 勝ちだ！」`);healAll();
+ const res=await battle({kind:'trainer',team:teamFrom(rivalTeam(1)),tname:'ライバルの '+G.rival,tstyle:'rival',noBlackout:true,oneLevel:true,win:{lines:[`${G.rival}「くっそー！ 次は 負けないからな！」`]}});
+ if(res!=='win')await say(`${G.rival}「やったー！ おれの 勝ちだ！」`);else await postBattleEvolutions();healAll();
  G.flags.rival1=1;addItem('ball',5);addItem('potion',3);
  await say(['博士「この モノボールを 持っていきなさい。','野生の モノモンを 弱らせてから 投げると 捕まえられるぞ。','8つの ジムバッジを 集めて、リーグを 目指すのじゃ！'],{});
  await say(`${G.name}は モノボールを 5こ もらった！`);
@@ -2246,8 +2255,8 @@ async function rivalEvent(ev,tr){const stage={rival2:2,rival3:3,rival4:4,rival5:
  const lines={2:[`${G.rival}「よう、${G.name}！ もう モノモンは 育ってきたか？`,'おれの 強さを 見せてやる！」'],3:[`${G.rival}「${G.name}！ お前も ステラ号に 乗ってたのか。`,'船長に 会う 前に、腕試しだ！」'],
   4:[`${G.rival}「クリア団の ボスは この 上だ。`,'でも その 前に……おれが 先に 行く！ どけ！」'],5:[`${G.rival}「ここまで 来れたのは 認めてやる。`,'けど、この 先へは 行かせない！」']}[stage];
  await say(lines);
- const res=await battle({kind:'trainer',team:teamFrom(rivalTeam(stage),stage*4),tname:'ライバルの '+G.rival,tstyle:'rival',ai:stage>=4?'smart':'trainer',bgm:'rival'});
- if(res==='win'){G.flags[ev]=1;G.money+=stage*600;await say([`${G.rival}「くっ……！ やるじゃないか！」`,`${stage*600}円を もらった！`,`${G.rival}「次に 会うときは 負けないからな！」`]);}
+ const res=await battle({kind:'trainer',team:teamFrom(rivalTeam(stage),stage*4),tname:'ライバルの '+G.rival,tstyle:'rival',ai:stage>=4?'smart':'trainer',bgm:'rival',win:{lines:[`${G.rival}「くっ……！ やるじゃないか！`,'次に 会うときは 負けないからな！」'],money:stage*600}});
+ if(res==='win')G.flags[ev]=1;
  RIVALNPC=null;await afterBattle(res);if(res==='win')setBgmFor(curMap());}
 
 /* ================= 物語のイベント ================= */
@@ -2284,7 +2293,7 @@ async function battleTower(){G.bp=G.bp||0;
  for(let r=1;r<=7;r++){const boss=r===7;
   const name=boss?'タワータイクーン クロカミ':`${BT_NAMES[Math.floor(Math.random()*BT_NAMES.length)]} ${BT_FIRST[Math.floor(Math.random()*BT_FIRST.length)]}`;
   await say(boss?['……ついに ここまで 来たか。','わたしが この タワーの あるじ、クロカミだ。全力で 来い！']:`${r}戦目！ ${name}が 待っている。`);
-  const res=await battle({kind:'trainer',team:teamFrom(btTeam(lv+(boss?3:Math.floor(r/3)),boss?4:3),31),tname:name,tstyle:boss?'noir':BT_STY[Math.floor(Math.random()*BT_STY.length)],ai:'smart',bgm:boss?'league':'trainer'});
+  const res=await battle({kind:'trainer',team:teamFrom(btTeam(lv+(boss?3:Math.floor(r/3)),boss?4:3),31),tname:name,tstyle:boss?'noir':BT_STY[Math.floor(Math.random()*BT_STY.length)],ai:'smart',bgm:boss?'league':'trainer',win:{lines:[boss?'クロカミ「……見事だ。きみこそ この タワーの 頂点に ふさわしい」':`${name}「まいった！ きみ、強いね！」`]}});
   if(res!=='win'){await afterBattle(res,{noBlackout:1});break;}
   await afterBattle(res);win=r;const gain=boss?10:r>=4?2:1;G.bp+=gain;sfx('money');await say(`${r}連勝！ ${gain} BPを もらった！（BP ${G.bp}）`);
   if(r<7){await say('まだ 続けますか？');if(!(await yesno('bt_next')))break;}}
@@ -2425,6 +2434,7 @@ BOT.choose=function(tag,opts,o){
  if(tag==='shop_top'){BOT.buy=shopBuy(BOT.inv||[]);return BOT.buy?0:2;}
  if(tag==='shop_buy'){BOT.buy=shopBuy(BOT.inv||[]);return BOT.buy?BOT.inv.indexOf(BOT.buy[0]):opts.length-1;}
  if(tag==='shop_n')return BOT.buy?BOT.buy[1]:0;
+ if(tag==='shop_ok')return 0;
  if(tag.startsWith('shop'))return -1;
  if(tag.startsWith('item_target'))return 0;
  if(tag==='giftmon')return 0;
