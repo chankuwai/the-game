@@ -1843,7 +1843,8 @@ async function battle(o){const prevBusy=busy;if(typeof banner!=='undefined'&&ban
  try{await battleLoop();}catch(err){console.error(err);B.res=B.res||'win';}
  const res=B.res;hudKill();
  // ステータス異常以外の一時効果は消える
- B=null;mode='world';setBgm(prevBgm);busy=prevBusy;return res;}
+ B=null;mode='world';// 戦闘の 前に トレーナー曲に 変わって いても、終わったら その 場所の 曲に 戻す
+ if(G&&MAPS[G.map])setBgmFor(curMap());else setBgm(prevBgm);busy=prevBusy;return res;}
 async function sendFoe(first){const e=B.foe();B.sides[1]=mkSide();B.dispE=e.hp;B.foeVis=true;if(!first||B.kind!=='wild'){B.showFoe=true;B.foeS=.15;const sp=say(`${B.tName}は ${mname(e)}を くりだした！`);await growIn(1);await sp;}else B.showFoe=true;G.seen[e.sp]=1;}
 async function sendAlly(first){const a=B.ally();B.sides[0]=mkSide();B.showAlly=true;B.allyVis=true;B.dispA=a.hp;B.part.add(a.uid);B.allyY=0;B.allyS=.15;
  await growIn(0);await say(first?`ゆけっ！ ${mname(a)}！`:`いけっ！ ${mname(a)}！`);}
