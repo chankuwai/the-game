@@ -26,7 +26,7 @@
  const stick={x:0,y:0,touch:{x:0,y:0},key:{x:0,y:0},gp:{x:0,y:0}};
  const css=`
 .tgp{position:relative;width:100%;height:100%;min-height:200px;-webkit-user-select:none;user-select:none;touch-action:none;-webkit-touch-callout:none;font-family:"Hiragino Sans","Noto Sans JP",sans-serif}
-.tgp *{box-sizing:border-box}
+.tgp *{box-sizing:border-box;touch-action:none}
 .tgp-zone{position:absolute;left:0;top:0;bottom:0;width:50%}
 .tgp-base{position:absolute;left:16px;bottom:calc(104px + env(safe-area-inset-bottom));width:150px;height:150px;border-radius:50%;
  background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.04) 0 40%,rgba(255,255,255,.09) 41% 43%,rgba(255,255,255,.04) 44%),radial-gradient(circle,#2a2d3a,#15161e 72%);
@@ -61,7 +61,7 @@
 @keyframes tgpglow{to{box-shadow:0 5px 0 var(--sh),0 0 20px var(--c),0 0 6px #fff,inset 0 2px 0 rgba(255,255,255,.35);filter:brightness(1.25)}}
 @media (max-height:700px){.tgp-base{width:120px;height:120px;bottom:calc(76px + env(safe-area-inset-bottom))}.tgp-face{width:132px;height:132px}.tgp-face .tgp-b{width:46px;height:46px}.tgp-A,.tgp-Y{top:43px}.tgp-B,.tgp-X{left:43px}.tgp-sh{width:96px;height:36px;bottom:min(calc(236px + env(safe-area-inset-bottom)),calc(100% - 42px))}.tgp-sys{bottom:calc(28px + env(safe-area-inset-bottom))}.tgp-face{bottom:calc(70px + env(safe-area-inset-bottom))}}`;
  function shadeHex(c,k){const n=parseInt(c.slice(1),16);let r=n>>16,g=n>>8&255,b=n&255;const f=x=>Math.max(0,Math.min(255,Math.round(k<0?x*(1+k):x+(255-x)*k)));return `rgb(${f(r)},${f(g)},${f(b)})`;}
- let root=null,knob=null,base=null,stickId=null,opts={};const els={};
+ let root=null,knob=null,base=null,stickId=null,opts={};const els={};const activeIds=new Set(),btnIds=[];
  function setBtn(b,src,v){if(!!st[src][b]===v)return;st[src][b]=v;}
  function isDown(b){return !!(st.touch[b]||st.key[b]||st.gp[b]);}
  function sync(){for(const b of BTN){const d=isDown(b);if(d!==!!prev[b]){prev[b]=d;if(d){edgeDown[b]=true;if(navigator.vibrate&&opts.vibrate!==false)try{navigator.vibrate(8);}catch(e){}}else edgeUp[b]=true;(cbs[b]||[]).forEach(f=>{try{f(d);}catch(e){}});if(els[b])els[b].classList.toggle('on',d);}}
@@ -74,22 +74,33 @@
   host.innerHTML='';host.appendChild(root);knob=root.querySelector('.tgp-knob');base=root.querySelector('.tgp-base');
   root.querySelectorAll('[data-b]').forEach(el=>{const b=el.dataset.b;els[b]=el;if(hide.has(b))el.classList.add('tgp-hide');if(off.has(b))el.classList.add('tgp-off');
    const c=COL[b]||'#5a5e70';el.style.setProperty('--c',c);el.style.setProperty('--hl',shadeHex(c,.45));el.style.setProperty('--dk',shadeHex(c,-.35));el.style.setProperty('--sh',shadeHex(c,-.6));
-   const ids=new Set();
+   const ids=new Set();btnIds.push(ids);
    el.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();try{el.setPointerCapture(e.pointerId);}catch(_){}ids.add(e.pointerId);setBtn(b,'touch',true);sync();});
    const up=e=>{ids.delete(e.pointerId);if(!ids.size){setBtn(b,'touch',false);sync();}};
    el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up);el.addEventListener('lostpointercapture',up);});
   const zone=root.querySelector('.tgp-zone');
   const move=e=>{const r=base.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,R=r.width/2-8;let dx=e.clientX-cx,dy=e.clientY-cy;const m=Math.hypot(dx,dy);if(m>R){dx*=R/m;dy*=R/m;}
    knob.style.transform=`translate(${dx}px,${dy}px)`;let x=dx/R,y=dy/R;const mm=Math.hypot(x,y),dz=opts.deadzone==null?.18:opts.deadzone;if(mm<dz){x=0;y=0;}else{const k=(mm-dz)/(1-dz)/mm;x*=k;y*=k;}stick.touch.x=x;stick.touch.y=y;sync();};
-  const start=e=>{if(stickId!==null)return;e.preventDefault();stickId=e.pointerId;try{e.target.setPointerCapture(e.pointerId);}catch(_){}knob.classList.add('on');move(e);};
-  const end=e=>{if(e.pointerId!==stickId)return;stickId=null;knob.style.transform='';knob.classList.remove('on');stick.touch.x=stick.touch.y=0;sync();};
+  const release=()=>{stickId=null;knob.style.transform='';knob.classList.remove('on');stick.touch.x=stick.touch.y=0;sync();};
+  // 離した 合図を 取りこぼすと 入れっぱなしに なるので、前の 指が もう 無いなら 新しい 指で 取り直す
+  const start=e=>{if(stickId!==null&&stickId!==e.pointerId){if(!e.isPrimary&&activeIds.has(stickId))return;release();}e.preventDefault();stickId=e.pointerId;try{zone.setPointerCapture(e.pointerId);}catch(_){}knob.classList.add('on');move(e);};
+  const end=e=>{if(e.pointerId!==stickId)return;release();};
   for(const t of [zone,base]){t.addEventListener('pointerdown',start);t.addEventListener('pointermove',e=>{if(e.pointerId===stickId)move(e);});t.addEventListener('pointerup',end);t.addEventListener('pointercancel',end);t.addEventListener('lostpointercapture',end);}
+  // 画面の どこで 離しても 解除（キャプチャが 効かない 端末の ため）
+  addEventListener('pointerup',end,true);addEventListener('pointercancel',end,true);
+  // 指が 全部 離れたら、スティックも ボタンも 必ず 離した ことに する
+  const allUp=e=>{if(!e.touches||e.touches.length===0){activeIds.clear();if(stickId!==null)release();for(const s of btnIds)s.clear();let ch=false;for(const b of BTN)if(st.touch[b]){st.touch[b]=false;ch=true;}if(ch)sync();}};
+  addEventListener('touchend',allUp,true);addEventListener('touchcancel',allUp,true);
+  addEventListener('pointerdown',e=>activeIds.add(e.pointerId),true);addEventListener('pointerup',e=>activeIds.delete(e.pointerId),true);addEventListener('pointercancel',e=>activeIds.delete(e.pointerId),true);
+  // アプリの 切りかえ・画面を 離れた ときも 全部 解除
+  const resetAll=()=>{activeIds.clear();if(stickId!==null)release();for(const s of btnIds)s.clear();for(const b of BTN)st.touch[b]=false;sync();};
+  addEventListener('blur',resetAll);addEventListener('pagehide',resetAll);document.addEventListener('visibilitychange',()=>{if(document.hidden)resetAll();});
   return api;}
  // キーボード
  const kd={};
  function keyStick(){let x=0,y=0;if(kd.ArrowLeft||kd.a||kd.A)x-=1;if(kd.ArrowRight||kd.d||kd.D)x+=1;if(kd.ArrowUp||kd.w||kd.W)y-=1;if(kd.ArrowDown||kd.s||kd.S)y+=1;const m=Math.hypot(x,y)||1;stick.key.x=x/m;stick.key.y=y/m;}
  addEventListener('keydown',e=>{if(opts.keys===false)return;if(e.target&&/INPUT|TEXTAREA/.test(e.target.tagName))return;kd[e.key]=true;if(KEYS[e.key]){setBtn(KEYS[e.key],'key',true);}keyStick();sync();if(KEYS[e.key]||/^Arrow/.test(e.key))e.preventDefault();});
- addEventListener('keyup',e=>{if(opts.keys===false)return;kd[e.key]=false;if(KEYS[e.key])setBtn(KEYS[e.key],'key',false);keyStick();sync();});
+ addEventListener('keyup',e=>{if(opts.keys===false)return;kd[e.key]=false;if(e.key&&e.key.length===1){kd[e.key.toLowerCase()]=false;kd[e.key.toUpperCase()]=false;}if(KEYS[e.key])setBtn(KEYS[e.key],'key',false);keyStick();sync();});
  addEventListener('blur',()=>{for(const k in kd)kd[k]=false;for(const b of BTN)st.key[b]=false;keyStick();sync();});
  // ゲームパッド
  function pollGP(){const pads=navigator.getGamepads?navigator.getGamepads():[];let p=null;for(const g of pads)if(g&&g.connected){p=g;break;}
