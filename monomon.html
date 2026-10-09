@@ -1361,14 +1361,32 @@ async function dexScreen(){
   pv.addEventListener('pointerdown',e=>{if(e.target.closest('canvas,#ph'))open();});dt.addEventListener('pointerdown',e=>{if(e.target.closest('#dbk'))back();});
   head.querySelector('#dxx').addEventListener('pointerdown',e=>{e.stopPropagation();close();});
   uiPush(st);drawList();if(window.tgAuto)setTimeout(()=>st.onEv('B'),AUTOWAIT());});}
-async function shopScreen(town){const inv=SHOPS[town]||SHOPS.tsugi;BOT.inv=inv;
+// 個数を えらぶ 窓（0〜max）。上下で ±1、左右で ±10、ボタンでも 操作できる
+function qtyPicker(unit,max,o){o=o||{};return new Promise(res=>{let q=Math.min(1,max);const box=el('box',{right:0,top:U(16),width:U(70)});box.style.pointerEvents='auto';const st={el:box};
+ const draw=()=>{const tot=unit*q,ng=o.money!=null&&tot>o.money;
+  box.innerHTML=`<div class="xs" style="color:#585858">${o.title||'いくつ？'}</div>
+  <div style="display:flex;align-items:baseline;justify-content:space-between;margin:${U(1)} 0"><span class="sm">×<b style="font-size:${U(9)}">${String(q).padStart(2,'0')}</b></span><span class="xs" style="${ng?'background:#181818;color:#f8f8f8;padding:0 '+U(1)+';':''}">${tot}${o.unit||'円'}</span></div>
+  <div style="display:flex;gap:${U(1)}">${[['-10',-10],['-1',-1],['+1',1],['+10',10]].map(([t,d])=>`<span data-d="${d}" class="xs" style="flex:1;text-align:center;border:${U(.5)} solid #181818;cursor:pointer">${t}</span>`).join('')}</div>
+  <div style="display:flex;gap:${U(1)};margin-top:${U(1.5)}"><span data-ok class="xs" style="flex:2;text-align:center;border:${U(.6)} solid #181818;background:#181818;color:#f8f8f8;cursor:pointer">けってい</span><span data-no class="xs" style="flex:1;text-align:center;border:${U(.5)} solid #181818;cursor:pointer">やめる</span></div>
+  ${ng?`<div class="xs" style="margin-top:${U(1)}">お金が たりない</div>`:''}`;};
+ const add=d=>{q=Math.max(0,Math.min(max,q+d));sfx('sel');draw();};
+ const done=v=>{uiPop(st);res(v);};
+ st.onEv=ev=>{if(ev==='D0')add(1);else if(ev==='D2')add(-1);else if(ev==='D1')add(10);else if(ev==='D3')add(-10);else if(ev==='A'){sfx('ok');done(q);}else if(ev==='B'){sfx('sel');done(-1);}};
+ box.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();const b=e.target.closest('[data-d]');if(b){add(+b.dataset.d);return;}if(e.target.closest('[data-ok]'))st.onEv('A');else if(e.target.closest('[data-no]'))st.onEv('B');});
+ uiPush(st);draw();
+ if(window.tgAuto)setTimeout(()=>{if(!STACK.includes(st))return;const v=BOT.choose(o.tag||'shop_n',['1','5','10'],{});done(v<0?-1:Math.min(max,[1,5,10][v]||1));},AUTOWAIT());});}
+async function shopScreen(town){const inv=SHOPS[town]||SHOPS.tsugi;BOT.inv=inv;let bi=0,si=0;
  while(true){const v=await choose(['買う','売る','やめる'],{pos:{left:0,top:0},tag:'shop_top'});if(v!==0&&v!==1)break;
-  if(v===0){while(true){const moneyBox=el('box',{right:0,top:0},`${G.money}円`);const i=await choose(inv.map(k=>`${ITM[k].n}<span style="float:right;margin-left:${U(8)}">${ITM[k].p}</span>`).concat(['やめる']),{pos:{left:0,top:16,right:0},tag:'shop_buy'});moneyBox.remove();
-    if(i<0||i>=inv.length)break;const k=inv[i];const n=await choose(['1こ','5こ','10こ'],{pos:{right:0,top:16},tag:'shop_n'});if(n<0)continue;const q=[1,5,10][n];const cost=ITM[k].p*q;
+  if(v===0){while(true){const moneyBox=el('box',{right:0,top:0},`${G.money}円`);
+    const i=await choose(inv.map(k=>`${ITM[k].n}<span style="float:right;margin-left:${U(8)}">${ITM[k].p}</span>`).concat(['やめる']),{pos:{left:0,top:16,right:0},tag:'shop_buy',start:bi});
+    if(i<0||i>=inv.length){moneyBox.remove();break;}bi=i;const k=inv[i];
+    const q=await qtyPicker(ITM[k].p,99,{title:`${ITM[k].n}を いくつ 買う？`,money:G.money,tag:'shop_n'});moneyBox.remove();if(q<=0)continue;const cost=ITM[k].p*q;
     if(G.money<cost){await say('お金が 足りないようです。');continue;}G.money-=cost;addItem(k,q);sfx('money');await say(`${ITM[k].n}を ${q}こ 買いました！`);}}
-  else{const keys=Object.keys(G.bag).filter(k=>G.bag[k]>0&&ITM[k].p>0);if(!keys.length){await say('売れる ものが ありません。');continue;}
-   const i=await choose(keys.map(k=>`${ITM[k].n} ×${G.bag[k]}<span style="float:right;margin-left:${U(6)}">${ITM[k].p>>1}</span>`).concat(['やめる']),{pos:{left:0,top:0,right:0},tag:'shop_sell'});
-   if(i<0||i>=keys.length)continue;const k=keys[i];useBag(k);G.money+=ITM[k].p>>1;sfx('money');await say(`${ITM[k].n}を 売りました。`);}}
+  else{for(;;){const keys=Object.keys(G.bag).filter(k=>G.bag[k]>0&&ITM[k].p>0);if(!keys.length){await say('売れる ものが ありません。');break;}
+   const i=await choose(keys.map(k=>`${ITM[k].n} ×${G.bag[k]}<span style="float:right;margin-left:${U(6)}">${ITM[k].p>>1}</span>`).concat(['やめる']),{pos:{left:0,top:0,right:0},tag:'shop_sell',start:Math.min(si,keys.length-1)});
+   if(i<0||i>=keys.length)break;si=i;const k=keys[i];
+   const q=await qtyPicker(ITM[k].p>>1,Math.min(99,G.bag[k]),{title:`${ITM[k].n}を いくつ 売る？`,tag:'shop_sn'});if(q<=0)continue;
+   for(let n=0;n<q;n++)useBag(k);G.money+=(ITM[k].p>>1)*q;sfx('money');await say(`${ITM[k].n}を ${q}こ 売りました。（${(ITM[k].p>>1)*q}円）`);}}}
  await say('またの お越しを お待ちしています！');}
 // 名前を 入力する 画面（50音の キーボード）
 const KANA_H=['あかさたなはまやらわ','いきしちにひみゆりを','うくすつぬふむよるん','えけせてねへめーれ゛','おこそとのほもっろ゜','ぁぃぅぇぉゃゅょ！？'];
