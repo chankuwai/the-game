@@ -1036,29 +1036,20 @@ function drawShip(g,x,y){if(x<-120||x>170||y<-70||y>150)return;const t=performan
  // 水ぎわの 波
  for(let i=0;i<7;i++){const o=Math.round((t*8+i*16)%110);R(g,x+o,y+53-bob,6,1,C0);}}
 // ぼうれいのとう（ヨミタウン）：石づみの 高い 塔。とがった 屋根、あやしく 光る 窓、こうもり、アーチの 扉
-function drawTower(g,x,y,doorCol){if(x<-80||x>200||y<-80||y>170)return;const t=performance.now()/1000;
- // 石づみの 段（左右の 影と レンガ目地）
- const tier=(l,top,w,h)=>{R(g,l,top,w,h,C3);R(g,l+1,top+1,w-2,h-1,C1);for(let yy=top+3,r=0;yy<top+h;yy+=5,r++){R(g,l+1,yy+4,w-2,1,C2);for(let c=(r%2?4:0);c<w-2;c+=8)R(g,l+1+c,yy,1,4,C2);}R(g,l+1,top+1,3,h-1,C2);R(g,l+w-4,top+1,3,h-1,C2);R(g,l+w-2,top+1,1,h-1,C3);};
- // 胸壁（ぎざぎざの へり）
- const cren=(l,top,w)=>{R(g,l-2,top,w+4,4,C3);for(let c=0;c<w+4;c+=6)R(g,l-2+c,top-3,4,3,C3);};
- // 窓（あやしく ゆらめく）
- const win=(wx,wy,h)=>{const on=Math.sin(t*3+wx*.7+wy)>-.3;R(g,wx-1,wy-1,7,h+1,C3);g.fillStyle=C3;g.beginPath();g.arc(wx+2.5,wy,3.5,Math.PI,0);g.fill();R(g,wx,wy,5,h-1,on?C0:C2);g.fillStyle=on?C0:C2;g.beginPath();g.arc(wx+2.5,wy,2.5,Math.PI,0);g.fill();};
- // 1だんめ（土台・扉）
- tier(x+4,y+30,56,34);cren(x+4,y+30,56);
- // 2だんめ
- tier(x+12,y+6,40,24);cren(x+12,y+6,40);win(x+19,y+13,11);win(x+40,y+13,11);
- // 3だんめ（見はり台）
- tier(x+19,y-12,26,18);cren(x+19,y-12,26);
- const on=Math.sin(t*2)>-.5;g.fillStyle=C3;g.beginPath();g.arc(x+32,y-2,5,0,Math.PI*2);g.fill();g.fillStyle=on?C0:C2;g.beginPath();g.arc(x+32,y-2,3.5,0,Math.PI*2);g.fill();R(g,x+31,y-5,2,7,C3);R(g,x+29,y-3,6,2,C3);
+function drawTower(g,x,y,doorCol){if(x<-80||x>200||y<-80||y>170)return;const t=performance.now()/1000,cx=x+32,L=x+8,W=48,top=y-11,bot=y+60;
+ const ell=(yy,rx,ry,col,half)=>{g.fillStyle=col;g.beginPath();g.ellipse(cx,yy,rx,ry,0,half?0:0,half?Math.PI:Math.PI*2);g.fill();};
+ // 円筒の 胴（左を 明るく、右を 暗くして 丸みを 出す）
+ ell(bot,25,5,C3);R(g,L-1,top,W+2,bot-top,C3);R(g,L,top,W,bot-top,C1);ell(bot,24,4,C1,1);
+ R(g,L+5,top,5,bot-top+3,C0);R(g,L+33,top,9,bot-top+3,C2);R(g,L+42,top,6,bot-top+2,C3);
+ // 横の 帯（ゆるい 曲線）
+ g.strokeStyle=C2;g.lineWidth=1;for(const yy of [y+8,y+28,y+46]){g.beginPath();g.ellipse(cx,yy,24,4,0,0,Math.PI);g.stroke();}
  // とがり屋根
- g.fillStyle=C3;g.beginPath();g.moveTo(x+32,y-31);g.lineTo(x+43,y-14);g.lineTo(x+21,y-14);g.closePath();g.fill();
- g.fillStyle=C2;g.beginPath();g.moveTo(x+32,y-28);g.lineTo(x+40,y-15);g.lineTo(x+32,y-15);g.closePath();g.fill();
- // 土台の 窓
- win(x+12,y+40,9);win(x+47,y+40,9);
+ ell(top,27,5,C3);g.fillStyle=C3;g.beginPath();g.moveTo(cx,y-33);g.lineTo(cx+27,top);g.lineTo(cx-27,top);g.closePath();g.fill();
+ g.fillStyle=C2;g.beginPath();g.moveTo(cx,y-30);g.lineTo(cx-8,top);g.lineTo(cx-16,top);g.closePath();g.fill();
+ // 細い 窓（ほのかに ゆらめく）
+ for(const wy of [y+14,y+33]){const on=Math.sin(t*2+wy)>-.4;R(g,cx-3,wy-1,6,10,C3);R(g,cx-2,wy,4,8,on?C0:C2);}
  // アーチの 扉（マスの 位置に 合わせる）
- const dx=x+doorCol*16;R(g,dx+1,y+50,14,14,C3);g.fillStyle=C3;g.beginPath();g.arc(dx+8,y+50,7,Math.PI,0);g.fill();R(g,dx+3,y+51,10,13,C2);g.fillStyle=C2;g.beginPath();g.arc(dx+8,y+51,5,Math.PI,0);g.fill();R(g,dx+8,y+48,1,16,C3);
- // こうもり
- for(let i=0;i<2;i++){const a=t*1.4+i*2.6,bx=x+32+Math.cos(a)*28,by=y-6+Math.sin(a*1.7)*8,w=Math.sin(t*14+i)>0;g.fillStyle=C3;g.fillRect(bx-1,by,3,2);g.fillRect(bx-4,by+(w?-1:1),3,1);g.fillRect(bx+2,by+(w?-1:1),3,1);}}
+ const dx=x+doorCol*16;R(g,dx+1,y+51,14,13,C3);g.fillStyle=C3;g.beginPath();g.arc(dx+8,y+51,7,Math.PI,0);g.fill();R(g,dx+3,y+52,10,12,C2);g.fillStyle=C2;g.beginPath();g.arc(dx+8,y+52,5,Math.PI,0);g.fill();}
 function drawSigns(g,m,camX,camY){if(m.id==='hajime')drawLab(g,4*16-camX,9*16-camY);
  if(m.id==='yomi')drawTower(g,11*16-camX,8*16-camY,2);
  if(m.id==='minato')drawShip(g,10*16+13-camX,15*16-1-camY);
