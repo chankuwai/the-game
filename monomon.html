@@ -1422,11 +1422,14 @@ async function shopScreen(town){const inv=SHOPS[town]||SHOPS.tsugi;BOT.inv=inv;l
     const i=await choose(inv.map(k=>`${ITM[k].n}<span style="float:right;margin-left:${U(8)}">${ITM[k].p}</span>`).concat(['やめる']),{pos:{left:0,top:16,right:0},tag:'shop_buy',start:bi});
     if(i<0||i>=inv.length){moneyBox.remove();break;}bi=i;const k=inv[i];
     const q=await qtyPicker(ITM[k].p,99,{title:`${ITM[k].n}を いくつ 買う？`,money:G.money,tag:'shop_n'});moneyBox.remove();if(q<=0)continue;const cost=ITM[k].p*q;
-    if(G.money<cost){await say('お金が 足りないようです。');continue;}G.money-=cost;addItem(k,q);sfx('money');await say(`${ITM[k].n}を ${q}こ 買いました！`);}}
+    if(G.money<cost){await say('お金が 足りないようです。');continue;}
+    {const q2=el('box msg',null,`${ITM[k].n}を ${q}こ お買い上げで ${cost}円に なります。\nよろしいですか？`);q2.style.whiteSpace='pre-line';const ok=await yesno('shop_ok');q2.remove();if(!ok)continue;}
+    G.money-=cost;addItem(k,q);sfx('money');await say(`${ITM[k].n}を ${q}こ 買いました！`);}}
   else{for(;;){const keys=Object.keys(G.bag).filter(k=>G.bag[k]>0&&ITM[k].p>0);if(!keys.length){await say('売れる ものが ありません。');break;}
    const i=await choose(keys.map(k=>`${ITM[k].n} ×${G.bag[k]}<span style="float:right;margin-left:${U(6)}">${ITM[k].p>>1}</span>`).concat(['やめる']),{pos:{left:0,top:0,right:0},tag:'shop_sell',start:Math.min(si,keys.length-1)});
    if(i<0||i>=keys.length)break;si=i;const k=keys[i];
    const q=await qtyPicker(ITM[k].p>>1,Math.min(99,G.bag[k]),{title:`${ITM[k].n}を いくつ 売る？`,tag:'shop_sn'});if(q<=0)continue;
+   {const q2=el('box msg',null,`${ITM[k].n}を ${q}こ お売りいただくと ${(ITM[k].p>>1)*q}円に なります。\nよろしいですか？`);q2.style.whiteSpace='pre-line';const ok=await yesno('shop_sok');q2.remove();if(!ok)continue;}
    for(let n=0;n<q;n++)useBag(k);G.money+=(ITM[k].p>>1)*q;sfx('money');await say(`${ITM[k].n}を ${q}こ 売りました。（${(ITM[k].p>>1)*q}円）`);}}}
  await say('またの お越しを お待ちしています！');}
 // 名前を 入力する 画面（50音の キーボード）
