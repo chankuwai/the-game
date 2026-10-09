@@ -2097,10 +2097,12 @@ function moveInfo(mv){const cat={phys:'物理',spec:'特殊',status:'変化'}[mv
 async function learnMove(m,id){const mv=MOVES[id];
  if(m.moves.length<4){m.moves.push({id,pp:mv.pp});sfx('lvup');await say(`${mname(m)}は 新しく ${mv.n}を 覚えた！`);return;}
  await say(`${mname(m)}は ${mv.n}を 覚えたい……\fしかし 技を 4つ 覚えるので 精一杯だ！`);
- if(!(await yesno('learn:'+id))){await say(`${mname(m)}は ${mv.n}を 覚えずに 終わった！`);return;}
+ // あきらめる ときも 本当に いいか 確かめる
+ const giveUp=async()=>{const q=el('box msg',null,`${mv.n}を 覚えるのを あきらめますか？`);const ok=await yesno('giveup_ok');q.remove();if(ok)await say(`${mname(m)}は ${mv.n}を 覚えずに 終わった！`);return ok;};
+ for(;;){if(await yesno('learn:'+id))break;if(await giveUp())return;}
  await say(moveInfo(mv));
  let i;for(;;){i=await choose(m.moves.map(x=>MOVES[x.id].n).concat(['やめる']),{pos:{left:0,bottom:46,right:0},tag:'forget:'+id,ctx:m});
-  if(i<0||i>=4){await say(`${mname(m)}は ${mv.n}を 覚えずに 終わった！`);return;}
+  if(i<0||i>=4){if(await giveUp())return;continue;}
   // 性能と 確認の 質問を 表示したまま はい／いいえ
   const info=el('box msg',null,'');info.style.whiteSpace='pre-line';info.textContent=`${moveInfo(MOVES[m.moves[i].id])}\n本当に この 技を 忘れさせますか？`;
   const ok=await yesno('forget_ok');info.remove();if(ok)break;}
