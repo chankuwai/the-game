@@ -1989,7 +1989,7 @@ async function battleLoop(){
   for(const o of order){const atk=o.side===0?B.ally():B.foe(),def=o.side===0?B.foe():B.ally();if(atk.hp<=0||def.hp<=0)continue;
    await doMove(o.side,o.mv,o.slot);
    // 相手が 倒れたら その 場で 倒れる 演出。やけど・毒などは この あと すぐ 受けて、経験値は その 後
-   if(B.foe().hp<=0){if(!B.foeDown)await foeDownAnim();break;}
+   if(B.foe().hp<=0){if(!B.foeDown)await foeDownAnim();if(!B.foeTeam.some(m=>m.hp>0)&&await checkFaint())return;break;}  // 最後の 1匹なら 状態異常の ダメージは なしで 決着
    if(await checkFaint())return;
    if(B.swapped)break;}  // 倒れて 入れ替わったら その ターンは おしまい
   // ターン終了
