@@ -1543,6 +1543,8 @@ const TMAP={nodes:{hajime:[12,104,'t'],tsugi:[12,76,'t'],mori:[38,76,'f'],mizu:[
  stubs:[['r13','ice'],['r6','plant']],
  maps:{mori:['mori1','mori2'],hoshi:['hoshi1','hoshi2','hoshi3'],iway:['iway1','iway2'],vol:['vol1','vol2','vol3'],ice:['ice1','ice2','ice3'],plant:['plant'],league:['lgout'],
   r14:['r14','r15'],vroad1:['vroad1','vroad2','vroad3']},};
+const TMAP_INV=[['..X.....X..','...X...X...','..XXXXXXX..','.XX.XXX.XX.','XXXXXXXXXXX','X.XXXXXXX.X','X.X.....X.X','...XX.XX...'],
+ ['..X.....X..','X..X...X..X','X.XXXXXXX.X','XXX.XXX.XXX','XXXXXXXXXXX','.XXXXXXXXX.','..X.....X..','.X.......X.']];
 function tmapSpots(){if(TMAP.S)return TMAP.S;const S=[],N=TMAP.nodes;
  for(const id in N)S.push({id,x:N[id][0],y:N[id][1],k:N[id][2],maps:TMAP.maps[id]||[id]});
  for(const [a,b,id,w] of TMAP.edges)if(id)S.push({id,x:(N[a][0]+N[b][0])/2,y:(N[a][1]+N[b][1])/2,k:'r',w:!!w,a,b,maps:TMAP.maps[id]||[id]});
@@ -1610,14 +1612,13 @@ function townMap(o2){o2=o2||{};return new Promise(res=>{const box=fullBox('');bo
    else if(k==='mt'){g.fillStyle=C2;g.beginPath();g.moveTo(x-4,y+3);g.lineTo(x,y-3);g.lineTo(x+4,y+3);g.fill();g.fillStyle=C0;g.beginPath();g.moveTo(x-1.2,y-1.2);g.lineTo(x,y-3);g.lineTo(x+1.2,y-1.2);g.fill();}
    else{g.fillStyle=C2;g.fillRect(x-1.5,y,3,1);g.fillRect(x-.5,y-1,1,3);}}
   // 道路
-  for(const [a,b,id,w] of TMAP.edges){const [x1,y1]=N[a],[x2,y2]=N[b];const s=S.find(x=>x.id===id),hl=hab&&s&&hab.has(id)&&Math.floor(t*3)%2;
+  for(const [a,b,id,w] of TMAP.edges){const [x1,y1]=N[a],[x2,y2]=N[b];const hl=false;
    const L=Math.min(x1,x2),T=Math.min(y1,y2),Wd=Math.abs(x2-x1),Ht=Math.abs(y2-y1);
    if(w){g.fillStyle=hl?C3:C2;const n=Math.max(Wd,Ht);for(let i=0;i<n;i+=4){const x=x1+(x2-x1)*i/n,y=y1+(y2-y1)*i/n;g.fillRect(x-1,y-1,hl?3:2,hl?3:2);}continue;}
    g.fillStyle=C3;g.fillRect(L-1.5,T-1.5,Wd+3,Ht+3);g.fillStyle=hl?C3:C1;g.fillRect(L-.5,T-.5,Wd+1,Ht+1);}
   for(const [a,b] of TMAP.stubs){const s=S.find(x=>x.id===a);const [x2,y2]=N[b];const n=Math.hypot(x2-s.x,y2-s.y);g.fillStyle=C2;for(let i=0;i<n;i+=3)g.fillRect(s.x+(x2-s.x)*i/n-.5,s.y+(y2-s.y)*i/n-.5,1,1);}
   // 場所の しるし
   for(const s of S){if(s.k==='r')continue;const {x,y,k}=s;const kn=known(s),hl=hab&&hab.has(s.id);
-   if(hl&&Math.floor(t*3)%2){g.fillStyle=C3;g.beginPath();g.arc(x,y,8,0,TAU);g.fill();g.fillStyle=C0;g.beginPath();g.arc(x,y,6.5,0,TAU);g.fill();}
    g.fillStyle=C3;
    if(k==='t'){g.fillRect(x-5,y-4,10,9);g.fillStyle=kn?C0:C1;g.fillRect(x-4,y-3,8,7);g.fillStyle=C3;g.fillRect(x-3,y-1,2,2);g.fillRect(x+1,y-1,2,2);g.fillRect(x-1,y+2,2,2);}
    else if(k==='l'){g.fillRect(x-4,y-5,8,10);g.fillStyle=C0;g.fillRect(x-3,y-4,6,8);g.fillStyle=C3;g.fillRect(x-1,y-8,2,4);g.fillRect(x-2,y-1,4,2);}
@@ -1628,6 +1629,11 @@ function townMap(o2){o2=o2||{};return new Promise(res=>{const box=fullBox('');bo
    else if(k==='p'){g.fillRect(x-5,y-2,10,7);g.fillRect(x+2,y-6,2,4);g.fillStyle=C0;g.fillRect(x-4,y-1,8,5);g.fillStyle=C3;g.fillRect(x-1,y-1,2,2);g.fillRect(x-2,y+1,2,2);}
    if(kn&&(k==='t'||k==='l')){const s2=nm(s).replace(/(タウン|シティ|むら|じま)$/,'').replace('モノクロ','');g.font='bold 5px sans-serif';g.textAlign='center';g.textBaseline='top';
     const tw=g.measureText(s2).width;const ly=y+5>100?y-12:y+6;g.fillStyle=C0;g.fillRect(x-tw/2-1,ly-.5,tw+2,6.5);g.fillStyle=C3;g.fillText(s2,x,ly);}}
+  // すみかに モンスターの アイコン（点滅）
+  if(hab&&Math.floor(t*2.5)%2){const fr=Math.floor(t*5)%2;const P=TMAP_INV[fr];
+   for(const s of S){if(!hab.has(s.id))continue;const ox=Math.round(s.x)-5,oy=Math.round(s.y)-4;
+    g.fillStyle=C0;for(let r=0;r<8;r++)for(let c=0;c<11;c++)if(P[r][c]==='X')g.fillRect(ox+c-1,oy+r-1,3,3);
+    g.fillStyle=C3;for(let r=0;r<8;r++)for(let c=0;c<11;c++)if(P[r][c]==='X')g.fillRect(ox+c,oy+r,1,1);}}
   // つぎの 目的地
   if(!hab&&N[next.node]&&Math.floor(t*2)%2){const [x,y]=N[next.node];g.strokeStyle=C3;g.lineWidth=1;g.strokeRect(x-7.5,y-6.5,15,14);}
   // 今いる ところ
