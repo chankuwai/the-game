@@ -101,6 +101,7 @@ const GENRES=[
  {id:'sim',em:'💰',name:'シミュレーション・経営'},
  {id:'table',em:'🀄',name:'テーブル・対戦'},
  {id:'art',em:'🎨',name:'ホラー・お絵描き'},
+ {id:'kids',em:'🧸',name:'キッズ'},
 ];
 // id, タイトル, ジャンル, アイコン, 色1, 色2, 説明, 新作
 // オリジナルアイコン（SVG）。無いゲームは絵文字を使う
@@ -132,6 +133,7 @@ const GAMES=[
  ['mahjong','イカサマ雀荘','table','🀄','#43a047','#1b3a1b','イカサマ技で勝ちを拾う4人打ち麻雀。使うほど相手の怪しみゲージが溜まり、100%でバレる。'],
  ['shiomaneki','潮招きの夜','art','🌕','#c39b56','#0a1315','満月の漁村で消えた旧友を追え。百面骰子と正気度で進む和風クトゥルフ探索。結末は八つ、探索者は次章へ引き継がれる。',1],
  ['okaeri','おかえりさま','art','🏮','#e65100','#1a0d0d','名前を呼ばれても振り返るな。サイコロで進むホラーゲームブック。'],
+ ['nikoniko','にこにこ あそびばこ','kids','🧸','#ffc93c','#4fbf73','タッチだけで遊べる、小さな子向けのやさしいミニゲーム20本。ふうせん・どうぶつ・おえかき・はなび。失敗なしで、たくさん褒めてくれる。',1],
  ['gahaku','うろおぼえ画伯','art','🎨','#ec407a','#00838f','一瞬だけ見えたお手本を、記憶だけで描き写す。全5問のお絵描き採点。'],
 ].map(([id,title,genre,icon,c1,c2,desc,isNew])=>({id,title,genre,icon:ICONS[id]||icon,svg:!!ICONS[id],c1,c2,desc,isNew:!!isNew}));
 const J=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}};
