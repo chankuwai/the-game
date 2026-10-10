@@ -1038,14 +1038,14 @@ function drawShip(g,x,y){if(x<-120||x>170||y<-70||y>150)return;const t=performan
 // ぼうれいのとう（ヨミタウン）：石づみの 高い 塔。とがった 屋根、あやしく 光る 窓、こうもり、アーチの 扉
 function drawTower(g,x,y,doorCol){if(x<-80||x>200||y<-80||y>170)return;const t=performance.now()/1000,cx=x+32,L=x+8,W=48,top=y-11,bot=y+60;
  const ell=(yy,rx,ry,col,half)=>{g.fillStyle=col;g.beginPath();g.ellipse(cx,yy,rx,ry,0,half?0:0,half?Math.PI:Math.PI*2);g.fill();};
- // 円筒の 胴（左を 明るく、右を 暗くして 丸みを 出す）
+ // 円筒の 胴（光沢なしの つや消し。右側だけ 影）
  ell(bot,25,5,C3);R(g,L-1,top,W+2,bot-top,C3);R(g,L,top,W,bot-top,C1);ell(bot,24,4,C1,1);
- R(g,L+5,top,5,bot-top+3,C0);R(g,L+33,top,9,bot-top+3,C2);R(g,L+42,top,6,bot-top+2,C3);
+ R(g,L+36,top,12,bot-top+2,C2);
  // 横の 帯（ゆるい 曲線）
  g.strokeStyle=C2;g.lineWidth=1;for(const yy of [y+8,y+28,y+46]){g.beginPath();g.ellipse(cx,yy,24,4,0,0,Math.PI);g.stroke();}
  // とがり屋根
  ell(top,27,5,C3);g.fillStyle=C3;g.beginPath();g.moveTo(cx,y-33);g.lineTo(cx+27,top);g.lineTo(cx-27,top);g.closePath();g.fill();
- g.fillStyle=C2;g.beginPath();g.moveTo(cx,y-30);g.lineTo(cx-8,top);g.lineTo(cx-16,top);g.closePath();g.fill();
+ 
  // 細い 窓（ほのかに ゆらめく）
  for(const wy of [y+14,y+33]){const on=Math.sin(t*2+wy)>-.4;R(g,cx-3,wy-1,6,10,C3);R(g,cx-2,wy,4,8,on?C0:C2);}
  // アーチの 扉（マスの 位置に 合わせる）
@@ -1403,15 +1403,16 @@ async function dexScreen(){
   <div class="xs" style="display:flex;gap:${U(2)};flex-wrap:wrap">${d.t.map(t=>`<span style="border:${U(.5)} solid #181818;padding:0 ${U(1.5)}">${TY[t]}</span>`).join('')}</div>
   <div class="xs" style="margin-top:${U(2)}">${hw(cur,c)}</div><div class="xs">${c?'● 捕まえた':'○ 見つけた'}</div>${evo?`<div class="xs" style="color:#585858">${evo}</div>`:''}</div>
   <div class="sm" style="position:absolute;left:${U(5)};right:${U(5)};top:${U(70)};bottom:${U(12)};border-top:${U(.6)} solid #181818;padding-top:${U(2.5)};line-height:1.5;white-space:normal;overflow:hidden">${c?dexText(cur):'まだ 捕まえていないので くわしい ことは わからない。'}</div>
-  <div class="xs" style="position:absolute;left:${U(5)};right:${U(5)};bottom:${U(3)};display:flex;justify-content:space-between;color:#585858"><span id="dpv">◀ 前</span><span id="dbk" style="border:${U(.5)} solid #181818;padding:0 ${U(1.5)};color:#181818;cursor:pointer">戻る</span><span id="dnx">次 ▶</span></div>`;
+  <div class="xs" style="position:absolute;left:${U(5)};right:${U(5)};bottom:${U(3)};display:flex;justify-content:space-between;color:#585858"><span id="dpv">◀ 前</span><span><span id="dhb" style="border:${U(.5)} solid #181818;padding:0 ${U(1.5)};color:#181818;cursor:pointer">A：すみか</span>　<span id="dbk" style="border:${U(.5)} solid #181818;padding:0 ${U(1.5)};color:#181818;cursor:pointer">戻る</span></span><span id="dnx">次 ▶</span></div>`;
   const g=dt.querySelector('canvas').getContext('2d');g.imageSmoothingEnabled=false;g.drawImage(monImg(d.art,false),0,0);
-  dt.querySelector('#dpv').addEventListener('pointerdown',e=>{e.stopPropagation();step(-1);});dt.querySelector('#dnx').addEventListener('pointerdown',e=>{e.stopPropagation();step(1);});};
+  dt.querySelector('#dhb').addEventListener('pointerdown',e=>{e.stopPropagation();habitat();});dt.querySelector('#dpv').addEventListener('pointerdown',e=>{e.stopPropagation();step(-1);});dt.querySelector('#dnx').addEventListener('pointerdown',e=>{e.stopPropagation();step(1);});};
  const step=dir=>{for(let k=1;k<N;k++){const i=(cur+dir*k+N*k)%N;if(G.seen[i]){cur=i;break;}}sfx('sel');drawDetail();};
  const open=()=>{if(!G.seen[cur])return;detail=true;sfx('sel');lv.style.display=sb.style.display=sbk.style.display=pv.style.display='none';dt.style.display='block';drawDetail();};
+ let busyH=false;const habitat=async()=>{if(busyH)return;busyH=true;sfx('ok');await townMap({sp:cur});busyH=false;};
  const back=()=>{detail=false;dt.style.display='none';lv.style.display=sb.style.display=sbk.style.display=pv.style.display='block';drawList();};
  return new Promise(res=>{const close=()=>{uiPop(st);uiPop(o);res();};const st={el:null};
   st.onEv=ev=>{
-   if(detail){if(ev==='D0'||ev==='D3')step(-1);else if(ev==='D2'||ev==='D1')step(1);else if(ev==='B'||ev==='A'||ev==='TAP')back();return;}
+   if(detail){if(ev==='D0'||ev==='D3')step(-1);else if(ev==='D2'||ev==='D1')step(1);else if(ev==='A')habitat();else if(ev==='B'||ev==='TAP')back();return;}
    if(ev==='D0'){cur=(cur+N-1)%N;drawList();}else if(ev==='D2'){cur=(cur+1)%N;drawList();}
    else if(ev==='D1'){cur=Math.min(N-1,cur+V);drawList();}else if(ev==='D3'){cur=Math.max(0,cur-V);drawList();}
    else if(ev==='A')open();else if(ev==='B')close();};
@@ -1531,47 +1532,115 @@ async function pcScreen(){await say(`${G.name}は パソコンの スイッチ�
   else if(v===2){for(;;){const i=await boxScreen('ボックス',{tag:'pc_view',hint:'タップで くわしく 見る'});if(i<0)break;await summary(G.box[i]);}}
   else break;}}
 // タウンマップ：町と 道路を 線で つないだ 地図。今いる 場所が 点滅し、次の 目的地を 表示
+// ---- タウンマップ：町・道路・ダンジョン。カーソルを 合わせると 施設や 出る モノモンを 表示 ----
 const TMAP={nodes:{hajime:[12,104,'t'],tsugi:[12,76,'t'],mori:[38,76,'f'],mizu:[64,76,'t'],hoshi:[64,102,'c'],minato:[90,102,'t'],raika:[116,102,'t'],iway:[116,76,'c'],morino:[142,76,'t'],
- yomi:[142,50,'t'],mirai:[116,50,'t'],kodama:[90,50,'t'],hanabi:[64,50,'t'],shiokaze:[64,24,'t'],yuki:[38,24,'t'],ryu:[12,24,'t'],league:[12,4,'l']},
- edges:[['hajime','tsugi','r1'],['tsugi','mori','r2'],['mori','mizu','mori1'],['mizu','hoshi','r3'],['hoshi','minato','r4'],['minato','raika','r5'],['raika','iway','r6'],['iway','morino','r7'],
-  ['morino','yomi','r8'],['yomi','mirai','r9'],['mirai','kodama','r10'],['kodama','hanabi','r11'],['hanabi','shiokaze','r13'],['shiokaze','yuki','r14'],['yuki','ryu','r16'],['ryu','league','vroad1']],
- alias:{mori1:'mori',mori2:'mori',r15:'r14',r12:'hanabi'},
- names:{mori:'まよいの森',hoshi:'ほしふる洞窟',iway:'いわやま',league:'モノクロリーグ'}};
-function tmapWhere(){// 今いる マップを 地図の 点か 線に
- const N=TMAP.nodes,E=TMAP.edges;const hit=id=>{id=TMAP.alias[id]||id;if(N[id])return {node:id};const e=E.find(e=>e[2]===id);if(e)return {edge:e};if(/^hoshi/.test(id))return {node:'hoshi'};if(/^iway/.test(id))return {node:'iway'};if(/^(vroad|lg)/.test(id))return {node:'league'};return null;};
- let r=hit(G.map);if(r)return r;const seen=new Set([G.map]);const q=[G.map];
- while(q.length){const m=q.shift();for(const w of MAPS[m].warps){if(seen.has(w.to))continue;seen.add(w.to);r=hit(w.to);if(r)return r;q.push(w.to);}}return {node:'hajime'};}
+ yomi:[142,50,'t'],mirai:[116,50,'t'],kodama:[90,50,'t'],hanabi:[64,50,'t'],shiokaze:[64,24,'t'],yuki:[38,24,'t'],ryu:[12,24,'t'],league:[12,5,'l'],
+ vol:[36,50,'v'],ice:[88,33,'i'],plant:[140,95,'p']},
+ // [はし, はし, 道路の id, 水の上なら 1]
+ edges:[['hajime','tsugi','r1'],['tsugi','mori','r2'],['mori','mizu',''],['mizu','hoshi','r3'],['hoshi','minato','r4'],['minato','raika','r5'],['raika','iway','r6'],['iway','morino','r7'],
+  ['morino','yomi','r8'],['yomi','mirai','r9'],['mirai','kodama','r10'],['kodama','hanabi','r11'],['hanabi','vol','r12'],['hanabi','shiokaze','r13',1],['shiokaze','yuki','r14',1],['yuki','ryu','r16'],['ryu','league','vroad1']],
+ // 道路の 途中から 入る わき道
+ stubs:[['r13','ice'],['r6','plant']],
+ maps:{mori:['mori1','mori2'],hoshi:['hoshi1','hoshi2','hoshi3'],iway:['iway1','iway2'],vol:['vol1','vol2','vol3'],ice:['ice1','ice2','ice3'],plant:['plant'],league:['lgout'],
+  r14:['r14','r15'],vroad1:['vroad1','vroad2','vroad3']},};
+function tmapSpots(){if(TMAP.S)return TMAP.S;const S=[],N=TMAP.nodes;
+ for(const id in N)S.push({id,x:N[id][0],y:N[id][1],k:N[id][2],maps:TMAP.maps[id]||[id]});
+ for(const [a,b,id,w] of TMAP.edges)if(id)S.push({id,x:(N[a][0]+N[b][0])/2,y:(N[a][1]+N[b][1])/2,k:'r',w:!!w,a,b,maps:TMAP.maps[id]||[id]});
+ return TMAP.S=S;}
+// マップの id → 地図の 場所（建物や ダンジョンの 中なら 出入口を たどる）
+function tmapSpot(mid){const S=tmapSpots();const f=id=>S.find(s=>s.maps.includes(id));let r=f(mid);if(r)return r;
+ const seen=new Set([mid]),q=[mid];while(q.length){const m=q.shift();if(!MAPS[m])continue;for(const w of MAPS[m].warps){if(seen.has(w.to))continue;seen.add(w.to);r=f(w.to);if(r)return r;q.push(w.to);}}return f('hajime');}
+// 場所ごとの 野生モノモン（草むら・洞窟／つり）と、出る マップ
+function tmapWild(){if(TMAP.W)return TMAP.W;const W={};
+ for(const id in MAPS){const m=MAPS[id];if(!(m.enc&&m.enc.length)&&!(m.encW&&m.encW.length))continue;const s=tmapSpot(id);const w=W[s.id]||(W[s.id]={g:[],f:[],maps:[]});w.maps.push(id);
+  for(const e of m.enc||[]){const sp=DXI[e[0]];if(sp!=null&&!w.g.includes(sp))w.g.push(sp);}
+  for(const e of m.encW||[]){const sp=DXI[e[0]];if(sp!=null&&!w.f.includes(sp))w.f.push(sp);}}
+ return TMAP.W=W;}
+// 「〇〇 1F」などを まとめた エリア名
+const tmapArea=n=>n.replace(/ (\d+F|B\d+F|おく|さいおく|ちょうじょう)$/,'');
+// その モノモンが 出る 場所（図鑑の すみか）
+function dexHabitat(sp){const out=[];
+ for(const id in MAPS){const m=MAPS[id];const g=(m.enc||[]).some(e=>DXI[e[0]]===sp),f=(m.encW||[]).some(e=>DXI[e[0]]===sp);if(!g&&!f)continue;
+  const n=tmapArea(m.name)+(g?'':'（つり）');if(!out.includes(n))out.push(n);}
+ return out;}
+function tmapWhere(){const s=tmapSpot(G.map);return s.k==='r'?{edge:TMAP.edges.find(e=>e[2]===s.id)}:{node:s.id};}
 function tmapNext(){const b=badgeCount();const GT=['tsugi','mizu','raika','morino','yomi','mirai','yuki','ryu'];
  if(b<8)return {node:GT[b],text:`${MAPS[GT[b]].name}の ジム（${b+1}つめの バッジ）`};
  if(!G.flags.champ)return {node:'league',text:'モノクロリーグ（リュウジシティの 北）'};return {node:'ryu',text:'リュウジシティの 謎の 洞窟'};}
-function townMap(){return new Promise(res=>{const box=fullBox('');box.style.padding='0';const o={el:box};const N=TMAP.nodes;
- const known=id=>id==='league'?badgeCount()>=8:id==='mori'||id==='hoshi'||id==='iway'?true:!!(G.visited[id]||G.map===id||(MAPS[id]&&MAPS[id].fly&&G.visited[id]));
- const nm=id=>TMAP.names[id]||(MAPS[id]?MAPS[id].name:id);const here=tmapWhere(),next=tmapNext();
- box.innerHTML=`<div class="sm" style="position:absolute;left:${U(5)};right:${U(5)};top:${U(2.5)};height:${U(9)};display:flex;align-items:center;justify-content:space-between;border-bottom:${U(.6)} solid #181818"><span>タウンマップ</span><span class="xs" data-close style="border:${U(.5)} solid #181818;padding:0 ${U(1.5)};cursor:pointer">とじる</span></div>
- <canvas width="462" height="333" style="position:absolute;left:${U(2)};top:${U(13)};width:${U(154)};height:${U(111)};image-rendering:pixelated"></canvas>
- <div class="xs" style="position:absolute;left:${U(5)};right:${U(5)};top:${U(125)};line-height:1.45"><div id="tmh"></div><div>つぎの 目的地：${next.text}</div></div>`;
- const cv=box.querySelector('canvas'),g=cv.getContext('2d');g.imageSmoothingEnabled=false;
+// o.sp を わたすと その モノモンの すみかを 光らせる
+function townMap(o2){o2=o2||{};return new Promise(res=>{const box=fullBox('');box.style.padding='0';const o={el:box};const N=TMAP.nodes,S=tmapSpots(),W=tmapWild();
+ const been=id=>!!((G.been&&G.been[id])||G.visited[id]||G.map===id);
+ const nbr=id=>TMAP.edges.filter(e=>e[0]===id||e[1]===id).map(e=>e[0]===id?e[1]:e[0]);
+ const known=s=>s.k==='l'?badgeCount()>=8:s.maps.some(been)||(s.k==='r'?been(s.a)&&been(s.b):s.k!=='t'&&s.k!=='i'&&s.k!=='p'&&nbr(s.id).some(been));
+ const nm=s=>s.id==='league'?'モノクロリーグ':s.id==='r14'?MAPS.r14.name+'・'+MAPS.r15.name:TMAP.maps[s.id]?tmapArea(MAPS[s.maps[0]].name):MAPS[s.id]?MAPS[s.id].name:s.id;
+ const hereS=tmapSpot(G.map),next=tmapNext(),sp=o2.sp;
+ const hab=sp!=null?new Set(S.filter(s=>W[s.id]&&(W[s.id].g.includes(sp)||W[s.id].f.includes(sp))).map(s=>s.id)):null;
+ let cur=hab&&hab.size?S.find(s=>hab.has(s.id)):hereS,moved=false;
+ box.innerHTML=`<div class="sm" style="position:absolute;left:${U(5)};right:${U(5)};top:${U(2.5)};height:${U(9)};display:flex;align-items:center;justify-content:space-between;border-bottom:${U(.6)} solid #181818"><span>${sp!=null?DEX[sp].n+'の すみか':'タウンマップ'}</span><span class="xs" data-close style="border:${U(.5)} solid #181818;padding:0 ${U(1.5)};cursor:pointer">とじる</span></div>
+ <canvas width="462" height="333" style="position:absolute;left:${U(15)};top:${U(12.5)};width:${U(130)};height:${U(94)};image-rendering:pixelated"></canvas>
+ <div class="xs" id="tmh" style="position:absolute;left:${U(4)};right:${U(4)};top:${U(107)};bottom:${U(1)};line-height:1.3;overflow:hidden;border-top:${U(.5)} solid #a8a8a8;padding-top:${U(1)}"></div>`;
+ const cv=box.querySelector('canvas'),g=cv.getContext('2d');g.imageSmoothingEnabled=false;const info=box.querySelector('#tmh');
+ const monList=a=>a.map(i=>G.seen[i]?DEX[i].n:'？').join('・');
+ const showInfo=()=>{const s=cur;let h='';
+  if(!moved&&hab){const L=dexHabitat(sp);h=`<b>${DEX[sp].n}が 出る 場所</b><br>`+(L.length?L.join('・'):'野生では 見つからない');info.innerHTML=h;return;}
+  if(!known(s)){info.innerHTML='<b>？？？</b><br>まだ 行っていない';return;}
+  h=`<b>${nm(s)}</b>${s===hereS?'　◆今いる ところ':''}${hab&&hab.has(s.id)?'　★すみか':''}`;
+  if(s.k==='t'||s.k==='l'){const tos=[...new Set((MAPS[s.k==='l'?'lgout':s.id]||{warps:[]}).warps.map(w=>w.to))];const fs=[];
+   for(const t of tos){let f=null;const p=t.split('_')[0];
+    if(p==='c')f='センター';else if(p==='s')f=MAPS[t].name==='ショップ'?'ショップ':MAPS[t].name;else if(p==='h'||p==='h2')f='みんか';
+    else if(p==='g'){const L=MAPS[t].npcs.find(n=>n.kind==='leader'&&n.badge);f='ジム'+(L?(G.flags['b'+L.badge]?'●':'○'):'');}
+    else if(t==='lg0')f='リーグ本部';else if(MAPS[t]&&(MAPS[t].theme!=='indoor'||t==='casino'||t==='lab'||t==='home'))f=tmapArea(MAPS[t].name);if(f&&!fs.includes(f))fs.push(f);}
+   if(fs.length)h+=`<br>施設：${fs.join('・')}`;}
+  for(const [a,b] of TMAP.stubs)if(a===s.id){const t=S.find(x=>x.id===b);h+=`<br>わき道：${known(t)?nm(t):'？？？'}`;}
+  const w=W[s.id];if(w){const ins=s.k==='t'?[...new Set(w.maps.filter(m=>m!==s.id&&MAPS[m].enc&&MAPS[m].enc.length).map(m=>tmapArea(MAPS[m].name)))]:[];if(w.g.length)h+=`<br>${ins.length?ins.join('・')+'の モノモン':'出る モノモン'}：${monList(w.g)}`;if(w.f.length)h+=`<br>つり：${monList(w.f)}`;}
+  else if(s.k==='r'&&!s.w)h+='<br>野生の モノモンは 出ない';
+  if(s===hereS&&!hab)h+=`<br>つぎの 目的地：${next.text}`;
+  info.innerHTML=h;};
+ // 飾り（森の 木・山・雪）
+ const DECO=[['tree',30,68],['tree',44,68],['tree',33,84],['tree',46,83],['tree',40,90],['mt',58,93],['mt',72,92],['mt',109,69],['mt',124,68],['mt',122,84],['mt',28,43],['mt',44,43],['snow',30,17],['snow',46,18],['snow',20,31],['snow',6,16],['tree',98,42],['tree',82,57],['tree',150,84]];
  const draw=t=>{g.setTransform(3,0,0,3,0,0);g.fillStyle=C0;g.fillRect(0,0,154,111);
-  // 海と 陸の 雰囲気（左下から 右上へ 点々）
-  g.fillStyle=C1;for(let y=2;y<111;y+=6)for(let x=(y/6)%2?3:0;x<154;x+=6)g.fillRect(x,y,1,1);
-  for(const [a,b,id] of TMAP.edges){const [x1,y1]=N[a],[x2,y2]=N[b];const on=here.edge&&here.edge[2]===id;
-   g.fillStyle=C3;g.fillRect(Math.min(x1,x2)-1.5,Math.min(y1,y2)-1.5,Math.abs(x2-x1)+3,Math.abs(y2-y1)+3);
-   g.fillStyle=on&&Math.floor(t*3)%2?C3:C1;g.fillRect(Math.min(x1,x2)-.5,Math.min(y1,y2)-.5,Math.abs(x2-x1)+1,Math.abs(y2-y1)+1);}
-  for(const id in N){const [x,y,k]=N[id];const kn=known(id),me=here.node===id,nx=next.node===id;
-   const s=k==='t'?5:k==='l'?6:4;g.fillStyle=C3;g.fillRect(x-s,y-s,s*2,s*2);g.fillStyle=k==='c'?C2:k==='f'?C2:kn?C0:C1;g.fillRect(x-s+1,y-s+1,s*2-2,s*2-2);
-   if(k==='l'){g.fillStyle=C3;g.fillRect(x-2,y-2,4,4);}
-   if(nx&&Math.floor(t*2)%2){g.strokeStyle=C3;g.lineWidth=1;g.strokeRect(x-s-2.5,y-s-2.5,s*2+5,s*2+5);}
-   if(me){const b=Math.floor(t*3)%2;g.fillStyle=b?C3:C0;g.fillRect(x-2,y-2,4,4);}
-   if(kn&&k!=='c'){const s2=(TMAP.names[id]||(MAPS[id]?MAPS[id].name:'')).replace(/(タウン|シティ|むら|じま)$/,'');g.font='bold 5px sans-serif';g.textAlign='center';g.textBaseline='top';
-    const tw=g.measureText(s2).width;const ly=y+s+1>100?y-s-7:y+s+1.5;g.fillStyle=C0;g.fillRect(x-tw/2-1,ly-.5,tw+2,6.5);g.fillStyle=C3;g.fillText(s2,x,ly);}}
-  if(here.edge){const [a,b]=here.edge;const mx=(N[a][0]+N[b][0])/2,my=(N[a][1]+N[b][1])/2;const bl=Math.floor(t*3)%2;g.fillStyle=C3;g.fillRect(mx-3,my-3,6,6);g.fillStyle=bl?C0:C3;g.fillRect(mx-2,my-2,4,4);}};
- box.querySelector('#tmh').textContent='今いる ところ：'+(here.edge?MAPS[here.edge[2]]?MAPS[here.edge[2]].name:'':nm(here.node))+(curMap().name&&!here.edge&&curMap().name!==nm(here.node)?`（${curMap().name}）`:'');
- let raf=0;const t0=performance.now();const loop=()=>{draw((performance.now()-t0)/1000);raf=requestAnimationFrame(loop);};loop();
- // 町の 名前を 触ると 表示
+  // 海（波の もよう）
+  g.fillStyle=C1;for(let y=3;y<111;y+=5)for(let x=((y/5)%2?2:0)+((t*2)|0)%4;x<154;x+=8){g.fillRect(x,y,2,1);g.fillRect(x+2,y-1,1,1);}
+  // 陸地（道と 町を つないだ 島）：ふちどり → 中
+  const land=(pad,col)=>{g.fillStyle=col;for(const [a,b,id,w] of TMAP.edges){if(w)continue;const [x1,y1]=N[a],[x2,y2]=N[b];const r=8+pad;g.fillRect(Math.min(x1,x2)-r,Math.min(y1,y2)-r,Math.abs(x2-x1)+r*2,Math.abs(y2-y1)+r*2);}
+   for(const id in N){const [x,y]=N[id];g.beginPath();g.arc(x,y,(id==='ice'?7:11)+pad,0,TAU);g.fill();}};
+  land(1,C2);land(0,C0);
+  // 飾り
+  for(const [k,x,y] of DECO){if(k==='tree'){g.fillStyle=C2;g.beginPath();g.arc(x,y,2.2,0,TAU);g.fill();g.fillStyle=C3;g.fillRect(x-.5,y+1.5,1,1.5);}
+   else if(k==='mt'){g.fillStyle=C2;g.beginPath();g.moveTo(x-4,y+3);g.lineTo(x,y-3);g.lineTo(x+4,y+3);g.fill();g.fillStyle=C0;g.beginPath();g.moveTo(x-1.2,y-1.2);g.lineTo(x,y-3);g.lineTo(x+1.2,y-1.2);g.fill();}
+   else{g.fillStyle=C2;g.fillRect(x-1.5,y,3,1);g.fillRect(x-.5,y-1,1,3);}}
+  // 道路
+  for(const [a,b,id,w] of TMAP.edges){const [x1,y1]=N[a],[x2,y2]=N[b];const s=S.find(x=>x.id===id),hl=hab&&s&&hab.has(id)&&Math.floor(t*3)%2;
+   const L=Math.min(x1,x2),T=Math.min(y1,y2),Wd=Math.abs(x2-x1),Ht=Math.abs(y2-y1);
+   if(w){g.fillStyle=hl?C3:C2;const n=Math.max(Wd,Ht);for(let i=0;i<n;i+=4){const x=x1+(x2-x1)*i/n,y=y1+(y2-y1)*i/n;g.fillRect(x-1,y-1,hl?3:2,hl?3:2);}continue;}
+   g.fillStyle=C3;g.fillRect(L-1.5,T-1.5,Wd+3,Ht+3);g.fillStyle=hl?C3:C1;g.fillRect(L-.5,T-.5,Wd+1,Ht+1);}
+  for(const [a,b] of TMAP.stubs){const s=S.find(x=>x.id===a);const [x2,y2]=N[b];const n=Math.hypot(x2-s.x,y2-s.y);g.fillStyle=C2;for(let i=0;i<n;i+=3)g.fillRect(s.x+(x2-s.x)*i/n-.5,s.y+(y2-s.y)*i/n-.5,1,1);}
+  // 場所の しるし
+  for(const s of S){if(s.k==='r')continue;const {x,y,k}=s;const kn=known(s),hl=hab&&hab.has(s.id);
+   if(hl&&Math.floor(t*3)%2){g.fillStyle=C3;g.beginPath();g.arc(x,y,8,0,TAU);g.fill();g.fillStyle=C0;g.beginPath();g.arc(x,y,6.5,0,TAU);g.fill();}
+   g.fillStyle=C3;
+   if(k==='t'){g.fillRect(x-5,y-4,10,9);g.fillStyle=kn?C0:C1;g.fillRect(x-4,y-3,8,7);g.fillStyle=C3;g.fillRect(x-3,y-1,2,2);g.fillRect(x+1,y-1,2,2);g.fillRect(x-1,y+2,2,2);}
+   else if(k==='l'){g.fillRect(x-4,y-5,8,10);g.fillStyle=C0;g.fillRect(x-3,y-4,6,8);g.fillStyle=C3;g.fillRect(x-1,y-8,2,4);g.fillRect(x-2,y-1,4,2);}
+   else if(k==='c'){g.beginPath();g.arc(x,y+3,6,Math.PI,0);g.fill();g.fillStyle=C0;g.beginPath();g.arc(x,y+3,2.5,Math.PI,0);g.fill();}
+   else if(k==='f'){for(const [dx,dy] of [[-3,1],[3,1],[0,-2]]){g.beginPath();g.arc(x+dx,y+dy,3,0,TAU);g.fill();}g.fillStyle=C2;g.beginPath();g.arc(x,y-2,1.5,0,TAU);g.fill();}
+   else if(k==='v'){g.beginPath();g.moveTo(x-6,y+4);g.lineTo(x-2,y-3);g.lineTo(x+2,y-3);g.lineTo(x+6,y+4);g.fill();g.fillStyle=C1;const p=(t*1.5)%1;g.beginPath();g.arc(x+p*2,y-5-p*4,1+p*1.5,0,TAU);g.fill();}
+   else if(k==='i'){g.beginPath();g.moveTo(x,y-5);g.lineTo(x+4,y);g.lineTo(x,y+5);g.lineTo(x-4,y);g.fill();g.fillStyle=C0;g.fillRect(x-1,y-2,1,3);}
+   else if(k==='p'){g.fillRect(x-5,y-2,10,7);g.fillRect(x+2,y-6,2,4);g.fillStyle=C0;g.fillRect(x-4,y-1,8,5);g.fillStyle=C3;g.fillRect(x-1,y-1,2,2);g.fillRect(x-2,y+1,2,2);}
+   if(kn&&(k==='t'||k==='l')){const s2=nm(s).replace(/(タウン|シティ|むら|じま)$/,'').replace('モノクロ','');g.font='bold 5px sans-serif';g.textAlign='center';g.textBaseline='top';
+    const tw=g.measureText(s2).width;const ly=y+5>100?y-12:y+6;g.fillStyle=C0;g.fillRect(x-tw/2-1,ly-.5,tw+2,6.5);g.fillStyle=C3;g.fillText(s2,x,ly);}}
+  // つぎの 目的地
+  if(!hab&&N[next.node]&&Math.floor(t*2)%2){const [x,y]=N[next.node];g.strokeStyle=C3;g.lineWidth=1;g.strokeRect(x-7.5,y-6.5,15,14);}
+  // 今いる ところ
+  {const b=Math.floor(t*3)%2;g.fillStyle=C3;g.fillRect(hereS.x-2.5,hereS.y-2.5,5,5);g.fillStyle=b?C0:C3;g.fillRect(hereS.x-1.5,hereS.y-1.5,3,3);}
+  // カーソル（四すみの かぎ）
+  {const c=cur,r=7+Math.sin(t*6)*.8;g.fillStyle=C3;for(const [sx,sy] of [[-1,-1],[1,-1],[-1,1],[1,1]]){const cx=c.x+sx*r,cy=c.y+sy*r;g.fillRect(cx-(sx>0?2:0),cy-.5,3,1.2);g.fillRect(cx-.5,cy-(sy>0?2:0),1.2,3);}}};
+ const move=(dx,dy)=>{let best=null,bv=1e9;for(const s of S){if(s===cur)continue;const vx=s.x-cur.x,vy=s.y-cur.y;const along=vx*dx+vy*dy,perp=Math.abs(vx*dy-vy*dx);if(along<=0||perp>along*1.6)continue;const v=along+perp*2;if(v<bv){bv=v;best=s;}}
+  if(best){cur=best;moved=true;sfx('sel');showInfo();}};
+ let raf=0;const t0=performance.now();const loop=()=>{draw((performance.now()-t0)/1000);raf=requestAnimationFrame(loop);};loop();showInfo();
  cv.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();const r=cv.getBoundingClientRect();const x=(e.clientX-r.left)/r.width*154,y=(e.clientY-r.top)/r.height*111;
-  let best=null,bd=1e9;for(const id in N){const d=Math.hypot(N[id][0]-x,N[id][1]-y);if(d<bd){bd=d;best=id;}}
-  if(best&&bd<12){sfx('sel');box.querySelector('#tmh').textContent=known(best)?nm(best):'？？？（まだ 行っていない）';}});
- const close=()=>{cancelAnimationFrame(raf);uiPop(o);res();};o.onEv=ev=>{if(ev==='A'||ev==='B')close();};
+  let best=null,bd=1e9;for(const s of S){const d=Math.hypot(s.x-x,s.y-y);if(d<bd){bd=d;best=s;}}if(best&&bd<14){cur=best;moved=true;sfx('sel');showInfo();}});
+ const close=()=>{cancelAnimationFrame(raf);uiPop(o);res();};
+ o.onEv=ev=>{if(ev==='D0')move(0,-1);else if(ev==='D1')move(1,0);else if(ev==='D2')move(0,1);else if(ev==='D3')move(-1,0);else if(ev==='A'||ev==='B')close();};
  box.addEventListener('pointerdown',e=>{if(e.target.closest('[data-close]'))close();});
  uiPush(o);if(window.tgAuto)setTimeout(()=>{if(STACK.includes(o))close();},AUTOWAIT());});}
 // 設定（いつも 走る）
@@ -1647,7 +1716,7 @@ function syncP(){P.px=G.x*16;P.py=G.y*16;}
 function enterMap(){syncP();setBgmFor(curMap());}
 
 /* ---- 入力と移動 ---- */
-function worldStep(dt){P.fr+=dt;if(curMap().fly&&!G.visited[G.map])G.visited[G.map]=1;bannerT-=dt;if(banner&&bannerT<=0){banner.remove();banner=null;}
+function worldStep(dt){P.fr+=dt;(G.been||(G.been={}))[G.map]=1;if(curMap().fly&&!G.visited[G.map])G.visited[G.map]=1;bannerT-=dt;if(banner&&bannerT<=0){banner.remove();banner=null;}
  if(emote){emote.t-=dt;if(emote.t<=0)emote=null;}
  if(busy||STACK.length)return;
  const evs=takeEv();
