@@ -25,6 +25,7 @@ button{font-family:inherit;color:var(--ink);cursor:pointer}
 button:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
 #app{height:100%;display:flex;flex-direction:column}
 .view{flex:1;min-height:0;display:flex;flex-direction:column}
+[hidden]{display:none!important}
 
 /* menu */
 #menu{overflow-y:auto;padding:20px 16px 32px;background:linear-gradient(var(--sky),var(--sky2) 280px)}
@@ -36,7 +37,7 @@ button:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
   box-shadow:0 0 0 10px rgba(255,201,60,.25),0 0 0 22px rgba(255,201,60,.12);animation:spin 18s linear infinite}
 .sun::after{content:"";position:absolute;left:22px;top:30px;width:28px;height:12px;border-bottom:4px solid var(--ink);border-radius:0 0 20px 20px}
 @keyframes spin{50%{transform:scale(1.06)}}
-.grid{max-width:900px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
+.grid{max-width:900px;width:100%;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
 .card{position:relative;border:0;border-radius:22px;background:var(--c);padding:16px 10px 14px;
   display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:0 5px 0 var(--shadow);transition:transform .12s}
 .card:active{transform:translateY(4px);box-shadow:0 1px 0 var(--shadow)}
@@ -47,20 +48,30 @@ button:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
 .home{display:inline-block;margin-bottom:10px;color:var(--soft);font-weight:800;font-size:14px;text-decoration:none;background:var(--white);border-radius:999px;padding:6px 14px;box-shadow:0 3px 0 var(--shadow)}
 .foot{max-width:900px;margin:22px auto 0;color:var(--soft);font-size:13px;text-align:center}
 
-/* game view */
-.bar{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--white);box-shadow:0 2px 0 var(--shadow);z-index:2}
-.back{border:0;background:var(--sky);border-radius:999px;padding:8px 14px;font-weight:800;font-size:15px}
+/* game view：上に 細い バー、あとは ぜんぶ ゲーム */
+#play{position:relative}
+.bar{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--white);box-shadow:0 2px 0 var(--shadow);z-index:2}
+.pickbtn{border:0;background:var(--sun);border-radius:999px;padding:9px 16px;font-weight:800;font-size:16px;white-space:nowrap;box-shadow:0 3px 0 #e0a91e}
+.pickbtn:active{transform:translateY(3px);box-shadow:0 0 0 #e0a91e}
+.gtitle{cursor:pointer}
+.toast{position:absolute;left:50%;top:64px;transform:translate(-50%,-8px);max-width:calc(100% - 32px);background:var(--white);border-radius:999px;padding:8px 18px;
+  font-weight:800;font-size:16px;color:var(--ink);box-shadow:0 4px 0 var(--shadow);text-align:center;pointer-events:none;opacity:0;transition:opacity .3s,transform .3s;z-index:6}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+/* ゲームを えらぶ メニュー（ゲームの 上に 開く） */
+.pick{position:fixed;inset:0;z-index:20;background:rgba(39,64,107,.45);display:flex;align-items:flex-start;justify-content:center;padding:12px}
+.pick[hidden]{display:none}
+.pickbox{width:100%;max-width:900px;max-height:100%;overflow-y:auto;background:var(--sky2);border-radius:26px;padding:14px 14px 18px;box-shadow:0 8px 0 var(--shadow);animation:drop .22s ease-out}
+@keyframes drop{from{transform:translateY(-24px);opacity:0}}
+.pickhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.pickhead b{font-size:22px;font-weight:800}
+.pclose{border:0;background:var(--white);border-radius:999px;padding:8px 16px;font-weight:800;font-size:15px;box-shadow:0 3px 0 var(--shadow)}
+.card.cur{box-shadow:0 0 0 4px var(--ink),0 5px 0 var(--shadow)}
+.card.cur::before{content:"いま";position:absolute;left:8px;top:6px;font-size:12px;font-weight:800;color:var(--white);background:var(--ink);border-radius:999px;padding:1px 7px}
+.ptop{display:block;margin:16px auto 0;border:0;background:var(--white);border-radius:999px;padding:9px 18px;font-weight:800;font-size:15px;color:var(--soft);box-shadow:0 3px 0 var(--shadow)}
 .gtitle{flex:1;min-width:0;font-weight:800;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .stars{font-weight:800;font-size:18px;font-variant-numeric:tabular-nums;white-space:nowrap}
 .stars.bump{animation:bump .3s}
 .mute{border:0;background:none;font-size:22px;padding:4px}
-.hint{padding:8px 16px;font-size:15px;color:var(--soft);background:var(--white);border-top:1px solid var(--sky)}
-.hint{display:flex;align-items:center;gap:10px}
-.hint #hint{flex:1;min-width:0}
-.nav{display:flex;gap:6px;flex-shrink:0}
-.navb{border:0;border-radius:999px;background:var(--sky);padding:7px 12px;font-weight:800;font-size:14px;white-space:nowrap}
-.navb.next{background:var(--sun)}
-.navb:active{transform:translateY(2px)}
 .stage{flex:1;min-height:0;position:relative;overflow:hidden;touch-action:none;background:var(--sky2)}
 
 /* shared game parts */
@@ -191,17 +202,23 @@ button:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
   </section>
   <section id="play" class="view" hidden>
     <div class="bar">
-      <button class="back" id="back">← もどる</button>
+      <button class="pickbtn" id="pickbtn">🎮 ゲームを えらぶ</button>
       <div class="gtitle" id="gtitle"></div>
-      <button class="mute" id="mute" aria-label="おと">🔊</button>
       <div class="stars" id="stars">⭐ <span id="snum">0</span></div>
+      <button class="mute" id="mute" aria-label="おと">🔊</button>
     </div>
-    <div class="hint"><span id="hint"></span>
-      <span class="nav"><button class="navb" id="prev">← まえ</button><button class="navb next" id="next">つぎ →</button></span></div>
     <div class="stage" id="stage"></div>
+    <div class="toast" id="hint"></div>
   </section>
 </div>
 
+<div id="pick" class="pick" hidden>
+  <div class="pickbox" role="dialog" aria-label="ゲームを えらぶ">
+    <div class="pickhead"><b>どれで あそぶ？</b><button class="pclose" id="pclose">✕ とじる</button></div>
+    <div class="grid" id="pgrid"></div>
+    <button class="ptop" id="ptop">← はじめの がめんへ</button>
+  </div>
+</div>
 <script>
 const rnd=(a,b)=>a+Math.random()*(b-a);
 const ri=(a,b)=>Math.floor(rnd(a,b+1));
@@ -238,8 +255,9 @@ function makeCtx(stage){
   c.W=()=>stage.clientWidth; c.H=()=>stage.clientHeight;
   c.el=(tag,cls,html,parent=stage)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;parent.appendChild(e);return e};
   c.on=(t,ev,fn,o)=>{t.addEventListener(ev,fn,o);c.stops.push(()=>t.removeEventListener(ev,fn,o))};
-  c.every=(ms,fn)=>{const id=setInterval(fn,ms);c.stops.push(()=>clearInterval(id))};
-  c.after=(ms,fn)=>{const id=setTimeout(fn,ms);c.stops.push(()=>clearTimeout(id))};
+  c.every=(ms,fn)=>{const id=setInterval(()=>{if(!c.paused)fn()},ms);c.stops.push(()=>clearInterval(id))};
+  // メニューを 開いて いる 間は 止めて おき、閉じたら 続きから
+  c.after=(ms,fn)=>{const h={};const run=()=>{if(c.paused)h.id=setTimeout(run,200);else fn()};h.id=setTimeout(run,ms);c.stops.push(()=>clearTimeout(h.id))};
   c.loop=fn=>c.loops.push(fn);
   c.rel=e=>{const r=stage.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
   c.center=el=>{const r=el.getBoundingClientRect(),s=stage.getBoundingClientRect();return[r.left-s.left+r.width/2,r.top-s.top+r.height/2]};
@@ -262,7 +280,7 @@ function makeCtx(stage){
   c.right=(b,next)=>{if(c.busy)return;c.busy=true;b.classList.add('ok');SFX.yay();c.praise();c.score(1,false);c.after(1250,()=>{c.busy=false;next()})};
   c.wrong=b=>{if(c.busy)return;b.classList.remove('wiggle');void b.offsetWidth;b.classList.add('wiggle');SFX.soft()};
   let last=performance.now();
-  const tick=t=>{if(!c.running)return;const dt=Math.min(.05,(t-last)/1000);last=t;
+  const tick=t=>{if(!c.running)return;if(c.paused){last=t;requestAnimationFrame(tick);return}const dt=Math.min(.05,(t-last)/1000);last=t;
     c.loops.forEach(f=>f(dt));
     const W=c.W(),H=c.H();
     for(const s of c.sprites){if(!s.alive)continue;s.t+=dt;s.x+=s.vx*dt;s.y+=s.vy*dt;if(s.update)s.update(s,dt);
@@ -477,22 +495,32 @@ game('hanabi','はなび','🎆','#d8daff','そらを タッチして はなび�
 /* ---- navigation ---- */
 const grid=document.getElementById('grid'),menu=document.getElementById('menu'),play=document.getElementById('play');
 const COLORS={};
-function renderMenu(){grid.innerHTML='';GAMES.forEach(gm=>{const b=document.createElement('button');b.className='card';b.style.setProperty('--c',gm.col);
+function cards(box,onPick,curId){box.innerHTML='';GAMES.forEach(gm=>{const b=document.createElement('button');b.className='card'+(gm.id===curId?' cur':'');b.style.setProperty('--c',gm.col);
   b.innerHTML=`<span class="ic">${gm.icon}</span><span class="nm">${gm.name}</span>`+(played[gm.id]?'<span class="stamp">あそんだ</span>':'');
-  b.addEventListener('click',()=>start(gm));grid.appendChild(b)})}
-let curIdx=0;
+  b.addEventListener('click',()=>onPick(gm));box.appendChild(b)})}
+function renderMenu(){cards(grid,start)}
+let curIdx=0,hintT=0;
+const hintEl=document.getElementById('hint');
+function showHint(){clearTimeout(hintT);hintEl.classList.add('on');hintT=setTimeout(()=>hintEl.classList.remove('on'),3800)}
 function start(gm){
   if(cur){cur.destroy();cur=null}curIdx=GAMES.indexOf(gm);
   menu.hidden=true;play.hidden=false;markPlayed(gm.id);
-  document.getElementById('gtitle').textContent=gm.icon+' '+gm.name;document.getElementById('hint').textContent=gm.hint;
+  document.getElementById('gtitle').textContent=gm.icon+' '+gm.name;hintEl.textContent=gm.hint;
   stars=0;document.getElementById('snum').textContent='0';
   const old=document.getElementById('stage'),st=document.createElement('div');st.className='stage';st.id='stage';
   st.style.background=`linear-gradient(${gm.col},#ffffff)`;old.replaceWith(st);
-  cur=makeCtx(st);gm.init(cur)}
+  cur=makeCtx(st);gm.init(cur);showHint()}
 function stop(){if(cur){cur.destroy();cur=null}document.getElementById('stage').innerHTML='';play.hidden=true;menu.hidden=false;renderMenu()}
-document.getElementById('back').addEventListener('click',stop);
-document.getElementById('next').addEventListener('click',()=>{SFX.tap();start(GAMES[(curIdx+1)%GAMES.length])});
-document.getElementById('prev').addEventListener('click',()=>{SFX.tap();start(GAMES[(curIdx-1+GAMES.length)%GAMES.length])});
+// ゲームの 上で 開く「ゲームを えらぶ」
+const pickEl=document.getElementById('pick');
+function openPick(){if(cur)cur.paused=true;cards(document.getElementById('pgrid'),gm=>{closePick(false);SFX.tap();start(gm)},GAMES[curIdx]&&GAMES[curIdx].id);pickEl.hidden=false;SFX.tap()}
+function closePick(resume=true){pickEl.hidden=true;if(resume&&cur)cur.paused=false}
+document.getElementById('pickbtn').addEventListener('click',openPick);
+document.getElementById('pclose').addEventListener('click',()=>closePick());
+document.getElementById('ptop').addEventListener('click',()=>{closePick(false);stop()});
+pickEl.addEventListener('click',e=>{if(e.target===pickEl)closePick()});
+addEventListener('keydown',e=>{if(e.key==='Escape'&&!pickEl.hidden)closePick()});
+document.getElementById('gtitle').addEventListener('click',showHint);
 const mb=document.getElementById('mute');mb.addEventListener('click',()=>{muted=!muted;mb.textContent=muted?'🔇':'🔊'});
 renderMenu();
 </script>
