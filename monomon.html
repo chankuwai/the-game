@@ -217,7 +217,7 @@ function typeMul(at,defTypes){let m=1;for(const d of defTypes){const v=CHART[at]
  [名前,タイプ,威力,命中,PP,効果,覚えやすいLv]  効果: par/brn/psn/tox/slp/frz/conf/flinch:確率  t:能力:段階(相手) s:能力:段階(自分)  drain/recoil/heal:% fixed:値 level multi crit prio:n recharge leech */
 const MV_RAW=[
 ['たいあたり','N',40,100,35,'',1],['かきむしる','N',40,100,35,'',1],['あまえごえ','N',0,100,40,'t:atk:-1',1],['ガンとばし','N',0,100,30,'t:def:-1',3],
-['はやてがけ','N',40,100,30,'prio:1',8],['がぶり','N',60,100,25,'flinch:10',14],['ヘビーナックル','N',80,85,20,'',22],['おしつぶし','N',85,100,15,'par:30',28],
+['はやてがけ','N',40,100,30,'prio:1',8],['がぶり','N',60,100,25,'flinch:10',14],['ヘビーナックル','N',80,85,20,'',22],['おしつぶし','N',85,100,15,'par:10',28],
 ['もうしんげき','N',90,85,20,'recoil:25',24],['スラッシュ','N',70,100,20,'crit',30],['とぎすます','N',0,100,20,'s:atk:2',32],['じこしゅうふく','N',0,100,10,'heal:50',38],
 ['すてみアタック','N',120,100,15,'recoil:33',44],['はめつのひかり','N',150,90,5,'recharge',52],['ギアチェンジ','N',0,100,30,'s:spd:2',26],['みがまえ','N',0,100,30,'s:def:1',6],
 ['ひのたま','F',40,100,25,'brn:10',5],['ほむらがみ','F',65,95,15,'brn:10',18],['ほのおのいき','F',90,100,15,'brn:10',34],['おおかがりび','F',110,85,5,'brn:30',46],
@@ -226,7 +226,7 @@ const MV_RAW=[
 ['だいこうずい','W',110,80,5,'',46],['からごもり','W',0,100,40,'s:def:1',8],['うずしっぽ','W',90,90,10,'',38],
 ['ねっこすい','G',20,100,25,'drain:50',3],['きりばっぱ','G',55,95,25,'crit',14],['みつすい','G',50,100,15,'drain:50',20],['ねむりかふん','G',0,75,15,'slp:100',16],
 ['しびれかふん','G',0,75,30,'par:100',12],['からみヅタ','G',0,90,10,'leech',10],['せいきをすう','G',75,100,10,'drain:50',36],['ひだまりほう','G',120,100,10,'',46],['このはのあらし','G',130,90,5,'s:spa:-2',52],
-['ビリビリ','E',40,100,30,'par:10',5],['しびれでんぱ','E',0,90,20,'par:100',12],['でんげきタックル','E',65,100,20,'par:30',20],['らいめいだん','E',90,100,15,'par:10',34],['いかずち','E',110,70,10,'par:30',46],['ほうでんりゅう','E',80,100,15,'par:30',40],
+['ビリビリ','E',40,100,30,'par:10',5],['しびれでんぱ','E',0,80,20,'par:100',12],['でんげきタックル','E',65,100,20,'par:15',20],['らいめいだん','E',90,100,15,'par:10',34],['いかずち','E',110,70,10,'par:20',46],['ほうでんりゅう','E',80,100,15,'par:15',40],
 ['しもかぜ','I',40,100,25,'frz:10',8],['オーロラレイ','I',65,100,20,'t:atk:-1:10',20],['つららがみ','I',65,95,15,'frz:10',24],['ひょうけつほう','I',90,100,10,'frz:10',36],['ホワイトアウト','I',110,70,5,'frz:30',48],
 ['てがたなうち','K',50,100,25,'crit',10],['あしばらい','K',60,100,20,'',16],['パンプアップ','K',0,100,20,'s:atk:1,s:def:1',26],['ゆさぶりけん','K',100,50,5,'conf:100',34],['ゼロきょりうち','K',120,100,5,'s:def:-1,s:sdf:-1',48],['きこうだん','K',80,100,20,'',38],
 ['どくとげ','P',15,100,35,'psn:30',3],['とかしえき','P',40,100,30,'t:sdf:-1:10',12],['どくのきり','P',0,90,40,'psn:100',10],['もうどくえき','P',0,90,10,'tox',24],['どろどくだん','P',90,100,10,'psn:30',36],['どくのなだれ','P',120,80,5,'psn:30',48],
@@ -235,13 +235,13 @@ const MV_RAW=[
 ['ねんぱ','S',50,100,25,'conf:10',8],['ゆめうつつ','S',0,60,20,'slp:100',14],['ゆらぎこうせん','S',65,100,20,'conf:10',20],['むねんむそう','S',0,100,20,'s:sdf:2',26],['ねんどうりき','S',90,100,10,'t:sdf:-1:10',36],['よげんだん','S',120,90,10,'',50],
 ['ちすい','B',30,100,15,'drain:50',8],['かじりつき','B',60,100,20,'',18],['ねばいと','B',0,95,40,'t:spd:-2',6],['はさみぎり','B',80,100,15,'',32],['むしのはおと','B',90,100,10,'t:sdf:-1:10',42],
 ['いしつぶて','R',50,90,15,'',12],['いわけずり','R',0,100,20,'s:spd:2',24],['がけくずれ','R',75,90,10,'flinch:30',30],['とがりいし','R',100,80,5,'crit',44],['がんせきずつき','R',140,80,5,'recoil:50',54],
-['おばけなめ','H',30,100,30,'par:30',5],['うらみのかげ','H',0,100,15,'level',14],['まよいび','H',0,100,10,'conf:100',18],['かげのツメ','H',70,100,15,'crit',28],['かげだま','H',80,100,15,'t:sdf:-1:20',36],['じゅばく','H',0,100,10,'s:atk:1,s:def:1,s:spd:-1',22],
+['おばけなめ','H',30,100,30,'par:15',5],['うらみのかげ','H',0,100,15,'level',14],['まよいび','H',0,100,10,'conf:100',18],['かげのツメ','H',70,100,15,'crit',28],['かげだま','H',80,100,15,'t:sdf:-1:20',36],['じゅばく','H',0,100,10,'s:atk:1,s:def:1,s:spd:-1',22],
 ['りゅうのうなり','X',0,100,10,'fixed:40',10],['りゅうのかぎづめ','X',80,100,15,'',32],['りゅうのめざめ','X',0,100,20,'s:atk:1,s:spd:1',38],['あばれりゅう','X',120,100,10,'conf:30self',48],['りゅうせいう','X',130,90,5,'s:spa:-2',56],['りゅうのこどう','X',85,100,10,'',42],
 ['まどわしうち','A',60,100,20,'',10],['やみうち','A',70,100,10,'prio:1',20],['かみちぎり','A',80,100,15,'t:def:-1:20',26],['とおりま','A',70,100,15,'crit',30],['はかりごと','A',0,100,20,'s:spa:2',34],['あんこくのなみ','A',80,100,15,'flinch:20',38],['やみばくはつ','A',95,95,10,'',46],
 ['はがねのツメ','M',50,95,35,'s:atk:1:10',9],['てつのよろい','M',0,100,15,'s:def:2',20],['てつずつき','M',80,100,15,'flinch:30',30],['ぎんこうほう','M',80,100,10,'t:sdf:-1:10',36],['いんせきおとし','M',100,90,10,'',46],
 ['ようせいのいき','Q',40,100,30,'',5],['うるうるめ','Q',0,100,20,'t:atk:-2',12],['あまいくちづけ','Q',50,100,10,'drain:75',16],['ふしぎなかがやき','Q',80,100,10,'',30],['つきあかり','Q',0,100,5,'heal:50',34],['げっこうほう','Q',95,100,15,'t:sdf:-1:30',42],
 ['ひかりのつぶ','L',40,100,30,'',5],['まばゆいひかり','L',0,100,20,'t:spd:-1',8],['ひかりのかぜ','L',60,100,20,'',14],['ホーリーレイ','L',70,100,15,'t:sdf:-1:10',22],['あたたかいひかり','L',0,100,10,'heal:50',26],['シャイニングブレード','L',90,100,15,'crit',38],['ジャッジメントレイ','L',110,90,5,'',48],
-['でんきのあみ','E',0,95,20,'par:100',14],['まいあがり','Y',90,95,15,'',30],
+['でんきのあみ','E',0,80,20,'par:100',14],['まいあがり','Y',90,95,15,'',30],
 ['もがき','N',50,100,999,'recoil:25',99],
 ['はっぱつぶて','G',40,100,30,'',6],
 ];
@@ -1655,8 +1655,8 @@ function townMap(o2){o2=o2||{};return new Promise(res=>{const box=fullBox('');bo
 // 設定（いつも 走る）
 async function settingsMenu(){G.opt=G.opt||{};const o=G.opt;let cur=0;const lv=v=>'■'.repeat(v)+'□'.repeat(5-v);
  for(;;){const bg=o.bgm??4,se=o.se??4,tx=o.txt??1;
-  const v=await choose([`いつも 走る　${o.run?'ON':'OFF'}`,`文字の 速さ　${['おそい','ふつう','はやい'][tx]}`,`BGM　　${lv(bg)}`,`効果音　${lv(se)}`,'もどる'],{pos:{right:0,top:0},tag:'settings',start:cur});
-  if(v<0||v===4)break;cur=v;
+  const v=await choose([`いつも 走る　${o.run?'ON':'OFF'}`,`文字の 速さ　${['おそい','ふつう','はやい'][tx]}`,`BGM　　${lv(bg)}`,`効果音　${lv(se)}`,`つれあるき　${o.follow===false?'OFF':'ON'}`,'もどる'],{pos:{right:0,top:0},tag:'settings',start:cur});
+  if(v<0||v===5)break;cur=v;if(v===4){o.follow=o.follow===false;sfx('ok');continue;}
   if(v===0){o.run=!o.run;sfx('ok');await say(o.run?'いつも 走るように した。\fBボタンを 押している 間は 歩く。':'Bボタンを 押している 間だけ 走る。');}
   else if(v===1){o.txt=(tx+1)%3;sfx('ok');}else if(v===2){o.bgm=(bg+1)%6;}else{o.se=(se+1)%6;sfx('ok');}}}
 // X：バッグを すぐ 開く
@@ -1729,10 +1729,36 @@ function setBgmFor(m){const th=m.theme,id=m.id||'';
  const b=['hajime','home','myroom','lab'].includes(id)?'home':th==='forest'?'forest':(th==='snow'||th==='icecave')?'snow':th==='ship'?'ship':th==='hq'?'hq':(th==='mansion'||th==='tower')?'spooky':th==='lava'?'lava':null;
  setBgm(m.bgm==='center'||m.bgm==='gym'||m.bgm==='league'?m.bgm:(b||m.bgm||'route'));}
 function showBanner(t){if(banner)banner.remove();banner=el('box',{left:U(4),top:U(4)},t);bannerT=1.8;}
-async function warpTo(mid,x,y,dir){busy=true;if(G.starter==null&&mid!=='lab')RIVALNPC=null;sfx('door');fade=1;await wait(180);const prevName=curMap().name;G.map=mid;G.x=x;G.y=y;if(dir!=null)G.dir=dir;P.moving=false;syncP();if(MAPS[mid].npcs.some(n=>n.kind==='nurse'))G.lastCenter={map:mid,x,y};setBgmFor(curMap());
- if(curMap().theme!=='indoor'&&curMap().name!==prevName)showBanner(curMap().name);await wait(120);fade=0;busy=false;
+async function warpTo(mid,x,y,dir){busy=true;FOL.on=false;if(G.starter==null&&mid!=='lab')RIVALNPC=null;sfx('door');fade=1;await wait(180);const prevName=curMap().name;G.map=mid;G.x=x;G.y=y;if(dir!=null)G.dir=dir;P.moving=false;syncP();if(MAPS[mid].npcs.some(n=>n.kind==='nurse'))G.lastCenter={map:mid,x,y};setBgmFor(curMap());
+ if(curMap().theme!=='indoor'&&curMap().name!==prevName)showBanner(bannerFor(curMap()));await wait(120);fade=0;busy=false;
  if(mid==='lab'&&G.starter==null){if(!G.flags.rival_meet)runEvent(rivalMeet);else RIVALNPC={x:7,y:3,dir:2};}}
 function syncP(){P.px=G.x*16;P.py=G.y*16;}
+// ---- 連れ歩き：先頭の モノモンが うしろを ついてくる ----
+const FOL={on:false,mid:null,x:0,y:0,fx:0,fy:0,dir:2,face:1};
+function folMon(){if(G.opt&&G.opt.follow===false)return null;return partyAlive()[0]||null;}
+function folStep(d,seam){if(seam){FOL.on=false;return;}
+ if(FOL.on&&FOL.mid===G.map){FOL.fx=FOL.x;FOL.fy=FOL.y;}else{FOL.on=true;FOL.mid=G.map;FOL.fx=G.x;FOL.fy=G.y;}
+ FOL.x=G.x;FOL.y=G.y;FOL.dir=d;if(d===1)FOL.face=1;else if(d===3)FOL.face=-1;}
+function folVisible(){const m=folMon();return m&&FOL.on&&FOL.mid===G.map&&tileAt(curMap(),FOL.x,FOL.y)!=='~'&&!(FOL.x===G.x&&FOL.y===G.y&&!P.moving)?m:null;}
+async function talkFollower(m){const d=DEX[m.sp],nm=mname(m),th=curMap().theme;emote={x:FOL.x,y:FOL.y,t:1,k:'heart'};sfx('ok');
+ if(FOL.x!==G.x)FOL.face=G.x>FOL.x?1:-1;
+ let L;if(m.hp<m.st.hp*.3)L=[`${nm}は つらそうに している……`,'モノモンセンターで 休ませて あげよう。'];
+ else if(m.status)L=[`${nm}は 具合が 悪そうだ……`];
+ else{const P_=[`${nm}は うれしそうに こちらを 見ている！`,`${nm}は ごきげんだ！`,`${nm}は ${G.name}に すりよってきた。`,`${nm}は あたりの においを かいでいる。`,`${nm}は 元気いっぱいだ！`];
+  if(th==='cave'||th==='icecave'||th==='tower'||th==='mansion')P_.push(`${nm}は 暗い ところが 少し こわいみたいだ。`);
+  if(th==='snow'||th==='icecave')P_.push(`${nm}は 寒そうに 体を ふるわせた。`);
+  if(th==='lava')P_.push(`${nm}は 暑さで ぐったりしている……`);
+  if(th==='forest'||th==='route')P_.push(`${nm}は 草の においに わくわくしている！`);
+  if(th==='town'||th==='indoor')P_.push(`${nm}は きょろきょろと まわりを 見ている。`);
+  if(d.t.includes('W')&&curMap().encW)P_.push(`${nm}は 水の 音に 耳を すませている。`);
+  if(m.lv>=50)P_.push(`${nm}は ${G.name}を 頼もしそうに 見つめている。`);
+  L=[P_[Math.floor(Math.random()*P_.length)]];}
+ await say(L);}
+function drawFollower(g,camX,camY,t){const m=folVisible();if(!m)return;const art=DEX[m.sp].art;
+ const k=P.moving?P.t:1;const fx=(FOL.fx+(FOL.x-FOL.fx)*k)*16,fy=(FOL.fy+(FOL.y-FOL.fy)*k)*16;
+ const flip=FOL.face>0?faceOf(art)==='L':faceOf(art)==='R';const b=P.moving?Math.floor(t*8)%2:Math.floor(t*2)%2;
+ const x=Math.round(fx-camX),y=Math.round(fy-camY);g.fillStyle=C1;g.fillRect(x+3,y+14,10,2);g.drawImage(monSprite(art,flip,24),x-4,y-9-b);}
+function bannerFor(m){return m.name;}
 function enterMap(){syncP();setBgmFor(curMap());}
 
 /* ---- 入力と移動 ---- */
@@ -1740,7 +1766,7 @@ function worldStep(dt){P.fr+=dt;(G.been||(G.been={}))[G.map]=1;if(curMap().fly&&
  if(emote){emote.t-=dt;if(emote.t<=0)emote=null;}
  if(busy||STACK.length)return;
  const evs=takeEv();
- if(P.moving){P.t+=dt*P.spd;if(P.t>=1){P.moving=false;G.x=P.tx;G.y=P.ty;if(P.tmid&&P.tmid!==G.map){const prev=curMap().name;G.map=P.tmid;setBgmFor(curMap());if(curMap().name!==prev)showBanner(curMap().name);}syncP();arrive();return;}
+ if(P.moving){P.t+=dt*P.spd;if(P.t>=1){P.moving=false;G.x=P.tx;G.y=P.ty;if(P.tmid&&P.tmid!==G.map){const prev=curMap().name;G.map=P.tmid;setBgmFor(curMap());if(curMap().name!==prev)showBanner(bannerFor(curMap()));}syncP();arrive();return;}
   const [dx,dy]=DXY[G.dir];P.px=(P.fx+dx*P.t)*16;P.py=(P.fy+dy*P.t)*16;return;}
  for(const e of evs){if(e==='START'){runEvent(startMenu);return;}if(e==='X'){runEvent(quickBag);return;}if(e==='Y'){runEvent(quickTool);return;}if(e==='A'){interact();return;}}
  if(P.force>=0){const f=P.force;P.force=-1;tryMove(f,true);return;}
@@ -1751,6 +1777,7 @@ function tryMove(d,forced){const [dx,dy]=DXY[d];const t=across(G.map,G.x+dx,G.y+
  if(!t||!canWalk(t.mid,t.x,t.y)){if(forced)return;P.bumpT-=1/60;if(P.bumpT<=0){sfx('bump');P.bumpT=.35;}if(window.tgAuto)BOT.blocked();return;}
  P.moving=true;P.t=0;P.fx=G.x;P.fy=G.y;P.tx=G.x+dx;P.ty=G.y+dy;P.tmid=null;
  if(t.mid!==G.map){P.tmid=t.mid;P.tx=t.x;P.ty=t.y;}
+ folStep(d,!!P.tmid);
  const run=G.opt&&G.opt.run?!IN.held.B:IN.held.B;P.spd=forced?11:(run||window.tgAuto)?11:6.5;}
 // 木を切る・岩をくだく・鍵のかかった扉
 function bumpSpecial(t){const tt=tileAt(MAPS[t.mid],t.x,t.y);const w=warpAt(MAPS[t.mid],t.x,t.y);
@@ -1796,6 +1823,7 @@ async function interact(){const [dx,dy]=DXY[G.dir];let x=G.x+dx,y=G.y+dy;const m
  if(t==='K'){x+=dx;y+=dy;}
  const o=npcAt(x,y);
  if(o){runEvent(()=>talkNpc(o));return;}
+ {const fm=folVisible();if(fm&&FOL.x===G.x+dx&&FOL.y===G.y+dy&&!P.moving){runEvent(()=>talkFollower(fm));return;}}
  if(t==='~'&&has('rod')&&facingWater()){runEvent(goFish);return;}
  const key=`${G.x+dx},${G.y+dy}`;
  if(m.signs[key]&&(t==='P'||!walkT(t))){runEvent(()=>say(m.signs[key]));return;}
@@ -1855,11 +1883,13 @@ function drawWorld(g,t){const m=curMap();const camX=Math.round(P.px-(VW/2-8)),ca
  list.push({y:P.py+.5,draw:()=>{const x=Math.round(P.px-camX),y=Math.round(P.py-camY);const fr=P.moving&&P.t<.6?((P.fx+P.fy)%2?2:1):0;drawPerson(g,x,y-4,G.dir,fr,'hero');
   if(tileAt(m,P.moving?P.tx:G.x,P.moving?P.ty:G.y)==='~'||tileAt(m,G.x,G.y)==='~'){g.fillStyle=C3;g.fillRect(x+1,y+11,14,5);g.fillStyle=C0;g.fillRect(x+2,y+12,12,3);}
   if(!P.moving&&tileAt(m,G.x,G.y)==='"'&&m.theme!=='snow'){{const ti=tileImg('"',f,m.theme),q=ti.width/16;g.drawImage(ti,0,8*q,16*q,8*q,x,y+8,16,8);}}}});
+ if(folVisible()){const k=P.moving?P.t:1;list.push({y:(FOL.fy+(FOL.y-FOL.fy)*k)*16,draw:()=>drawFollower(g,camX,camY,t)});}
  if(RIVALNPC)list.push({y:RIVALNPC.y*16,draw:()=>drawPerson(g,RIVALNPC.x*16-camX,RIVALNPC.y*16-4-camY,RIVALNPC.dir,0,'rival')});
  list.sort((a,b)=>a.y-b.y).forEach(o=>o.draw());
  {const now=performance.now();for(let i=LEAF.length-1;i>=0;i--){const p=LEAF[i],k=(now-p.t0)/1000;if(k>.4||p.mid&&p.mid!==G.map){LEAF.splice(i,1);continue;}
   const lx=Math.round(p.x+p.vx*k-camX),ly=Math.round(p.y+p.vy*k+120*k*k-camY);g.fillStyle=C3;g.fillRect(lx-1,ly-1,4,3);g.fillStyle=C0;g.fillRect(lx,ly,2,1);}}
- if(emote){const x=emote.x*16-camX,y=emote.y*16-camY-12;g.fillStyle=C0;g.fillRect(x+4,y,9,12);g.fillStyle=C3;g.fillRect(x+4,y,9,1);g.fillRect(x+4,y+11,9,1);g.fillRect(x+4,y,1,12);g.fillRect(x+12,y,1,12);g.fillRect(x+8,y+2,1,5);g.fillRect(x+8,y+9,1,1);}
+ if(emote){const x=emote.x*16-camX,y=emote.y*16-camY-12;g.fillStyle=C0;g.fillRect(x+4,y,9,12);g.fillStyle=C3;g.fillRect(x+4,y,9,1);g.fillRect(x+4,y+11,9,1);g.fillRect(x+4,y,1,12);g.fillRect(x+12,y,1,12);
+  if(emote.k==='heart'){for(const [hx,hy,w] of [[6,3,2],[9,3,2],[5,4,7],[5,5,7],[6,6,5],[7,7,3],[8,8,1]])g.fillRect(x+hx,y+hy,w,1);}else{g.fillRect(x+8,y+2,1,5);g.fillRect(x+8,y+9,1,1);}}
  if(m.dark){const r=has('lantern')?64:22;const cx=Math.round(P.px-camX)+8,cy=Math.round(P.py-camY)+6;g.fillStyle=C3;g.beginPath();g.rect(0,0,VW,VH);g.arc(cx,cy,r,0,TAU,true);g.fill('evenodd');if(has('lantern')){g.globalAlpha=.35;g.beginPath();g.rect(0,0,VW,VH);g.arc(cx,cy,r-14,0,TAU,true);g.fill('evenodd');g.globalAlpha=1;}}
  if(fade>0){g.fillStyle=C3;g.globalAlpha=fade;g.fillRect(0,0,VW,VH);g.globalAlpha=1;}}
 
@@ -1873,7 +1903,7 @@ function bStat(m,side,k){let v=m.st[k]*STAGE_MUL(side.st[k]);if(k==='spd'&&m.sta
 function eff(mv,name){return mv.eff.find(e=>e[0]===name);}
 /* ---- HUD ---- */
 let HUD={};
-function hudInit(){HUD.en=el('hud sm',{left:U(85),width:U(70),top:U(2.4),overflow:'hidden'});HUD.al=el('hud sm',{left:U(5),width:U(70),top:U(2.4),overflow:'hidden'});HUD.alHp=el('hud xs',{left:U(5),width:U(70),top:U(19.6),textAlign:'right'});}
+function hudInit(){HUD.en=el('hud sm',{left:U(85),width:U(70),top:U(2.4),overflow:'hidden'});HUD.al=el('hud sm',{left:U(5),width:U(70),top:U(2.4),overflow:'hidden'});HUD.alHp=el('hud xs',{left:U(5),width:U(70),top:U(17.4),textAlign:'right'});}
 function hudKill(){for(const k in HUD){if(HUD[k]&&HUD[k].remove)HUD[k].remove();}HUD={};}
 function ghostSil(art){const k='ghost'+art;if(SPR[k])return SPR[k];const src=monImg(art,false);const [c,g]=mkCanvas(MC,MC);g.drawImage(src,0,0);g.globalCompositeOperation='source-in';g.fillStyle=C2;g.fillRect(0,0,MC,MC);if(ATLAS.complete)SPR[k]=c;return c;}
 function hudUpdate(){if(!B||!HUD.en)return;const e=B.foe(),a=B.ally();
@@ -1910,9 +1940,9 @@ function drawBattle(g,t){g.fillStyle=C0;g.fillRect(0,0,SW,SH);if(!B)return;
  for(const p of B.pops||[]){const k=p.t/.45;if(k>=1)continue;g.strokeStyle=C3;g.lineWidth=1.5*(1-k)+.5;g.beginPath();g.arc(p.x,p.y,6+k*30,0,TAU);g.stroke();g.fillStyle=C2;for(let i=0;i<8;i++){const a=i*Math.PI/4+k;const r=8+k*34;g.fillRect(p.x+Math.cos(a)*r-1,p.y+Math.sin(a)*r-1,2,2);}}
  // HPバー
  if(e&&B.showFoe){hudPanel(g,82,2,76,20);g.font='bold 5px monospace';g.fillStyle=C3;g.fillText('HP',85,17);drawHpBar(g,95,12,56,B.dispE,e.st.hp);}
- if(a&&B.showAlly){hudPanel(g,2,2,76,30);g.font='bold 5px monospace';g.fillStyle=C3;g.fillText('HP',5,17);drawHpBar(g,15,12,56,B.dispA,a.st.hp);
+ if(a&&B.showAlly){hudPanel(g,2,2,76,34);g.font='bold 5px monospace';g.fillStyle=C3;g.fillText('HP',5,17);drawHpBar(g,15,12,56,B.dispA,a.st.hp);
   // 経験値
-  const lo=expFor(a.lv),hi=expFor(a.lv+1);const k=clamp((a.exp-lo)/Math.max(1,hi-lo),0,1);g.fillStyle=C3;g.fillText('EX',5,28.5);g.fillStyle=C3;g.fillRect(15,25,60,4);g.fillStyle=C0;g.fillRect(16,26,58,2);g.fillStyle=C2;g.fillRect(16,26,Math.round(58*k),2);}
+  const lo=expFor(a.lv),hi=expFor(a.lv+1);const k=clamp((a.exp-lo)/Math.max(1,hi-lo),0,1);g.fillStyle=C3;g.fillText('EX',5,32.5);g.fillStyle=C3;g.fillRect(15,29,60,4);g.fillStyle=C0;g.fillRect(16,30,58,2);g.fillStyle=C2;g.fillRect(16,30,Math.round(58*k),2);}
  if(B.flash>0){g.fillStyle=B.flashC||C3;g.globalAlpha=B.flash;g.fillRect(0,0,SW,SH);g.globalAlpha=1;}
  if(B.party){// 相手の手持ちボール表示
   const n=B.party;for(let i=0;i<6;i++){const x=148-i*9;if(i<n.length){ballIcon(g,x,12,n[i]===0);}}}}
@@ -2142,7 +2172,7 @@ function enemyAct(){const e=B.foe(),a=B.ally();const sd=B.sides[1];if(sd.recharg
  let best=null,bv=-1;
  for(const m of ms){const mv=MOVES[m.id];let v=0;
   if(mv.cat!=='status'){const r=calcDmgEst(e,a,mv);v=Math.min(1.2,r/a.hp)*100*(mv.acc/100);if(eff(mv,'recharge'))v*=.7;}
-  else{for(const ef of mv.eff){if(['par','slp','psn','tox','brn'].includes(ef[0])&&!a.status)v+=ef[0]==='slp'||ef[0]==='par'?45:30;if(ef[0]==='conf'&&!B.sides[0].conf)v+=25;
+  else{for(const ef of mv.eff){if(['par','slp','psn','tox','brn'].includes(ef[0])&&!a.status)v+=ef[0]==='slp'?45:ef[0]==='par'?22:30;  // まひ技は 使いすぎないif(ef[0]==='conf'&&!B.sides[0].conf)v+=25;
    if(ef[0]==='s'&&B.sides[1].st[ef[1]]<2&&e.hp>e.st.hp*.6)v+=22;if(ef[0]==='t'&&B.sides[0].st[ef[1]]>-2)v+=12;if(ef[0]==='heal'&&e.hp<e.st.hp*.45)v+=55;if(ef[0]==='leech'&&!B.sides[0].leech)v+=25;}v*=mv.acc/100;}
   v+=Math.random()*(B.ai==='smart'?10:28);if(v>bv){bv=v;best=m;}}
  return {type:'move',mv:best.id};}
