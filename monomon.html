@@ -1599,7 +1599,6 @@ function townMap(o2){o2=o2||{};return new Promise(res=>{const box=fullBox('');bo
   for(const [a,b] of TMAP.stubs)if(a===s.id){const t=S.find(x=>x.id===b);h+=`<br>わき道：${known(t)?nm(t):'？？？'}`;}
   const w=W[s.id];if(w){const ins=s.k==='t'?[...new Set(w.maps.filter(m=>m!==s.id&&MAPS[m].enc&&MAPS[m].enc.length).map(m=>tmapArea(MAPS[m].name)))]:[];if(w.g.length)h+=`<br>${ins.length?ins.join('・')+'の モノモン':'出る モノモン'}：${monList(w.g)}`;if(w.f.length)h+=`<br>つり：${monList(w.f)}`;}
   else if(s.k==='r'&&!s.w)h+='<br>野生の モノモンは 出ない';
-  {const ob=outbreak();if(ob&&s.maps.includes(ob.map))h+=`<br>★ 今日は ${DEX[DXI[ob.sp]].n}が 大量発生中！`;}
   if(s===hereS&&!hab)h+=`<br>つぎの 目的地：${next.text}`;
   info.innerHTML=h;};
  // 飾り（森の 木・山・雪）
@@ -1759,14 +1758,7 @@ function drawFollower(g,camX,camY,t){const m=folVisible();if(!m)return;const art
  const k=P.moving?P.t:1;const fx=(FOL.fx+(FOL.x-FOL.fx)*k)*16,fy=(FOL.fy+(FOL.y-FOL.fy)*k)*16;
  const flip=FOL.face>0?faceOf(art)==='L':faceOf(art)==='R';const b=P.moving?Math.floor(t*8)%2:Math.floor(t*2)%2;
  const x=Math.round(fx-camX),y=Math.round(fy-camY);g.fillStyle=C1;g.fillRect(x+3,y+14,10,2);g.drawImage(monSprite(art,flip,24),x-4,y-9-b);}
-// ---- 大量発生：毎日 どこかの 道路で めずらしい モノモンが たくさん 出る ----
-function todayKey(){const d=new Date();return d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate();}
-function outbreak(){if(!G)return null;const k=todayKey();if(G.outb&&G.outb.day===k)return G.outb;
- const R=Object.keys(MAPS).filter(id=>/^r\d+$/.test(id)&&MAPS[id].enc&&MAPS[id].enc.length&&G.been&&G.been[id]);if(!R.length)return null;
- let h=k;for(const c of G.name)h=(h*31+c.charCodeAt(0))>>>0;const id=R[h%R.length];const e=MAPS[id].enc.slice().sort((a,b)=>a[3]-b[3])[0];
- G.outb={day:k,map:id,sp:e[0],lv:[e[1],e[2]]};return G.outb;}
-function outbreakText(){const o=outbreak();return o?`${MAPS[o.map].name}で ${DEX[DXI[o.sp]].n}が 大量発生！`:'';}
-function bannerFor(m){const o=outbreak();return m.name+(o&&o.map===m.id?`<br><span class="xs">★ ${DEX[DXI[o.sp]].n}が 大量発生中！</span>`:'');}
+function bannerFor(m){return m.name;}
 function enterMap(){syncP();setBgmFor(curMap());}
 
 /* ---- 入力と移動 ---- */
@@ -1809,7 +1801,7 @@ function arrive(){G.steps++;if(tileAt(curMap(),G.x,G.y)==='"'&&curMap().theme!==
  const sp=spotCheck();if(sp){runEvent(()=>trainerSpot(sp));return;}
  const t=tileAt(m,G.x,G.y);
  const encT=t==='~'?m.encW:m.enc;
- if(encT&&(t==='"'||t==='~'||(m.encAll&&walkT(t)&&t!=='U')||(m.theme==='cave'&&t===':'))){const rate=t==='"'?.11:t==='~'?.06:.07;if(Math.random()<rate){const ob=t==='"'&&outbreak();const w2=ob&&ob.map===m.id&&Math.random()<.5?{sp:DXI[ob.sp],lv:irnd(ob.lv[0],ob.lv[1])}:wildPick(encT);const lead=partyAlive()[0];if(G.repel>0&&lead&&w2.lv<lead.lv)return;runEvent(()=>wildBattle(w2,{ghost:m.ghost&&!has('mirror')}));}}}
+ if(encT&&(t==='"'||t==='~'||(m.encAll&&walkT(t)&&t!=='U')||(m.theme==='cave'&&t===':'))){const rate=t==='"'?.11:t==='~'?.06:.07;if(Math.random()<rate){const w2=wildPick(encT);const lead=partyAlive()[0];if(G.repel>0&&lead&&w2.lv<lead.lv)return;runEvent(()=>wildBattle(w2,{ghost:m.ghost&&!has('mirror')}));}}}
 // 釣り：水に 向かって。その 場所の 水の 出現表、なければ 全体の 水の モノモンから
 function fishTable(){const m=curMap();if(m.encW)return m.encW;
  const all=[];for(const k in MAPS){const e=MAPS[k].encW;if(e)for(const x of e)if(!all.some(y=>y[0]===x[0]))all.push(x);}
@@ -1845,7 +1837,7 @@ async function talkNpc(o){const n=o.n;faceTo(o);
   case 'btower':await battleTower();break;
   case 'judge':await judge();break;
   case 'btshop':await btShop();break;
-  case 'nurse':await say('ようこそ！ モノモンセンターへ。\fお預かりした モノモンを 元気に しますね。');setBgm('none');sfx('heal');await wait(1400);healAll();G.lastCenter={map:G.map,x:G.x,y:G.y};setBgmFor(curMap());await say('お待たせしました！\fお預かりした モノモンは みんな 元気に なりましたよ。\fまた いつでも どうぞ！');if(outbreak())await say(`そうそう、今日は ${outbreakText().replace('！','')}しているそうですよ！`);break;
+  case 'nurse':await say('ようこそ！ モノモンセンターへ。\fお預かりした モノモンを 元気に しますね。');setBgm('none');sfx('heal');await wait(1400);healAll();G.lastCenter={map:G.map,x:G.x,y:G.y};setBgmFor(curMap());await say('お待たせしました！\fお預かりした モノモンは みんな 元気に なりましたよ。\fまた いつでも どうぞ！');break;
   case 'clerk':await say('いらっしゃいませ！');await shopScreen(n.shop);break;
   case 'mom':if(!G.starter){await say([`ママ「${G.name}、博士が 呼んでいたわよ。`,'となりの 研究所に いってらっしゃい！」']);}else{await say('ママ「少し 休んで いきなさい」');healAll();sfx('heal');await wait(900);await say('ママ「元気に なったわね。いってらっしゃい！」');}break;
   case 'prof':if(G.starter==null){await chooseStarter();}
@@ -1911,7 +1903,7 @@ function bStat(m,side,k){let v=m.st[k]*STAGE_MUL(side.st[k]);if(k==='spd'&&m.sta
 function eff(mv,name){return mv.eff.find(e=>e[0]===name);}
 /* ---- HUD ---- */
 let HUD={};
-function hudInit(){HUD.en=el('hud sm',{left:U(85),width:U(70),top:U(2.4),overflow:'hidden'});HUD.al=el('hud sm',{left:U(5),width:U(70),top:U(2.4),overflow:'hidden'});HUD.alHp=el('hud xs',{left:U(5),width:U(70),top:U(19.6),textAlign:'right'});}
+function hudInit(){HUD.en=el('hud sm',{left:U(85),width:U(70),top:U(2.4),overflow:'hidden'});HUD.al=el('hud sm',{left:U(5),width:U(70),top:U(2.4),overflow:'hidden'});HUD.alHp=el('hud xs',{left:U(5),width:U(70),top:U(17.4),textAlign:'right'});}
 function hudKill(){for(const k in HUD){if(HUD[k]&&HUD[k].remove)HUD[k].remove();}HUD={};}
 function ghostSil(art){const k='ghost'+art;if(SPR[k])return SPR[k];const src=monImg(art,false);const [c,g]=mkCanvas(MC,MC);g.drawImage(src,0,0);g.globalCompositeOperation='source-in';g.fillStyle=C2;g.fillRect(0,0,MC,MC);if(ATLAS.complete)SPR[k]=c;return c;}
 function hudUpdate(){if(!B||!HUD.en)return;const e=B.foe(),a=B.ally();
@@ -1948,9 +1940,9 @@ function drawBattle(g,t){g.fillStyle=C0;g.fillRect(0,0,SW,SH);if(!B)return;
  for(const p of B.pops||[]){const k=p.t/.45;if(k>=1)continue;g.strokeStyle=C3;g.lineWidth=1.5*(1-k)+.5;g.beginPath();g.arc(p.x,p.y,6+k*30,0,TAU);g.stroke();g.fillStyle=C2;for(let i=0;i<8;i++){const a=i*Math.PI/4+k;const r=8+k*34;g.fillRect(p.x+Math.cos(a)*r-1,p.y+Math.sin(a)*r-1,2,2);}}
  // HPバー
  if(e&&B.showFoe){hudPanel(g,82,2,76,20);g.font='bold 5px monospace';g.fillStyle=C3;g.fillText('HP',85,17);drawHpBar(g,95,12,56,B.dispE,e.st.hp);}
- if(a&&B.showAlly){hudPanel(g,2,2,76,30);g.font='bold 5px monospace';g.fillStyle=C3;g.fillText('HP',5,17);drawHpBar(g,15,12,56,B.dispA,a.st.hp);
+ if(a&&B.showAlly){hudPanel(g,2,2,76,34);g.font='bold 5px monospace';g.fillStyle=C3;g.fillText('HP',5,17);drawHpBar(g,15,12,56,B.dispA,a.st.hp);
   // 経験値
-  const lo=expFor(a.lv),hi=expFor(a.lv+1);const k=clamp((a.exp-lo)/Math.max(1,hi-lo),0,1);g.fillStyle=C3;g.fillText('EX',5,28.5);g.fillStyle=C3;g.fillRect(15,25,60,4);g.fillStyle=C0;g.fillRect(16,26,58,2);g.fillStyle=C2;g.fillRect(16,26,Math.round(58*k),2);}
+  const lo=expFor(a.lv),hi=expFor(a.lv+1);const k=clamp((a.exp-lo)/Math.max(1,hi-lo),0,1);g.fillStyle=C3;g.fillText('EX',5,32.5);g.fillStyle=C3;g.fillRect(15,29,60,4);g.fillStyle=C0;g.fillRect(16,30,58,2);g.fillStyle=C2;g.fillRect(16,30,Math.round(58*k),2);}
  if(B.flash>0){g.fillStyle=B.flashC||C3;g.globalAlpha=B.flash;g.fillRect(0,0,SW,SH);g.globalAlpha=1;}
  if(B.party){// 相手の手持ちボール表示
   const n=B.party;for(let i=0;i<6;i++){const x=148-i*9;if(i<n.length){ballIcon(g,x,12,n[i]===0);}}}}
