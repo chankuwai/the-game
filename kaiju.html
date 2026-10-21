@@ -70,7 +70,7 @@ li.on{background:var(--mark-bg)}
 li.on .mk{border:3px solid var(--mark);color:var(--mark)}
 li.on .mk::after{content:""}
 li.on2{background:var(--mark2-bg)}
-li.on2 .mk{border:4px double var(--mark2);color:var(--mark2);font-size:22px}
+li.on2 .mk{border:2px solid var(--mark2);border-radius:8px;color:var(--mark2);font-size:20px}
 li.on2 .no{color:var(--mark2)}
 .sub .w2 b{color:var(--mark2)}
 .sh .n i{font-style:normal;color:var(--mark2);margin-left:6px}
@@ -105,7 +105,7 @@ li.on2 .no{color:var(--mark2)}
     <h1>怪獣チェック図鑑</h1>
     <div class="count"><span class="big" id="tot">0</span><span class="of"> / <span id="all">0</span> 体</span></div>
   </div>
-  <div class="sub"><span>ウルトラ <b id="cu">0</b></span><span>ゴジラ <b id="cg">0</b></span><span class="w2">◎ <b id="c2">0</b></span><span id="pct">0%</span></div>
+  <div class="sub"><span>ウルトラ <b id="cu">0</b></span><span>ゴジラ <b id="cg">0</b></span><span>○ <b id="c1">0</b></span><span class="w2">△ <b id="c2">0</b></span><span id="pct">0%</span></div>
   <div class="bar"><i id="barfill"></i></div>
   <div class="controls">
     <input id="q" type="search" placeholder="名前・別名で検索">
@@ -113,8 +113,8 @@ li.on2 .no{color:var(--mark2)}
       <button type="button" data-f="all" aria-pressed="true">全部</button>
       <button type="button" data-f="ultra" aria-pressed="false">ウルトラ</button>
       <button type="button" data-f="godzilla" aria-pressed="false">ゴジラ</button>
-      <button type="button" data-f="on" aria-pressed="false">○◎あり</button>
-      <button type="button" data-f="on2" aria-pressed="false">◎だけ</button>
+      <button type="button" data-f="on1" aria-pressed="false">○だけ</button>
+      <button type="button" data-f="on2" aria-pressed="false">△だけ</button>
       <button type="button" data-f="off" aria-pressed="false">未チェック</button>
     </div>
     <select id="jump" aria-label="作品へ移動"><option value="">作品へジャンプ</option></select>
@@ -1697,6 +1697,8 @@ const KEY='kaiju-check-v1', CKEY='kaiju-custom-v1', OKEY='kaiju-open-v1';
 const load=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
 const save=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 let marks=load(KEY,{}), custom=load(CKEY,[]), closed=load(OKEY,{});
+// 旧◎(2)は○(1)に戻す。△は3
+Object.keys(marks).forEach(k=>{if(marks[k]===2)marks[k]=1}); save(KEY,marks);
 let filter='all', query='';
 
 function build(){
@@ -1714,19 +1716,20 @@ function render(){
   const series=build();
   let html='', all=0,on=0,cu=0,cg=0,c2=0;
   series.forEach(s=>{
-    s.items.forEach(it=>{all++; if(marks[it.id]){on++; s.type===U?cu++:cg++; if(marks[it.id]===2)c2++}});
+    s.items.forEach(it=>{all++; if(marks[it.id]){on++; s.type===U?cu++:cg++; if(marks[it.id]===3)c2++}});
     if(filter===U&&s.type!==U||filter===G&&s.type!==G) return;
     const vis=s.items.filter(it=>{
       if(query&&!(it.n+it.a).includes(query)) return false;
       if(filter==='on'&&!marks[it.id]) return false;
       if(filter==='off'&&marks[it.id]) return false;
-      if(filter==='on2'&&marks[it.id]!==2) return false;
+      if(filter==='on2'&&marks[it.id]!==3) return false;
+      if(filter==='on1'&&marks[it.id]!==1) return false;
       return true});
-    if(!vis.length&&(query||filter==='on'||filter==='on2'||filter==='off')) return;
-    const sOn=s.items.filter(it=>marks[it.id]).length, s2=s.items.filter(it=>marks[it.id]===2).length;
+    if(!vis.length&&(query||filter==='on1'||filter==='on2'||filter==='off')) return;
+    const sOn=s.items.filter(it=>marks[it.id]).length, s2=s.items.filter(it=>marks[it.id]===3).length;
     const isClosed=closed[s.title]&&!query;
-    html+=`<section id="s${s.si}" class="${isClosed?'closed':''}"><div class="sh" data-t="${esc(s.title)}" role="button" tabindex="0" aria-expanded="${!isClosed}"><h2><span class="tag ${s.type===G?'g':''}">${s.type===G?'ゴジラ':'ウルトラ'}</span>${esc(s.title)}<span class="yr">${s.yr}</span></h2><span class="n"><b>${sOn}</b> / ${s.items.length}${s2?`<i>◎${s2}</i>`:''}</span></div><ul>`+
-      vis.map(it=>`<li class="${marks[it.id]===2?'on on2':marks[it.id]?'on':''}" data-id="${esc(it.id)}" ${it.c?'data-c="1"':''} tabindex="0" role="checkbox" aria-checked="${marks[it.id]===2?'mixed':!!marks[it.id]}" aria-label="${esc(it.n)} ${marks[it.id]===2?'二重丸':marks[it.id]?'丸':'未チェック'}"><span class="no">${it.no}</span><span class="nm">${it.a?`<span class="al">${esc(it.a)}</span>`:''}<span class="na">${esc(it.n)}</span>${it.c?'<span class="cus">追加</span>':''}</span><span class="mk" aria-hidden="true">${marks[it.id]===2?'◎':'○'}</span></li>`).join('')+`</ul></section>`;
+    html+=`<section id="s${s.si}" class="${isClosed?'closed':''}"><div class="sh" data-t="${esc(s.title)}" role="button" tabindex="0" aria-expanded="${!isClosed}"><h2><span class="tag ${s.type===G?'g':''}">${s.type===G?'ゴジラ':'ウルトラ'}</span>${esc(s.title)}<span class="yr">${s.yr}</span></h2><span class="n"><b>${sOn}</b> / ${s.items.length}${s2?`<i>△${s2}</i>`:''}</span></div><ul>`+
+      vis.map(it=>`<li class="${marks[it.id]===3?'on on2':marks[it.id]?'on':''}" data-id="${esc(it.id)}" ${it.c?'data-c="1"':''} tabindex="0" role="checkbox" aria-checked="${marks[it.id]===3?'mixed':!!marks[it.id]}" aria-label="${esc(it.n)} ${marks[it.id]===3?'三角':marks[it.id]?'丸':'未チェック'}"><span class="no">${it.no}</span><span class="nm">${it.a?`<span class="al">${esc(it.a)}</span>`:''}<span class="na">${esc(it.n)}</span>${it.c?'<span class="cus">追加</span>':''}</span><span class="mk" aria-hidden="true">${marks[it.id]===3?'△':'○'}</span></li>`).join('')+`</ul></section>`;
   });
   listEl.innerHTML=html||'<p class="empty">見つからないわ。</p>';
   document.getElementById('tot').textContent=on;
@@ -1734,6 +1737,7 @@ function render(){
   document.getElementById('cu').textContent=cu;
   document.getElementById('cg').textContent=cg;
   document.getElementById('c2').textContent=c2;
+  document.getElementById('c1').textContent=on-c2;
   const p=all?Math.round(on/all*1000)/10:0;
   document.getElementById('pct').textContent=p+'%';
   document.getElementById('barfill').style.width=p+'%';
@@ -1744,7 +1748,7 @@ listEl.addEventListener('click',e=>{
   const sh=e.target.closest('.sh');
   if(sh){const t=sh.dataset.t;closed[t]=!closed[t];save(OKEY,closed);render();return}
   const li=e.target.closest('li');
-  if(li){const id=li.dataset.id; if(marks[id]===2)delete marks[id]; else if(marks[id])marks[id]=2; else marks[id]=1; save(KEY,marks); render();}
+  if(li){const id=li.dataset.id; if(marks[id]===3)delete marks[id]; else if(marks[id])marks[id]=3; else marks[id]=1; save(KEY,marks); render();}
 });
 listEl.addEventListener('keydown',e=>{
   if(e.key!=='Enter'&&e.key!==' ')return;
@@ -1793,13 +1797,13 @@ let shareMode='count';
 function shareText(){
   const series=build(); let all=0,on=0,w2=0; const rows=[];
   series.forEach(s=>{
-    const got=s.items.filter(it=>marks[it.id]); all+=s.items.length; on+=got.length; const g2=got.filter(it=>marks[it.id]===2).length; w2+=g2;
+    const got=s.items.filter(it=>marks[it.id]); all+=s.items.length; on+=got.length; const g2=got.filter(it=>marks[it.id]===3).length; w2+=g2;
     if(!got.length)return;
-    if(shareMode==='count') rows.push(`${s.title} ${got.length}/${s.items.length}${g2?`（◎${g2}）`:''}`);
-    else rows.push(`■${s.title}（${got.length}/${s.items.length}）\n`+got.map(it=>`${marks[it.id]===2?'◎':'○'}${it.no}. ${it.a?it.a+' ':''}${it.n}`).join('\n'));
+    if(shareMode==='count') rows.push(`${s.title} ${got.length}/${s.items.length}${g2?`（△${g2}）`:''}`);
+    else rows.push(`■${s.title}（${got.length}/${s.items.length}）\n`+got.map(it=>`${marks[it.id]===3?'△':'○'}${it.no}. ${it.a?it.a+' ':''}${it.n}`).join('\n'));
   });
   const pct=all?Math.round(on/all*1000)/10:0;
-  const head=`【怪獣チェック図鑑】\n○◎ ${on} / ${all} 体（${pct}%）　うち◎ ${w2} 体`;
+  const head=`【怪獣チェック図鑑】\n○ ${on-w2} 体　△ ${w2} 体（合計 ${on} / ${all} 体・${pct}%）`;
   const url='\n\nhttps://chankuwai.github.io/the-game/kaiju.html';
   return head+(rows.length?'\n\n'+rows.join(shareMode==='count'?'\n':'\n\n'):'\n\nまだ○が付いていないわ。')+url;
 }
