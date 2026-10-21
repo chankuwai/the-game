@@ -17,16 +17,16 @@
 /* Layout: sticky counter bar on top, series sections as a long field-guide list, mark column on the right */
 :root{
   --bg:#eef0ec; --surface:#ffffff; --fg:#1d221f; --muted:#69726c; --line:#d5dad4;
-  --ultra:#c8312b; --godzilla:#2f6b4f; --mark:#c8312b; --mark-bg:#fbe9e7;
+  --ultra:#c8312b; --godzilla:#2f6b4f; --mark:#c8312b; --mark-bg:#fbe9e7; --mark2:#a86b00; --mark2-bg:#fdf3dc;
   --display:"Dela Gothic One","Hiragino Kaku Gothic StdN",sans-serif;
   --body:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",sans-serif;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#141816; --surface:#1d2320; --fg:#e9ece8; --muted:#97a19a; --line:#2e3631;
-  --ultra:#ff6b5e; --godzilla:#6fc79b; --mark:#ff6b5e; --mark-bg:#3a1f1c; color-scheme:dark}}
+  --ultra:#ff6b5e; --godzilla:#6fc79b; --mark:#ff6b5e; --mark-bg:#3a1f1c; --mark2:#f2c14e; --mark2-bg:#3a3018; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#141816; --surface:#1d2320; --fg:#e9ece8; --muted:#97a19a; --line:#2e3631;
-  --ultra:#ff6b5e; --godzilla:#6fc79b; --mark:#ff6b5e; --mark-bg:#3a1f1c; color-scheme:dark}
+  --ultra:#ff6b5e; --godzilla:#6fc79b; --mark:#ff6b5e; --mark-bg:#3a1f1c; --mark2:#f2c14e; --mark2-bg:#3a3018; color-scheme:dark}
 html,body{background:var(--bg);color:var(--fg)}
 body{font-family:var(--body);font-size:15px;line-height:1.5}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
@@ -69,6 +69,11 @@ li .mk{flex:none;width:34px;height:34px;border-radius:50%;border:2px dashed var(
 li.on{background:var(--mark-bg)}
 li.on .mk{border:3px solid var(--mark);color:var(--mark)}
 li.on .mk::after{content:""}
+li.on2{background:var(--mark2-bg)}
+li.on2 .mk{border:4px double var(--mark2);color:var(--mark2);font-size:22px}
+li.on2 .no{color:var(--mark2)}
+.sub .w2 b{color:var(--mark2)}
+.sh .n i{font-style:normal;color:var(--mark2);margin-left:6px}
 .add{margin-top:32px;padding:14px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
 .add h3{font-family:var(--display);font-weight:400;font-size:15px;margin:0 0 8px}
 .add form{display:flex;flex-wrap:wrap;gap:8px}
@@ -100,7 +105,7 @@ li.on .mk::after{content:""}
     <h1>怪獣チェック図鑑</h1>
     <div class="count"><span class="big" id="tot">0</span><span class="of"> / <span id="all">0</span> 体</span></div>
   </div>
-  <div class="sub"><span>ウルトラ <b id="cu">0</b></span><span>ゴジラ <b id="cg">0</b></span><span id="pct">0%</span></div>
+  <div class="sub"><span>ウルトラ <b id="cu">0</b></span><span>ゴジラ <b id="cg">0</b></span><span class="w2">◎ <b id="c2">0</b></span><span id="pct">0%</span></div>
   <div class="bar"><i id="barfill"></i></div>
   <div class="controls">
     <input id="q" type="search" placeholder="名前・別名で検索">
@@ -108,7 +113,8 @@ li.on .mk::after{content:""}
       <button type="button" data-f="all" aria-pressed="true">全部</button>
       <button type="button" data-f="ultra" aria-pressed="false">ウルトラ</button>
       <button type="button" data-f="godzilla" aria-pressed="false">ゴジラ</button>
-      <button type="button" data-f="on" aria-pressed="false">○だけ</button>
+      <button type="button" data-f="on" aria-pressed="false">○◎あり</button>
+      <button type="button" data-f="on2" aria-pressed="false">◎だけ</button>
       <button type="button" data-f="off" aria-pressed="false">未チェック</button>
     </div>
     <select id="jump" aria-label="作品へ移動"><option value="">作品へジャンプ</option></select>
@@ -1706,26 +1712,28 @@ function esc(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;
 
 function render(){
   const series=build();
-  let html='', all=0,on=0,cu=0,cg=0;
+  let html='', all=0,on=0,cu=0,cg=0,c2=0;
   series.forEach(s=>{
-    s.items.forEach(it=>{all++; if(marks[it.id]){on++; s.type===U?cu++:cg++}});
+    s.items.forEach(it=>{all++; if(marks[it.id]){on++; s.type===U?cu++:cg++; if(marks[it.id]===2)c2++}});
     if(filter===U&&s.type!==U||filter===G&&s.type!==G) return;
     const vis=s.items.filter(it=>{
       if(query&&!(it.n+it.a).includes(query)) return false;
       if(filter==='on'&&!marks[it.id]) return false;
       if(filter==='off'&&marks[it.id]) return false;
+      if(filter==='on2'&&marks[it.id]!==2) return false;
       return true});
-    if(!vis.length&&(query||filter==='on'||filter==='off')) return;
-    const sOn=s.items.filter(it=>marks[it.id]).length;
+    if(!vis.length&&(query||filter==='on'||filter==='on2'||filter==='off')) return;
+    const sOn=s.items.filter(it=>marks[it.id]).length, s2=s.items.filter(it=>marks[it.id]===2).length;
     const isClosed=closed[s.title]&&!query;
-    html+=`<section id="s${s.si}" class="${isClosed?'closed':''}"><div class="sh" data-t="${esc(s.title)}" role="button" tabindex="0" aria-expanded="${!isClosed}"><h2><span class="tag ${s.type===G?'g':''}">${s.type===G?'ゴジラ':'ウルトラ'}</span>${esc(s.title)}<span class="yr">${s.yr}</span></h2><span class="n"><b>${sOn}</b> / ${s.items.length}</span></div><ul>`+
-      vis.map(it=>`<li class="${marks[it.id]?'on':''}" data-id="${esc(it.id)}" ${it.c?'data-c="1"':''} tabindex="0" role="checkbox" aria-checked="${!!marks[it.id]}"><span class="no">${it.no}</span><span class="nm">${it.a?`<span class="al">${esc(it.a)}</span>`:''}<span class="na">${esc(it.n)}</span>${it.c?'<span class="cus">追加</span>':''}</span><span class="mk" aria-hidden="true">○</span></li>`).join('')+`</ul></section>`;
+    html+=`<section id="s${s.si}" class="${isClosed?'closed':''}"><div class="sh" data-t="${esc(s.title)}" role="button" tabindex="0" aria-expanded="${!isClosed}"><h2><span class="tag ${s.type===G?'g':''}">${s.type===G?'ゴジラ':'ウルトラ'}</span>${esc(s.title)}<span class="yr">${s.yr}</span></h2><span class="n"><b>${sOn}</b> / ${s.items.length}${s2?`<i>◎${s2}</i>`:''}</span></div><ul>`+
+      vis.map(it=>`<li class="${marks[it.id]===2?'on on2':marks[it.id]?'on':''}" data-id="${esc(it.id)}" ${it.c?'data-c="1"':''} tabindex="0" role="checkbox" aria-checked="${marks[it.id]===2?'mixed':!!marks[it.id]}" aria-label="${esc(it.n)} ${marks[it.id]===2?'二重丸':marks[it.id]?'丸':'未チェック'}"><span class="no">${it.no}</span><span class="nm">${it.a?`<span class="al">${esc(it.a)}</span>`:''}<span class="na">${esc(it.n)}</span>${it.c?'<span class="cus">追加</span>':''}</span><span class="mk" aria-hidden="true">${marks[it.id]===2?'◎':'○'}</span></li>`).join('')+`</ul></section>`;
   });
   listEl.innerHTML=html||'<p class="empty">見つからないわ。</p>';
   document.getElementById('tot').textContent=on;
   document.getElementById('all').textContent=all;
   document.getElementById('cu').textContent=cu;
   document.getElementById('cg').textContent=cg;
+  document.getElementById('c2').textContent=c2;
   const p=all?Math.round(on/all*1000)/10:0;
   document.getElementById('pct').textContent=p+'%';
   document.getElementById('barfill').style.width=p+'%';
@@ -1736,7 +1744,7 @@ listEl.addEventListener('click',e=>{
   const sh=e.target.closest('.sh');
   if(sh){const t=sh.dataset.t;closed[t]=!closed[t];save(OKEY,closed);render();return}
   const li=e.target.closest('li');
-  if(li){const id=li.dataset.id; if(marks[id])delete marks[id]; else marks[id]=1; save(KEY,marks); render();}
+  if(li){const id=li.dataset.id; if(marks[id]===2)delete marks[id]; else if(marks[id])marks[id]=2; else marks[id]=1; save(KEY,marks); render();}
 });
 listEl.addEventListener('keydown',e=>{
   if(e.key!=='Enter'&&e.key!==' ')return;
@@ -1783,15 +1791,15 @@ document.getElementById('yes').onclick=()=>{marks={};save(KEY,marks);conf.hidden
 // 共有
 let shareMode='count';
 function shareText(){
-  const series=build(); let all=0,on=0; const rows=[];
+  const series=build(); let all=0,on=0,w2=0; const rows=[];
   series.forEach(s=>{
-    const got=s.items.filter(it=>marks[it.id]); all+=s.items.length; on+=got.length;
+    const got=s.items.filter(it=>marks[it.id]); all+=s.items.length; on+=got.length; const g2=got.filter(it=>marks[it.id]===2).length; w2+=g2;
     if(!got.length)return;
-    if(shareMode==='count') rows.push(`${s.title} ${got.length}/${s.items.length}`);
-    else rows.push(`■${s.title}（${got.length}/${s.items.length}）\n`+got.map(it=>`${it.no}. ${it.a?it.a+' ':''}${it.n}`).join('\n'));
+    if(shareMode==='count') rows.push(`${s.title} ${got.length}/${s.items.length}${g2?`（◎${g2}）`:''}`);
+    else rows.push(`■${s.title}（${got.length}/${s.items.length}）\n`+got.map(it=>`${marks[it.id]===2?'◎':'○'}${it.no}. ${it.a?it.a+' ':''}${it.n}`).join('\n'));
   });
   const pct=all?Math.round(on/all*1000)/10:0;
-  const head=`【怪獣チェック図鑑】\n○ ${on} / ${all} 体（${pct}%）`;
+  const head=`【怪獣チェック図鑑】\n○◎ ${on} / ${all} 体（${pct}%）　うち◎ ${w2} 体`;
   const url='\n\nhttps://chankuwai.github.io/the-game/kaiju.html';
   return head+(rows.length?'\n\n'+rows.join(shareMode==='count'?'\n':'\n\n'):'\n\nまだ○が付いていないわ。')+url;
 }
