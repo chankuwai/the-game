@@ -131,6 +131,7 @@ body:not(.mode-start) #start{display:none!important}
 .rndbar .seg button{padding:5px 9px;font-size:12px}
 .rndbar .rndmk select{font-size:13px;padding:5px 6px;max-width:11em}
 .rndbar .rndopts .primary{flex:none;padding:10px 14px;font-size:14px}
+.rndagain{font:inherit;font-size:16px;font-weight:700;padding:13px;border-radius:10px;border:1px solid var(--fg);background:var(--fg);color:var(--bg);cursor:pointer;width:100%}
 .rndout{display:grid;gap:12px}
 .rset{display:grid;gap:6px}
 .rsh{margin:0;font-family:var(--display);font-weight:400;font-size:15px;display:flex;align-items:center;gap:8px}
@@ -218,6 +219,7 @@ body:not(.mode-start) #start{display:none!important}
 </div>
   <div class="rndout" id="rndlist"></div>
   <p class="note" id="rndmsg"></p>
+  <button type="button" id="rndgo2" class="rndagain">もう一回選ぶ</button>
   <div class="rndprev" id="rndprevwrap" hidden>
     <h4>1回前の結果</h4>
     <div class="rndout" id="rndprev"></div>
@@ -2283,7 +2285,8 @@ function setMode(m){
 document.getElementById('startinfo').textContent=`ウルトラシリーズとゴジラシリーズの怪獣 ${build().reduce((n,s)=>n+s.items.length,0)}体・${DATA.length}作品`;
 function toResults(){const y=document.getElementById('rnd').getBoundingClientRect().top+scrollY-16;scrollTo({top:Math.max(0,y),behavior:'smooth'})}
 document.getElementById('rndgo').onclick=()=>{pickRandom();drawPicks();toResults()};
-function syncG(){document.querySelectorAll('[data-g]').forEach(b=>b.setAttribute('aria-pressed',String((rsel.g===2?2:1)===+b.dataset.g)));document.getElementById('rndgo').textContent=rsel.g===2?'6体×2組を選ぶ':'6体を選ぶ';}
+document.getElementById('rndgo2').onclick=()=>{pickRandom();drawPicks();toResults()};
+function syncG(){document.querySelectorAll('[data-g]').forEach(b=>b.setAttribute('aria-pressed',String((rsel.g===2?2:1)===+b.dataset.g)));document.getElementById('rndgo').textContent=rsel.g===2?'6体×2組を選ぶ':'6体を選ぶ';document.getElementById('rndgo2').textContent=rsel.g===2?'もう一回 6体×2組を選ぶ':'もう一回 6体を選ぶ';}
 document.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{rsel.g=+b.dataset.g;saveR();syncG();pickRandom();toResults();});
 syncG();
 document.getElementById('gozukan').onclick=()=>setMode('zukan');
