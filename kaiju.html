@@ -121,6 +121,14 @@ body:not(.mode-start) #start{display:none!important}
 .rndx{font:inherit;font-size:13px;padding:5px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--muted);cursor:pointer}
 .rndopts{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;font-size:13px}
 .rndopts .primary{font:inherit;font-size:15px;padding:9px 18px;border-radius:8px;border:1px solid var(--fg);background:var(--fg);color:var(--bg);cursor:pointer}
+.rndout{display:grid;gap:12px}
+.rset{display:grid;gap:6px}
+.rsh{margin:0;font-family:var(--display);font-weight:400;font-size:15px;display:flex;align-items:center;gap:8px}
+.rsh::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--mark)}
+.rsh.b::before{background:var(--godzilla)}
+.rset:nth-child(2) .rn{color:var(--godzilla)}
+.rndleft{display:grid;gap:8px}
+.rndprev .rsh{font-size:13px;color:var(--muted)}
 .rndprev{display:grid;gap:8px;border-top:1px dashed var(--line);padding-top:10px}
 .rndprev h4{margin:0;font-size:13px;font-weight:700;color:var(--muted)}
 .rndprev .rndlist li{opacity:.65;animation:none;padding:7px 10px}
@@ -187,15 +195,18 @@ body:not(.mode-start) #start{display:none!important}
     <button type="button" id="rndclose" class="rndx">← モード選択へ</button>
     <h3>ランダム6体モード</h3>
   </div>
-  <ol class="rndlist" id="rndlist"></ol>
+  <div class="rndout" id="rndlist"></div>
   <p class="note" id="rndmsg"></p>
   <div class="rndprev" id="rndprevwrap" hidden>
-    <h4>1回前の6体</h4>
-    <ol class="rndlist" id="rndprev"></ol>
+    <h4>1回前の結果</h4>
+    <div class="rndout" id="rndprev"></div>
     <p class="note" id="rndprevmsg"></p>
   </div>
   <div class="rndopts">
-    <label><input type="checkbox" id="rndunmarked"> 未チェックの怪獣だけ</label>
+    <div class="rndleft">
+      <div class="seg" role="group" aria-label="組の数"><button type="button" data-g="1" aria-pressed="true">6体×1組</button><button type="button" data-g="2" aria-pressed="false">6体×2組</button></div>
+      <label><input type="checkbox" id="rndunmarked"> 未チェックの怪獣だけ</label>
+    </div>
     <button type="button" id="rndgo" class="primary">6体を選ぶ</button>
   </div>
   <div class="rndpick">
@@ -2223,15 +2234,18 @@ document.getElementById('rndgroups').addEventListener('change',e=>{const t=e.tar
 document.getElementById('rndgroups').addEventListener('click',e=>{const a=e.target.dataset.all,n=e.target.dataset.none; if(!a&&!n)return;
   const sel=new Set(rsel.s); DATA.forEach(d=>{if(d[0]===(a||n)){a?sel.add(d[1]):sel.delete(d[1])}}); rsel.s=DATA.map(d=>d[1]).filter(x=>sel.has(x)); saveR(); drawPicks();});
 document.getElementById('rndunmarked').addEventListener('change',()=>{saveR();drawPicks()});
+function rndCards(list,start){return '<ol class="rndlist">'+list.map(({s,it},k)=>`<li><span class="rn">${k+1}</span><span class="rb"><span class="rs">${esc(s.title)} ${it.no}</span>${it.a?`<span class="ra">${esc(it.a)}</span>`:''}<span class="rnm">${esc(it.n)}</span></span>${marks[it.id]?`<span class="rm">${marks[it.id]===3?'△':'○'}</span>`:''}</li>`).join('')+'</ol>'}
 function pickRandom(){
-  saveR(); const sel=new Set(rsel.s); const only=rsel.u; const pool=[];
+  saveR(); const sel=new Set(rsel.s); const only=rsel.u; const pool=[]; const sets=rsel.g===2?2:1;
   build().filter(s=>sel.has(s.title)).forEach(s=>s.items.forEach(it=>{if(!only||!marks[it.id])pool.push({s,it})}));
   for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}
-  const got=pool.slice(0,6);
-  const cur=document.getElementById('rndlist');
-  if(cur.children.length){document.getElementById('rndprev').innerHTML=cur.innerHTML;document.getElementById('rndprevmsg').textContent=document.getElementById('rndmsg').textContent;document.getElementById('rndprevwrap').hidden=false;}
-  document.getElementById('rndlist').innerHTML=got.map(({s,it},k)=>`<li><span class="rn">${k+1}</span><span class="rb"><span class="rs">${esc(s.title)} ${it.no}</span>${it.a?`<span class="ra">${esc(it.a)}</span>`:''}<span class="rnm">${esc(it.n)}</span></span>${marks[it.id]?`<span class="rm">${marks[it.id]===3?'△':'○'}</span>`:''}</li>`).join('');
-  document.getElementById('rndmsg').textContent=!sel.size?'使う作品にチェックを入れてね。':pool.length?`${sel.size}作品・${pool.length}体から選んだわ。${pool.length<6?'候補が6体に足りないから、全部出しておいたわ。':''}`:'選べる怪獣がいないわ。';
+  const out=document.getElementById('rndlist');
+  if(out.children.length){document.getElementById('rndprev').innerHTML=out.innerHTML;document.getElementById('rndprevmsg').textContent=document.getElementById('rndmsg').textContent;document.getElementById('rndprevwrap').hidden=false;}
+  if(sets===1){out.innerHTML=rndCards(pool.slice(0,6));}
+  else{const a=pool.slice(0,6),b=pool.slice(6,12);
+    out.innerHTML=`<div class="rset"><h4 class="rsh a">1組目</h4>${rndCards(a)}</div>`+(b.length?`<div class="rset"><h4 class="rsh b">2組目</h4>${rndCards(b)}</div>`:'');}
+  const need=sets*6;
+  document.getElementById('rndmsg').textContent=!sel.size?'使う作品にチェックを入れてね。':pool.length?`${sel.size}作品・${pool.length}体から選んだわ。${sets===2&&pool.length>=need?'2組の間で同じ怪獣は出ないようにしてあるわ。':''}${pool.length<need?`候補が${need}体に足りないから、あるだけ出しておいたわ。`:''}`:'選べる怪獣がいないわ。';
 }
 // 範囲でまとめてチェック
 const rfS=document.getElementById('rndfrom'), rtS=document.getElementById('rndto');
@@ -2252,6 +2266,9 @@ function setMode(m){
 }
 document.getElementById('startinfo').textContent=`ウルトラシリーズとゴジラシリーズの怪獣 ${build().reduce((n,s)=>n+s.items.length,0)}体・${DATA.length}作品`;
 document.getElementById('rndgo').onclick=()=>{pickRandom();drawPicks()};
+function syncG(){document.querySelectorAll('[data-g]').forEach(b=>b.setAttribute('aria-pressed',String((rsel.g===2?2:1)===+b.dataset.g)));document.getElementById('rndgo').textContent=rsel.g===2?'6体×2組を選ぶ':'6体を選ぶ';}
+document.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{rsel.g=+b.dataset.g;saveR();syncG();pickRandom();});
+syncG();
 document.getElementById('gozukan').onclick=()=>setMode('zukan');
 document.getElementById('gornd').onclick=()=>setMode('rnd');
 document.getElementById('rndclose').onclick=()=>setMode('start');
