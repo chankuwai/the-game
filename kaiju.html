@@ -45,7 +45,8 @@ h1{font-family:var(--display);font-weight:400;font-size:20px;margin:0;line-heigh
 .controls input,.controls select{font:inherit;font-size:14px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);min-width:0}
 #q{flex:1 1 160px}
 .seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
-.seg button{font:inherit;font-size:13px;padding:6px 10px;border:0;background:var(--bg);color:var(--muted);cursor:pointer}
+.controls .seg{max-width:100%;overflow-x:auto}
+.seg button{white-space:nowrap;font:inherit;font-size:13px;padding:6px 10px;border:0;background:var(--bg);color:var(--muted);cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
 section{margin-top:22px}
 .sh{display:flex;align-items:baseline;justify-content:space-between;gap:10px;border-bottom:2px solid var(--fg);padding-bottom:4px;cursor:pointer;user-select:none}
@@ -84,6 +85,26 @@ li.on2 .no{color:var(--mark2)}
 .foot button{cursor:pointer}
 .foot .danger{color:var(--ultra);border-color:var(--ultra)}
 .foot .primary,.share .primary{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.rndbtn{font:inherit;font-size:14px;padding:7px 12px;border:1px solid var(--fg);border-radius:8px;background:var(--fg);color:var(--bg);cursor:pointer}
+.rnd{margin-top:14px;padding:14px;border:1px solid var(--line);border-radius:10px;background:var(--surface);display:grid;gap:10px}
+.rndhead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.rnd h3{font-family:var(--display);font-weight:400;font-size:16px;margin:0}
+.rndx{font:inherit;font-size:13px;padding:5px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--muted);cursor:pointer}
+.rndrange{display:flex;flex-wrap:wrap;gap:8px}
+.rndrange label{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);flex:1 1 220px;min-width:0}
+.rndrange select{font:inherit;font-size:14px;padding:7px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);flex:1;min-width:0}
+.rndopts{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;font-size:13px}
+.rndopts .primary{font:inherit;font-size:15px;padding:9px 18px;border-radius:8px;border:1px solid var(--fg);background:var(--fg);color:var(--bg);cursor:pointer}
+.rndlist{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
+.rndlist li{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--bg);cursor:default;animation:rndin .25s ease both}
+.rndlist li:nth-child(2){animation-delay:.04s}.rndlist li:nth-child(3){animation-delay:.08s}.rndlist li:nth-child(4){animation-delay:.12s}.rndlist li:nth-child(5){animation-delay:.16s}.rndlist li:nth-child(6){animation-delay:.2s}
+@keyframes rndin{from{transform:translateY(4px);opacity:.4}to{transform:none;opacity:1}}
+.rndlist .rn{font-family:var(--display);font-size:22px;color:var(--mark);width:1.2em;text-align:center;flex:none}
+.rndlist .rb{min-width:0;display:grid;gap:1px}
+.rndlist .rs{font-size:11px;color:var(--muted)}
+.rndlist .ra{font-size:12px;color:var(--muted)}
+.rndlist .rnm{font-weight:700;font-size:15px}
+.rndlist .rm{margin-left:auto;flex:none;font-size:18px;color:var(--mark)}
 .share{margin-top:16px;padding:14px;border:1px solid var(--line);border-radius:10px;background:var(--surface);display:grid;gap:10px}
 .share h3{font-family:var(--display);font-weight:400;font-size:15px;margin:0}
 .share .seg{width:max-content;max-width:100%}
@@ -118,8 +139,26 @@ li.on2 .no{color:var(--mark2)}
       <button type="button" data-f="off" aria-pressed="false">未チェック</button>
     </div>
     <select id="jump" aria-label="作品へ移動"><option value="">作品へジャンプ</option></select>
+    <button type="button" id="rndopen" class="rndbtn">ランダム6体</button>
   </div>
 </header>
+
+<section class="rnd" id="rnd" hidden>
+  <div class="rndhead">
+    <h3>ランダム6体</h3>
+    <button type="button" id="rndclose" class="rndx" aria-label="閉じる">閉じる</button>
+  </div>
+  <div class="rndrange">
+    <label><select id="rndfrom" aria-label="範囲の最初の作品"></select> から</label>
+    <label><select id="rndto" aria-label="範囲の最後の作品"></select> まで</label>
+  </div>
+  <div class="rndopts">
+    <label><input type="checkbox" id="rndunmarked"> 未チェックの怪獣だけ</label>
+    <button type="button" id="rndgo" class="primary">6体を選ぶ</button>
+  </div>
+  <ol class="rndlist" id="rndlist"></ol>
+  <p class="note" id="rndmsg"></p>
+</section>
 
 <main id="list"></main>
 
@@ -2116,6 +2155,25 @@ document.getElementById('q').addEventListener('input',e=>{query=e.target.value.t
 document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>{
   filter=b.dataset.f;document.querySelectorAll('.seg button').forEach(x=>x.setAttribute('aria-pressed',x===b));render()}));
 
+// ランダム6体
+const rndEl=document.getElementById('rnd'), rf=document.getElementById('rndfrom'), rt=document.getElementById('rndto');
+DATA.forEach(([t,title],i)=>{rf.add(new Option(title,i)); rt.add(new Option(title,i));});
+const RK='kaiju-rnd-v1';
+(function(){const v=load(RK,null); if(v&&v.f<DATA.length&&v.t<DATA.length){rf.value=v.f;rt.value=v.t;document.getElementById('rndunmarked').checked=!!v.u}else{rf.value=0;rt.value=DATA.length-1}})();
+function pickRandom(){
+  let a=+rf.value,b=+rt.value; if(a>b)[a,b]=[b,a];
+  const only=document.getElementById('rndunmarked').checked;
+  save(RK,{f:+rf.value,t:+rt.value,u:only});
+  const pool=[]; build().slice(a,b+1).forEach(s=>s.items.forEach(it=>{if(!only||!marks[it.id])pool.push({s,it})}));
+  for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}
+  const got=pool.slice(0,6);
+  document.getElementById('rndlist').innerHTML=got.map(({s,it},k)=>`<li><span class="rn">${k+1}</span><span class="rb"><span class="rs">${esc(s.title)} ${it.no}</span>${it.a?`<span class="ra">${esc(it.a)}</span>`:''}<span class="rnm">${esc(it.n)}</span></span>${marks[it.id]?`<span class="rm">${marks[it.id]===3?'△':'○'}</span>`:''}</li>`).join('');
+  const range=a===b?DATA[a][1]:`${DATA[a][1]}〜${DATA[b][1]}`;
+  document.getElementById('rndmsg').textContent=pool.length?`${range}の${pool.length}体から選んだわ。${pool.length<6?'候補が6体に足りないから、全部出しておいたわ。':''}`:'この範囲に選べる怪獣がいないわ。';
+}
+document.getElementById('rndopen').onclick=()=>{rndEl.hidden=false; if(!document.getElementById('rndlist').children.length)pickRandom(); rndEl.scrollIntoView({behavior:'smooth',block:'nearest'})};
+document.getElementById('rndclose').onclick=()=>{rndEl.hidden=true};
+document.getElementById('rndgo').onclick=pickRandom;
 const jump=document.getElementById('jump'), as=document.getElementById('as');
 DATA.forEach(([t,title],i)=>{jump.add(new Option(title,'s'+i)); as.add(new Option(title,title))});
 jump.addEventListener('change',()=>{
