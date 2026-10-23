@@ -2238,6 +2238,7 @@ function setMode(m){
   scrollTo(0,0);
 }
 document.getElementById('startinfo').textContent=`ウルトラシリーズとゴジラシリーズの怪獣 ${build().reduce((n,s)=>n+s.items.length,0)}体・${DATA.length}作品`;
+document.getElementById('rndgo').onclick=()=>{pickRandom();drawPicks()};
 document.getElementById('gozukan').onclick=()=>setMode('zukan');
 document.getElementById('gornd').onclick=()=>setMode('rnd');
 document.getElementById('rndclose').onclick=()=>setMode('start');
