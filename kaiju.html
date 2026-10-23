@@ -85,14 +85,25 @@ li.on2 .no{color:var(--mark2)}
 .foot button{cursor:pointer}
 .foot .danger{color:var(--ultra);border-color:var(--ultra)}
 .foot .primary,.share .primary{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+body.mode-rnd .wrap>:not(#rnd){display:none!important}
+.rndsecret{margin-left:auto;background:none!important;border:none!important;font-size:16px;opacity:.35;padding:6px!important}
+.rndsecret:hover,.rndsecret:focus-visible{opacity:1}
+.rndpick{display:grid;gap:10px;border-top:1px solid var(--line);padding-top:12px}
+.rndpickhead{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
+.rndpickhead b{color:var(--fg);font-size:14px}
+.rndgrp{display:grid;gap:6px}
+.rndgrph{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px}
+.rndgrph .tag{font-size:12px}
+.rndgrph button{font:inherit;font-size:12px;padding:4px 10px;border:1px solid var(--line);border-radius:999px;background:var(--bg);color:var(--fg);cursor:pointer}
+.rndchecks{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:4px 10px}
+.rndchecks label{display:flex;gap:6px;align-items:flex-start;font-size:13px;padding:5px 2px;cursor:pointer;min-width:0}
+.rndchecks input{margin-top:3px;flex:none;accent-color:var(--mark)}
+.rndchecks small{color:var(--muted);font-size:11px}
 .rndbtn{font:inherit;font-size:14px;padding:7px 12px;border:1px solid var(--fg);border-radius:8px;background:var(--fg);color:var(--bg);cursor:pointer}
-.rnd{margin-top:14px;padding:14px;border:1px solid var(--line);border-radius:10px;background:var(--surface);display:grid;gap:10px}
-.rndhead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.rnd{margin-top:16px;padding:14px;border:1px solid var(--line);border-radius:10px;background:var(--surface);display:grid;gap:10px}
+.rndhead{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .rnd h3{font-family:var(--display);font-weight:400;font-size:16px;margin:0}
 .rndx{font:inherit;font-size:13px;padding:5px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--muted);cursor:pointer}
-.rndrange{display:flex;flex-wrap:wrap;gap:8px}
-.rndrange label{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);flex:1 1 220px;min-width:0}
-.rndrange select{font:inherit;font-size:14px;padding:7px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);flex:1;min-width:0}
 .rndopts{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;font-size:13px}
 .rndopts .primary{font:inherit;font-size:15px;padding:9px 18px;border-radius:8px;border:1px solid var(--fg);background:var(--fg);color:var(--bg);cursor:pointer}
 .rndlist{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
@@ -139,25 +150,24 @@ li.on2 .no{color:var(--mark2)}
       <button type="button" data-f="off" aria-pressed="false">未チェック</button>
     </div>
     <select id="jump" aria-label="作品へ移動"><option value="">作品へジャンプ</option></select>
-    <button type="button" id="rndopen" class="rndbtn">ランダム6体</button>
   </div>
 </header>
 
 <section class="rnd" id="rnd" hidden>
   <div class="rndhead">
-    <h3>ランダム6体</h3>
-    <button type="button" id="rndclose" class="rndx" aria-label="閉じる">閉じる</button>
+    <button type="button" id="rndclose" class="rndx">← 図鑑にもどる</button>
+    <h3>ランダム6体モード</h3>
   </div>
-  <div class="rndrange">
-    <label><select id="rndfrom" aria-label="範囲の最初の作品"></select> から</label>
-    <label><select id="rndto" aria-label="範囲の最後の作品"></select> まで</label>
-  </div>
+  <ol class="rndlist" id="rndlist"></ol>
+  <p class="note" id="rndmsg"></p>
   <div class="rndopts">
     <label><input type="checkbox" id="rndunmarked"> 未チェックの怪獣だけ</label>
     <button type="button" id="rndgo" class="primary">6体を選ぶ</button>
   </div>
-  <ol class="rndlist" id="rndlist"></ol>
-  <p class="note" id="rndmsg"></p>
+  <div class="rndpick">
+    <div class="rndpickhead"><b>使う作品</b><span id="rndcount"></span></div>
+    <div id="rndgroups"></div>
+  </div>
 </section>
 
 <main id="list"></main>
@@ -178,6 +188,7 @@ li.on2 .no{color:var(--mark2)}
   <button type="button" id="openall">全部ひらく</button>
   <button type="button" id="closeall">全部たたむ</button>
   <button type="button" id="reset" class="danger">○を全部消す</button>
+  <button type="button" id="rndopen" class="rndsecret" title="ランダム6体モード">🎲</button>
   <span id="confirm" hidden>本当に消す？ <button type="button" id="yes" class="danger">消す</button> <button type="button" id="no">やめる</button></span>
 </div>
 <div class="share" id="share" hidden>
@@ -2155,25 +2166,44 @@ document.getElementById('q').addEventListener('input',e=>{query=e.target.value.t
 document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>{
   filter=b.dataset.f;document.querySelectorAll('.seg button').forEach(x=>x.setAttribute('aria-pressed',x===b));render()}));
 
-// ランダム6体
-const rndEl=document.getElementById('rnd'), rf=document.getElementById('rndfrom'), rt=document.getElementById('rndto');
-DATA.forEach(([t,title],i)=>{rf.add(new Option(title,i)); rt.add(new Option(title,i));});
-const RK='kaiju-rnd-v1';
-(function(){const v=load(RK,null); if(v&&v.f<DATA.length&&v.t<DATA.length){rf.value=v.f;rt.value=v.t;document.getElementById('rndunmarked').checked=!!v.u}else{rf.value=0;rt.value=DATA.length-1}})();
+// ランダム6体モード（裏機能）
+const rndEl=document.getElementById('rnd'), RK='kaiju-rnd-v2';
+let rsel=(function(){const v=load(RK,null);return v&&Array.isArray(v.s)?v:{s:DATA.map(d=>d[1]),u:false}})();
+document.getElementById('rndunmarked').checked=!!rsel.u;
+function saveR(){rsel.u=document.getElementById('rndunmarked').checked;save(RK,rsel)}
+function drawPicks(){
+  const sel=new Set(rsel.s);
+  const groups=[[U,'ウルトラ',''],[G,'ゴジラ','g']];
+  document.getElementById('rndgroups').innerHTML=groups.map(([t,label,cls])=>{
+    const list=DATA.map((d,i)=>({d,i})).filter(x=>x.d[0]===t);
+    const n=list.filter(x=>sel.has(x.d[1])).length;
+    return `<div class="rndgrp"><div class="rndgrph"><span class="tag ${cls}">${label}</span><span>${n} / ${list.length}作品</span><button type="button" data-all="${t}">全部入れる</button><button type="button" data-none="${t}">全部外す</button></div><div class="rndchecks">`+
+      list.map(({d,i})=>`<label><input type="checkbox" data-t="${esc(d[1])}" ${sel.has(d[1])?'checked':''}><span>${esc(d[1])} <small>${d[2]}</small></span></label>`).join('')+'</div></div>';
+  }).join('');
+  const series=build().filter(s=>sel.has(s.title)); const only=document.getElementById('rndunmarked').checked;
+  const cnt=series.reduce((a,s)=>a+s.items.filter(it=>!only||!marks[it.id]).length,0);
+  document.getElementById('rndcount').textContent=`${sel.size}作品・${cnt}体`;
+}
+document.getElementById('rndgroups').addEventListener('change',e=>{const t=e.target.dataset.t;if(!t)return;
+  const sel=new Set(rsel.s); e.target.checked?sel.add(t):sel.delete(t); rsel.s=DATA.map(d=>d[1]).filter(x=>sel.has(x)); saveR(); drawPicks();});
+document.getElementById('rndgroups').addEventListener('click',e=>{const a=e.target.dataset.all,n=e.target.dataset.none; if(!a&&!n)return;
+  const sel=new Set(rsel.s); DATA.forEach(d=>{if(d[0]===(a||n)){a?sel.add(d[1]):sel.delete(d[1])}}); rsel.s=DATA.map(d=>d[1]).filter(x=>sel.has(x)); saveR(); drawPicks();});
+document.getElementById('rndunmarked').addEventListener('change',()=>{saveR();drawPicks()});
 function pickRandom(){
-  let a=+rf.value,b=+rt.value; if(a>b)[a,b]=[b,a];
-  const only=document.getElementById('rndunmarked').checked;
-  save(RK,{f:+rf.value,t:+rt.value,u:only});
-  const pool=[]; build().slice(a,b+1).forEach(s=>s.items.forEach(it=>{if(!only||!marks[it.id])pool.push({s,it})}));
+  saveR(); const sel=new Set(rsel.s); const only=rsel.u; const pool=[];
+  build().filter(s=>sel.has(s.title)).forEach(s=>s.items.forEach(it=>{if(!only||!marks[it.id])pool.push({s,it})}));
   for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}
   const got=pool.slice(0,6);
   document.getElementById('rndlist').innerHTML=got.map(({s,it},k)=>`<li><span class="rn">${k+1}</span><span class="rb"><span class="rs">${esc(s.title)} ${it.no}</span>${it.a?`<span class="ra">${esc(it.a)}</span>`:''}<span class="rnm">${esc(it.n)}</span></span>${marks[it.id]?`<span class="rm">${marks[it.id]===3?'△':'○'}</span>`:''}</li>`).join('');
-  const range=a===b?DATA[a][1]:`${DATA[a][1]}〜${DATA[b][1]}`;
-  document.getElementById('rndmsg').textContent=pool.length?`${range}の${pool.length}体から選んだわ。${pool.length<6?'候補が6体に足りないから、全部出しておいたわ。':''}`:'この範囲に選べる怪獣がいないわ。';
+  document.getElementById('rndmsg').textContent=!sel.size?'使う作品にチェックを入れてね。':pool.length?`${sel.size}作品・${pool.length}体から選んだわ。${pool.length<6?'候補が6体に足りないから、全部出しておいたわ。':''}`:'選べる怪獣がいないわ。';
 }
-document.getElementById('rndopen').onclick=()=>{rndEl.hidden=false; if(!document.getElementById('rndlist').children.length)pickRandom(); rndEl.scrollIntoView({behavior:'smooth',block:'nearest'})};
-document.getElementById('rndclose').onclick=()=>{rndEl.hidden=true};
-document.getElementById('rndgo').onclick=pickRandom;
+let backY=0;
+function openR(){backY=scrollY;document.body.classList.add('mode-rnd');rndEl.hidden=false;drawPicks();if(!document.getElementById('rndlist').children.length)pickRandom();scrollTo(0,0)}
+function closeR(){document.body.classList.remove('mode-rnd');rndEl.hidden=true;render();scrollTo(0,backY)}
+document.getElementById('rndopen').onclick=openR;
+document.getElementById('rndclose').onclick=closeR;
+document.getElementById('rndgo').onclick=()=>{pickRandom();drawPicks()};
+if(location.hash==='#random')setTimeout(openR,0);
 const jump=document.getElementById('jump'), as=document.getElementById('as');
 DATA.forEach(([t,title],i)=>{jump.add(new Option(title,'s'+i)); as.add(new Option(title,title))});
 jump.addEventListener('change',()=>{
