@@ -121,6 +121,16 @@ body:not(.mode-start) #start{display:none!important}
 .rndx{font:inherit;font-size:13px;padding:5px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--muted);cursor:pointer}
 .rndopts{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;font-size:13px}
 .rndopts .primary{font:inherit;font-size:15px;padding:9px 18px;border-radius:8px;border:1px solid var(--fg);background:var(--fg);color:var(--bg);cursor:pointer}
+.rndbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:4;background:var(--surface);display:grid;gap:10px;margin:-14px -14px 0;padding:14px;border-bottom:1px solid var(--line);border-radius:10px 10px 0 0}
+.rndbar{gap:8px;padding-block:10px}
+.rndbar .rndhead h3{font-size:15px}
+.rndbar .rndx{padding:4px 10px;font-size:12px}
+.rndbar .rndopts{flex-wrap:nowrap;align-items:flex-end;gap:8px}
+.rndbar .rndleft{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;min-width:0}
+.rndbar .seg{width:max-content}
+.rndbar .seg button{padding:5px 9px;font-size:12px}
+.rndbar .rndmk select{font-size:13px;padding:5px 6px;max-width:11em}
+.rndbar .rndopts .primary{flex:none;padding:10px 14px;font-size:14px}
 .rndout{display:grid;gap:12px}
 .rset{display:grid;gap:6px}
 .rsh{margin:0;font-family:var(--display);font-weight:400;font-size:15px;display:flex;align-items:center;gap:8px}
@@ -193,16 +203,10 @@ body:not(.mode-start) #start{display:none!important}
 </header>
 
 <section class="rnd" id="rnd" hidden>
+<div class="rndbar">
   <div class="rndhead">
     <button type="button" id="rndclose" class="rndx">← モード選択へ</button>
     <h3>ランダム6体モード</h3>
-  </div>
-  <div class="rndout" id="rndlist"></div>
-  <p class="note" id="rndmsg"></p>
-  <div class="rndprev" id="rndprevwrap" hidden>
-    <h4>1回前の結果</h4>
-    <div class="rndout" id="rndprev"></div>
-    <p class="note" id="rndprevmsg"></p>
   </div>
   <div class="rndopts">
     <div class="rndleft">
@@ -210,6 +214,14 @@ body:not(.mode-start) #start{display:none!important}
       <label class="rndmk">選ぶ対象 <select id="rndmark" aria-label="選ぶ対象"><option value="all">全部の怪獣</option><option value="any">○か△をつけた怪獣</option><option value="m1">○の怪獣だけ</option><option value="m3">△の怪獣だけ</option><option value="none">未チェックの怪獣だけ</option></select></label>
     </div>
     <button type="button" id="rndgo" class="primary">6体を選ぶ</button>
+  </div>
+</div>
+  <div class="rndout" id="rndlist"></div>
+  <p class="note" id="rndmsg"></p>
+  <div class="rndprev" id="rndprevwrap" hidden>
+    <h4>1回前の結果</h4>
+    <div class="rndout" id="rndprev"></div>
+    <p class="note" id="rndprevmsg"></p>
   </div>
   <div class="rndpick">
     <div class="rndpickhead"><b>使う作品</b><span id="rndcount"></span></div>
@@ -2257,7 +2269,7 @@ DATA.forEach(([t,title],i)=>{rfS.add(new Option(title,i)); rtS.add(new Option(ti
 rfS.value=0; rtS.value=DATA.length-1;
 (function(){const v=load('kaiju-rnd-range',null); if(v&&v.f<DATA.length&&v.t<DATA.length){rfS.value=v.f;rtS.value=v.t}})();
 document.getElementById('rndrangego').onclick=()=>{let a=+rfS.value,b=+rtS.value; if(a>b)[a,b]=[b,a];
-  save('kaiju-rnd-range',{f:+rfS.value,t:+rtS.value}); rsel.s=DATA.slice(a,b+1).map(d=>d[1]); saveR(); drawPicks(); pickRandom();};
+  save('kaiju-rnd-range',{f:+rfS.value,t:+rtS.value}); rsel.s=DATA.slice(a,b+1).map(d=>d[1]); saveR(); drawPicks(); pickRandom(); toResults();};
 // モード切り替え
 function setMode(m){
   document.body.classList.toggle('mode-start',m==='start');
@@ -2269,9 +2281,10 @@ function setMode(m){
   scrollTo(0,0);
 }
 document.getElementById('startinfo').textContent=`ウルトラシリーズとゴジラシリーズの怪獣 ${build().reduce((n,s)=>n+s.items.length,0)}体・${DATA.length}作品`;
-document.getElementById('rndgo').onclick=()=>{pickRandom();drawPicks()};
+function toResults(){const y=document.getElementById('rnd').getBoundingClientRect().top+scrollY-16;scrollTo({top:Math.max(0,y),behavior:'smooth'})}
+document.getElementById('rndgo').onclick=()=>{pickRandom();drawPicks();toResults()};
 function syncG(){document.querySelectorAll('[data-g]').forEach(b=>b.setAttribute('aria-pressed',String((rsel.g===2?2:1)===+b.dataset.g)));document.getElementById('rndgo').textContent=rsel.g===2?'6体×2組を選ぶ':'6体を選ぶ';}
-document.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{rsel.g=+b.dataset.g;saveR();syncG();pickRandom();});
+document.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{rsel.g=+b.dataset.g;saveR();syncG();pickRandom();toResults();});
 syncG();
 document.getElementById('gozukan').onclick=()=>setMode('zukan');
 document.getElementById('gornd').onclick=()=>setMode('rnd');
