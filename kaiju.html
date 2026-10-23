@@ -86,8 +86,22 @@ li.on2 .no{color:var(--mark2)}
 .foot .danger{color:var(--ultra);border-color:var(--ultra)}
 .foot .primary,.share .primary{background:var(--fg);color:var(--bg);border-color:var(--fg)}
 body.mode-rnd .wrap>:not(#rnd){display:none!important}
-.rndsecret{margin-left:auto;background:none!important;border:none!important;font-size:16px;opacity:.35;padding:6px!important}
-.rndsecret:hover,.rndsecret:focus-visible{opacity:1}
+body.mode-start .wrap>:not(#start){display:none!important}
+body:not(.mode-start) #start{display:none!important}
+.start{min-height:70vh;display:grid;align-content:center;gap:18px;padding-block:24px}
+.start .tg-home{justify-self:start}
+.start h1{font-size:28px;margin:0}
+.start p{margin:0;color:var(--muted);font-size:14px}
+.modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.modes button{font:inherit;text-align:left;display:grid;gap:6px;padding:18px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--fg);cursor:pointer}
+.modes button:hover,.modes button:focus-visible{border-color:var(--mark)}
+.modes b{font-family:var(--display);font-weight:400;font-size:20px}
+.modes span{font-size:13px;color:var(--muted)}
+.modes .mi{font-size:26px;color:var(--mark);font-family:var(--display)}
+.tomode{font:inherit;font-size:12px;color:var(--muted);background:none;border:none;padding:0;margin-left:12px;cursor:pointer;text-decoration:underline}
+.rndrange{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px;color:var(--muted)}
+.rndrange select{font:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);flex:1 1 150px;min-width:0}
+.rndrange button{font:inherit;font-size:12px;padding:6px 12px;border:1px solid var(--fg);border-radius:999px;background:var(--fg);color:var(--bg);cursor:pointer}
 .rndpick{display:grid;gap:10px;border-top:1px solid var(--line);padding-top:12px}
 .rndpickhead{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
 .rndpickhead b{color:var(--fg);font-size:14px}
@@ -131,8 +145,17 @@ body.mode-rnd .wrap>:not(#rnd){display:none!important}
 </head>
 <body>
 <div class="wrap">
-<header>
+<section class="start" id="start">
   <a class="tg-home" href="index.html">← ゲーム一覧</a>
+  <h1>怪獣チェック図鑑</h1>
+  <p id="startinfo">ウルトラシリーズとゴジラシリーズの怪獣</p>
+  <div class="modes">
+    <button type="button" id="gozukan"><span class="mi">○△</span><b>図鑑モード</b><span>怪獣をタップして○と△をつけ、数を数える</span></button>
+    <button type="button" id="gornd"><span class="mi">6</span><b>ランダム6体モード</b><span>選んだ作品の怪獣から、ランダムに6体を選ぶ</span></button>
+  </div>
+</section>
+<header>
+  <a class="tg-home" href="index.html">← ゲーム一覧</a><button type="button" class="tomode" data-tomode>モード選択へ</button>
   <div class="top">
     <h1>怪獣チェック図鑑</h1>
     <div class="count"><span class="big" id="tot">0</span><span class="of"> / <span id="all">0</span> 体</span></div>
@@ -155,7 +178,7 @@ body.mode-rnd .wrap>:not(#rnd){display:none!important}
 
 <section class="rnd" id="rnd" hidden>
   <div class="rndhead">
-    <button type="button" id="rndclose" class="rndx">← 図鑑にもどる</button>
+    <button type="button" id="rndclose" class="rndx">← モード選択へ</button>
     <h3>ランダム6体モード</h3>
   </div>
   <ol class="rndlist" id="rndlist"></ol>
@@ -166,6 +189,7 @@ body.mode-rnd .wrap>:not(#rnd){display:none!important}
   </div>
   <div class="rndpick">
     <div class="rndpickhead"><b>使う作品</b><span id="rndcount"></span></div>
+    <div class="rndrange"><select id="rndfrom" aria-label="範囲の最初の作品"></select>から<select id="rndto" aria-label="範囲の最後の作品"></select>まで<button type="button" id="rndrangego">この範囲にする</button></div>
     <div id="rndgroups"></div>
   </div>
 </section>
@@ -188,7 +212,6 @@ body.mode-rnd .wrap>:not(#rnd){display:none!important}
   <button type="button" id="openall">全部ひらく</button>
   <button type="button" id="closeall">全部たたむ</button>
   <button type="button" id="reset" class="danger">○を全部消す</button>
-  <button type="button" id="rndopen" class="rndsecret" title="ランダム6体モード">🎲</button>
   <span id="confirm" hidden>本当に消す？ <button type="button" id="yes" class="danger">消す</button> <button type="button" id="no">やめる</button></span>
 </div>
 <div class="share" id="share" hidden>
@@ -2197,13 +2220,29 @@ function pickRandom(){
   document.getElementById('rndlist').innerHTML=got.map(({s,it},k)=>`<li><span class="rn">${k+1}</span><span class="rb"><span class="rs">${esc(s.title)} ${it.no}</span>${it.a?`<span class="ra">${esc(it.a)}</span>`:''}<span class="rnm">${esc(it.n)}</span></span>${marks[it.id]?`<span class="rm">${marks[it.id]===3?'△':'○'}</span>`:''}</li>`).join('');
   document.getElementById('rndmsg').textContent=!sel.size?'使う作品にチェックを入れてね。':pool.length?`${sel.size}作品・${pool.length}体から選んだわ。${pool.length<6?'候補が6体に足りないから、全部出しておいたわ。':''}`:'選べる怪獣がいないわ。';
 }
-let backY=0;
-function openR(){backY=scrollY;document.body.classList.add('mode-rnd');rndEl.hidden=false;drawPicks();if(!document.getElementById('rndlist').children.length)pickRandom();scrollTo(0,0)}
-function closeR(){document.body.classList.remove('mode-rnd');rndEl.hidden=true;render();scrollTo(0,backY)}
-document.getElementById('rndopen').onclick=openR;
-document.getElementById('rndclose').onclick=closeR;
-document.getElementById('rndgo').onclick=()=>{pickRandom();drawPicks()};
-if(location.hash==='#random')setTimeout(openR,0);
+// 範囲でまとめてチェック
+const rfS=document.getElementById('rndfrom'), rtS=document.getElementById('rndto');
+DATA.forEach(([t,title],i)=>{rfS.add(new Option(title,i)); rtS.add(new Option(title,i));});
+rfS.value=0; rtS.value=DATA.length-1;
+(function(){const v=load('kaiju-rnd-range',null); if(v&&v.f<DATA.length&&v.t<DATA.length){rfS.value=v.f;rtS.value=v.t}})();
+document.getElementById('rndrangego').onclick=()=>{let a=+rfS.value,b=+rtS.value; if(a>b)[a,b]=[b,a];
+  save('kaiju-rnd-range',{f:+rfS.value,t:+rtS.value}); rsel.s=DATA.slice(a,b+1).map(d=>d[1]); saveR(); drawPicks(); pickRandom();};
+// モード切り替え
+function setMode(m){
+  document.body.classList.toggle('mode-start',m==='start');
+  document.body.classList.toggle('mode-rnd',m==='rnd');
+  rndEl.hidden=m!=='rnd';
+  if(m==='rnd'){drawPicks();if(!document.getElementById('rndlist').children.length)pickRandom();}
+  if(m==='zukan')render();
+  try{history.replaceState(null,'',location.pathname+location.search+(m==='rnd'?'#random':m==='zukan'?'#zukan':''))}catch(e){}
+  scrollTo(0,0);
+}
+document.getElementById('startinfo').textContent=`ウルトラシリーズとゴジラシリーズの怪獣 ${build().reduce((n,s)=>n+s.items.length,0)}体・${DATA.length}作品`;
+document.getElementById('gozukan').onclick=()=>setMode('zukan');
+document.getElementById('gornd').onclick=()=>setMode('rnd');
+document.getElementById('rndclose').onclick=()=>setMode('start');
+document.querySelectorAll('[data-tomode]').forEach(b=>b.onclick=()=>setMode('start'));
+setMode(location.hash==='#random'?'rnd':location.hash==='#zukan'?'zukan':'start');
 const jump=document.getElementById('jump'), as=document.getElementById('as');
 DATA.forEach(([t,title],i)=>{jump.add(new Option(title,'s'+i)); as.add(new Option(title,title))});
 jump.addEventListener('change',()=>{
