@@ -128,6 +128,8 @@ body:not(.mode-start) #start{display:none!important}
 .rsh.b::before{background:var(--godzilla)}
 .rset:nth-child(2) .rn{color:var(--godzilla)}
 .rndleft{display:grid;gap:8px}
+.rndmk{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.rndmk select{font:inherit;font-size:14px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);min-width:0}
 .rndprev .rsh{font-size:13px;color:var(--muted)}
 .rndprev{display:grid;gap:8px;border-top:1px dashed var(--line);padding-top:10px}
 .rndprev h4{margin:0;font-size:13px;font-weight:700;color:var(--muted)}
@@ -205,7 +207,7 @@ body:not(.mode-start) #start{display:none!important}
   <div class="rndopts">
     <div class="rndleft">
       <div class="seg" role="group" aria-label="組の数"><button type="button" data-g="1" aria-pressed="true">6体×1組</button><button type="button" data-g="2" aria-pressed="false">6体×2組</button></div>
-      <label><input type="checkbox" id="rndunmarked"> 未チェックの怪獣だけ</label>
+      <label class="rndmk">選ぶ対象 <select id="rndmark" aria-label="選ぶ対象"><option value="all">全部の怪獣</option><option value="any">○か△をつけた怪獣</option><option value="m1">○の怪獣だけ</option><option value="m3">△の怪獣だけ</option><option value="none">未チェックの怪獣だけ</option></select></label>
     </div>
     <button type="button" id="rndgo" class="primary">6体を選ぶ</button>
   </div>
@@ -2214,8 +2216,10 @@ document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',(
 // ランダム6体モード（裏機能）
 const rndEl=document.getElementById('rnd'), RK='kaiju-rnd-v2';
 let rsel=(function(){const v=load(RK,null);return v&&Array.isArray(v.s)?v:{s:DATA.map(d=>d[1]),u:false}})();
-document.getElementById('rndunmarked').checked=!!rsel.u;
-function saveR(){rsel.u=document.getElementById('rndunmarked').checked;save(RK,rsel)}
+if(!rsel.m)rsel.m=rsel.u?'none':'all';
+document.getElementById('rndmark').value=rsel.m;
+function saveR(){rsel.m=document.getElementById('rndmark').value;save(RK,rsel)}
+function rndOk(it){const v=marks[it.id];switch(rsel.m){case 'any':return !!v;case 'm1':return v===1;case 'm3':return v===3;case 'none':return !v;default:return true}}
 function drawPicks(){
   const sel=new Set(rsel.s);
   const groups=[[U,'ウルトラ',''],[G,'ゴジラ','g']];
@@ -2225,19 +2229,19 @@ function drawPicks(){
     return `<div class="rndgrp"><div class="rndgrph"><span class="tag ${cls}">${label}</span><span>${n} / ${list.length}作品</span><button type="button" data-all="${t}">全部入れる</button><button type="button" data-none="${t}">全部外す</button></div><div class="rndchecks">`+
       list.map(({d,i})=>`<label><input type="checkbox" data-t="${esc(d[1])}" ${sel.has(d[1])?'checked':''}><span>${esc(d[1])} <small>${d[2]}</small></span></label>`).join('')+'</div></div>';
   }).join('');
-  const series=build().filter(s=>sel.has(s.title)); const only=document.getElementById('rndunmarked').checked;
-  const cnt=series.reduce((a,s)=>a+s.items.filter(it=>!only||!marks[it.id]).length,0);
+  const series=build().filter(s=>sel.has(s.title));
+  const cnt=series.reduce((a,s)=>a+s.items.filter(rndOk).length,0);
   document.getElementById('rndcount').textContent=`${sel.size}作品・${cnt}体`;
 }
 document.getElementById('rndgroups').addEventListener('change',e=>{const t=e.target.dataset.t;if(!t)return;
   const sel=new Set(rsel.s); e.target.checked?sel.add(t):sel.delete(t); rsel.s=DATA.map(d=>d[1]).filter(x=>sel.has(x)); saveR(); drawPicks();});
 document.getElementById('rndgroups').addEventListener('click',e=>{const a=e.target.dataset.all,n=e.target.dataset.none; if(!a&&!n)return;
   const sel=new Set(rsel.s); DATA.forEach(d=>{if(d[0]===(a||n)){a?sel.add(d[1]):sel.delete(d[1])}}); rsel.s=DATA.map(d=>d[1]).filter(x=>sel.has(x)); saveR(); drawPicks();});
-document.getElementById('rndunmarked').addEventListener('change',()=>{saveR();drawPicks()});
+document.getElementById('rndmark').addEventListener('change',()=>{saveR();drawPicks()});
 function rndCards(list,start){return '<ol class="rndlist">'+list.map(({s,it},k)=>`<li><span class="rn">${k+1}</span><span class="rb"><span class="rs">${esc(s.title)} ${it.no}</span>${it.a?`<span class="ra">${esc(it.a)}</span>`:''}<span class="rnm">${esc(it.n)}</span></span>${marks[it.id]?`<span class="rm">${marks[it.id]===3?'△':'○'}</span>`:''}</li>`).join('')+'</ol>'}
 function pickRandom(){
-  saveR(); const sel=new Set(rsel.s); const only=rsel.u; const pool=[]; const sets=rsel.g===2?2:1;
-  build().filter(s=>sel.has(s.title)).forEach(s=>s.items.forEach(it=>{if(!only||!marks[it.id])pool.push({s,it})}));
+  saveR(); const sel=new Set(rsel.s); const pool=[]; const sets=rsel.g===2?2:1;
+  build().filter(s=>sel.has(s.title)).forEach(s=>s.items.forEach(it=>{if(rndOk(it))pool.push({s,it})}));
   for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}
   const out=document.getElementById('rndlist');
   if(out.children.length){document.getElementById('rndprev').innerHTML=out.innerHTML;document.getElementById('rndprevmsg').textContent=document.getElementById('rndmsg').textContent;document.getElementById('rndprevwrap').hidden=false;}
@@ -2245,7 +2249,7 @@ function pickRandom(){
   else{const a=pool.slice(0,6),b=pool.slice(6,12);
     out.innerHTML=`<div class="rset"><h4 class="rsh a">1組目</h4>${rndCards(a)}</div>`+(b.length?`<div class="rset"><h4 class="rsh b">2組目</h4>${rndCards(b)}</div>`:'');}
   const need=sets*6;
-  document.getElementById('rndmsg').textContent=!sel.size?'使う作品にチェックを入れてね。':pool.length?`${sel.size}作品・${pool.length}体から選んだわ。${sets===2&&pool.length>=need?'2組の間で同じ怪獣は出ないようにしてあるわ。':''}${pool.length<need?`候補が${need}体に足りないから、あるだけ出しておいたわ。`:''}`:'選べる怪獣がいないわ。';
+  document.getElementById('rndmsg').textContent=!sel.size?'使う作品にチェックを入れてね。':pool.length?`${sel.size}作品の${{all:'',any:'○か△の',m1:'○の',m3:'△の',none:'未チェックの'}[rsel.m]}${pool.length}体から選んだわ。${sets===2&&pool.length>=need?'2組の間で同じ怪獣は出ないようにしてあるわ。':''}${pool.length<need?`候補が${need}体に足りないから、あるだけ出しておいたわ。`:''}`:(rsel.m==='all'?'選べる怪獣がいないわ。':'この条件に合う怪獣がいないわ。図鑑モードで○や△をつけてみてね。');
 }
 // 範囲でまとめてチェック
 const rfS=document.getElementById('rndfrom'), rtS=document.getElementById('rndto');
