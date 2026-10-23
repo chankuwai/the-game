@@ -121,8 +121,9 @@ body:not(.mode-start) #start{display:none!important}
 .rndx{font:inherit;font-size:13px;padding:5px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--muted);cursor:pointer}
 .rndopts{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;font-size:13px}
 .rndopts .primary{font:inherit;font-size:15px;padding:9px 18px;border-radius:8px;border:1px solid var(--fg);background:var(--fg);color:var(--bg);cursor:pointer}
-.rndbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:4;background:var(--surface);display:grid;gap:10px;margin:-14px -14px 0;padding:14px;border-bottom:1px solid var(--line);border-radius:10px 10px 0 0}
-.rndbar{gap:8px;padding-block:10px}
+.rndbar{position:fixed;top:0;left:0;right:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:0 2px 10px rgba(0,0,0,.06);padding-top:calc(env(safe-area-inset-top,0px) + 10px);padding-bottom:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.rndbarin{max-width:728px;margin:0 auto;display:grid;gap:8px}
+#rndspacer{height:var(--rndbar-h,150px);margin-top:-14px}
 .rndbar .rndhead h3{font-size:15px}
 .rndbar .rndx{padding:4px 10px;font-size:12px}
 .rndbar .rndopts{flex-wrap:nowrap;align-items:flex-end;gap:8px}
@@ -132,6 +133,7 @@ body:not(.mode-start) #start{display:none!important}
 .rndbar .rndmk select{font-size:13px;padding:5px 6px;max-width:11em}
 .rndbar .rndopts .primary{flex:none;padding:10px 14px;font-size:14px}
 .rndagain{font:inherit;font-size:16px;font-weight:700;padding:13px;border-radius:10px;border:1px solid var(--fg);background:var(--fg);color:var(--bg);cursor:pointer;width:100%}
+.rndhist{display:grid;gap:14px}
 .rndout{display:grid;gap:12px}
 .rset{display:grid;gap:6px}
 .rsh{margin:0;font-family:var(--display);font-weight:400;font-size:15px;display:flex;align-items:center;gap:8px}
@@ -204,7 +206,7 @@ body:not(.mode-start) #start{display:none!important}
 </header>
 
 <section class="rnd" id="rnd" hidden>
-<div class="rndbar">
+<div class="rndbar" id="rndbar"><div class="rndbarin">
   <div class="rndhead">
     <button type="button" id="rndclose" class="rndx">← モード選択へ</button>
     <h3>ランダム6体モード</h3>
@@ -216,15 +218,12 @@ body:not(.mode-start) #start{display:none!important}
     </div>
     <button type="button" id="rndgo" class="primary">6体を選ぶ</button>
   </div>
-</div>
+</div></div>
+<div id="rndspacer" aria-hidden="true"></div>
   <div class="rndout" id="rndlist"></div>
   <p class="note" id="rndmsg"></p>
   <button type="button" id="rndgo2" class="rndagain">もう一回選ぶ</button>
-  <div class="rndprev" id="rndprevwrap" hidden>
-    <h4>1回前の結果</h4>
-    <div class="rndout" id="rndprev"></div>
-    <p class="note" id="rndprevmsg"></p>
-  </div>
+  <div class="rndhist" id="rndprevwrap" hidden></div>
   <div class="rndpick">
     <div class="rndpickhead"><b>使う作品</b><span id="rndcount"></span></div>
     <div class="rndrange"><select id="rndfrom" aria-label="範囲の最初の作品"></select>から<select id="rndto" aria-label="範囲の最後の作品"></select>まで<button type="button" id="rndrangego">この範囲にする</button></div>
@@ -2253,12 +2252,15 @@ document.getElementById('rndgroups').addEventListener('click',e=>{const a=e.targ
   const sel=new Set(rsel.s); DATA.forEach(d=>{if(d[0]===(a||n)){a?sel.add(d[1]):sel.delete(d[1])}}); rsel.s=DATA.map(d=>d[1]).filter(x=>sel.has(x)); saveR(); drawPicks();});
 document.getElementById('rndmark').addEventListener('change',()=>{saveR();drawPicks()});
 function rndCards(list,start){return '<ol class="rndlist">'+list.map(({s,it},k)=>`<li><span class="rn">${k+1}</span><span class="rb"><span class="rs">${esc(s.title)} ${it.no}</span>${it.a?`<span class="ra">${esc(it.a)}</span>`:''}<span class="rnm">${esc(it.n)}</span></span>${marks[it.id]?`<span class="rm">${marks[it.id]===3?'△':'○'}</span>`:''}</li>`).join('')+'</ol>'}
+let rhist=[];
 function pickRandom(){
   saveR(); const sel=new Set(rsel.s); const pool=[]; const sets=rsel.g===2?2:1;
   build().filter(s=>sel.has(s.title)).forEach(s=>s.items.forEach(it=>{if(rndOk(it))pool.push({s,it})}));
   for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}
   const out=document.getElementById('rndlist');
-  if(out.children.length){document.getElementById('rndprev').innerHTML=out.innerHTML;document.getElementById('rndprevmsg').textContent=document.getElementById('rndmsg').textContent;document.getElementById('rndprevwrap').hidden=false;}
+  if(out.children.length){rhist.unshift({html:out.innerHTML,msg:document.getElementById('rndmsg').textContent});rhist=rhist.slice(0,10);
+    const w=document.getElementById('rndprevwrap');w.hidden=false;
+    w.innerHTML=rhist.map((r,i)=>`<div class="rndprev"><h4>${i+1}回前の結果</h4><div class="rndout">${r.html}</div><p class="note">${esc(r.msg)}</p></div>`).join('');}
   if(sets===1){out.innerHTML=rndCards(pool.slice(0,6));}
   else{const a=pool.slice(0,6),b=pool.slice(6,12);
     out.innerHTML=`<div class="rset"><h4 class="rsh a">1組目</h4>${rndCards(a)}</div>`+(b.length?`<div class="rset"><h4 class="rsh b">2組目</h4>${rndCards(b)}</div>`:'');}
@@ -2277,13 +2279,15 @@ function setMode(m){
   document.body.classList.toggle('mode-start',m==='start');
   document.body.classList.toggle('mode-rnd',m==='rnd');
   rndEl.hidden=m!=='rnd';
-  if(m==='rnd'){drawPicks();if(!document.getElementById('rndlist').children.length)pickRandom();}
+  if(m==='rnd'){requestAnimationFrame(barH);drawPicks();if(!document.getElementById('rndlist').children.length)pickRandom();}
   if(m==='zukan')render();
   try{history.replaceState(null,'',location.pathname+location.search+(m==='rnd'?'#random':m==='zukan'?'#zukan':''))}catch(e){}
   scrollTo(0,0);
 }
 document.getElementById('startinfo').textContent=`ウルトラシリーズとゴジラシリーズの怪獣 ${build().reduce((n,s)=>n+s.items.length,0)}体・${DATA.length}作品`;
-function toResults(){const y=document.getElementById('rnd').getBoundingClientRect().top+scrollY-16;scrollTo({top:Math.max(0,y),behavior:'smooth'})}
+function barH(){const b=document.getElementById('rndbar');document.documentElement.style.setProperty('--rndbar-h',(b.offsetHeight-(parseFloat(getComputedStyle(b).paddingTop)-10))+'px')}
+addEventListener('resize',()=>{if(!rndEl.hidden)barH()});
+function toResults(){scrollTo({top:0,behavior:'smooth'})}
 document.getElementById('rndgo').onclick=()=>{pickRandom();drawPicks();toResults()};
 document.getElementById('rndgo2').onclick=()=>{pickRandom();drawPicks();toResults()};
 function syncG(){document.querySelectorAll('[data-g]').forEach(b=>b.setAttribute('aria-pressed',String((rsel.g===2?2:1)===+b.dataset.g)));document.getElementById('rndgo').textContent=rsel.g===2?'6体×2組を選ぶ':'6体を選ぶ';document.getElementById('rndgo2').textContent=rsel.g===2?'もう一回 6体×2組を選ぶ':'もう一回 6体を選ぶ';}
