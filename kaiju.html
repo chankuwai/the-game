@@ -132,8 +132,12 @@ body:not(.mode-start) #start{display:none!important}
 .rndbar .seg button{padding:5px 9px;font-size:12px}
 .rndbar .rndmk select{font-size:13px;padding:5px 6px;max-width:11em}
 .rndbar .rndopts .primary{flex:none;padding:10px 14px;font-size:14px}
-.rndagain{font:inherit;font-size:16px;font-weight:700;padding:13px;border-radius:10px;border:1px solid var(--fg);background:var(--fg);color:var(--bg);cursor:pointer;width:100%}
-.rndhist{display:grid;gap:14px}
+.rndhist{border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.rndhist summary{cursor:pointer;padding:12px 14px;font-size:14px;font-weight:700;color:var(--muted);list-style:none;display:flex;align-items:center;gap:8px}
+.rndhist summary::-webkit-details-marker{display:none}
+.rndhist summary::before{content:"▶";font-size:10px;transition:transform .15s}
+.rndhist[open] summary::before{transform:rotate(90deg)}
+.rndhistin{display:grid;gap:14px;padding:0 14px 14px}
 .rndout{display:grid;gap:12px}
 .rset{display:grid;gap:6px}
 .rsh{margin:0;font-family:var(--display);font-weight:400;font-size:15px;display:flex;align-items:center;gap:8px}
@@ -222,8 +226,7 @@ body:not(.mode-start) #start{display:none!important}
 <div id="rndspacer" aria-hidden="true"></div>
   <div class="rndout" id="rndlist"></div>
   <p class="note" id="rndmsg"></p>
-  <button type="button" id="rndgo2" class="rndagain">もう一回選ぶ</button>
-  <div class="rndhist" id="rndprevwrap" hidden></div>
+  <details class="rndhist" id="rndprevwrap" hidden><summary id="rndhistsum">過去の結果</summary><div class="rndhistin" id="rndhistin"></div></details>
   <div class="rndpick">
     <div class="rndpickhead"><b>使う作品</b><span id="rndcount"></span></div>
     <div class="rndrange"><select id="rndfrom" aria-label="範囲の最初の作品"></select>から<select id="rndto" aria-label="範囲の最後の作品"></select>まで<button type="button" id="rndrangego">この範囲にする</button></div>
@@ -2260,7 +2263,8 @@ function pickRandom(){
   const out=document.getElementById('rndlist');
   if(out.children.length){rhist.unshift({html:out.innerHTML,msg:document.getElementById('rndmsg').textContent});rhist=rhist.slice(0,10);
     const w=document.getElementById('rndprevwrap');w.hidden=false;
-    w.innerHTML=rhist.map((r,i)=>`<div class="rndprev"><h4>${i+1}回前の結果</h4><div class="rndout">${r.html}</div><p class="note">${esc(r.msg)}</p></div>`).join('');}
+    document.getElementById('rndhistsum').textContent=`過去の結果（${rhist.length}回分）`;
+    document.getElementById('rndhistin').innerHTML=rhist.map((r,i)=>`<div class="rndprev"><h4>${i+1}回前の結果</h4><div class="rndout">${r.html}</div><p class="note">${esc(r.msg)}</p></div>`).join('');}
   if(sets===1){out.innerHTML=rndCards(pool.slice(0,6));}
   else{const a=pool.slice(0,6),b=pool.slice(6,12);
     out.innerHTML=`<div class="rset"><h4 class="rsh a">1組目</h4>${rndCards(a)}</div>`+(b.length?`<div class="rset"><h4 class="rsh b">2組目</h4>${rndCards(b)}</div>`:'');}
@@ -2289,8 +2293,7 @@ function barH(){const b=document.getElementById('rndbar');document.documentEleme
 addEventListener('resize',()=>{if(!rndEl.hidden)barH()});
 function toResults(){scrollTo({top:0,behavior:'smooth'})}
 document.getElementById('rndgo').onclick=()=>{pickRandom();drawPicks();toResults()};
-document.getElementById('rndgo2').onclick=()=>{pickRandom();drawPicks();toResults()};
-function syncG(){document.querySelectorAll('[data-g]').forEach(b=>b.setAttribute('aria-pressed',String((rsel.g===2?2:1)===+b.dataset.g)));document.getElementById('rndgo').textContent=rsel.g===2?'6体×2組を選ぶ':'6体を選ぶ';document.getElementById('rndgo2').textContent=rsel.g===2?'もう一回 6体×2組を選ぶ':'もう一回 6体を選ぶ';}
+function syncG(){document.querySelectorAll('[data-g]').forEach(b=>b.setAttribute('aria-pressed',String((rsel.g===2?2:1)===+b.dataset.g)));document.getElementById('rndgo').textContent=rsel.g===2?'6体×2組を選ぶ':'6体を選ぶ';}
 document.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{rsel.g=+b.dataset.g;saveR();syncG();pickRandom();toResults();});
 syncG();
 document.getElementById('gozukan').onclick=()=>setMode('zukan');
