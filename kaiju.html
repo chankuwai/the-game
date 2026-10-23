@@ -109,6 +109,11 @@ body:not(.mode-start) #start{display:none!important}
 .rndgrp{display:grid;gap:6px}
 .rndgrph{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px}
 .rndgrph .tag{font-size:12px}
+.rndctl{display:grid;grid-template-columns:auto auto 1fr 1fr;gap:6px 8px;align-items:center;font-size:13px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);position:sticky;top:calc(var(--rndbar-h,150px) + 4px);z-index:3}
+.rndctl .tag{font-size:12px;text-align:center}
+.rndctl .tag.all{background:var(--fg);color:var(--bg)}
+.rndctl .rc{font-variant-numeric:tabular-nums;color:var(--muted);white-space:nowrap}
+.rndctl button{font:inherit;font-size:12px;padding:5px 8px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--fg);cursor:pointer;white-space:nowrap}
 .rndgrph button{font:inherit;font-size:12px;padding:4px 10px;border:1px solid var(--line);border-radius:999px;background:var(--bg);color:var(--fg);cursor:pointer}
 .rndchecks{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:4px 10px}
 .rndchecks label{display:flex;gap:6px;align-items:flex-start;font-size:13px;padding:5px 2px;cursor:pointer;min-width:0}
@@ -2239,10 +2244,13 @@ function rndOk(it){const v=marks[it.id];switch(rsel.m){case 'any':return !!v;cas
 function drawPicks(){
   const sel=new Set(rsel.s);
   const groups=[[U,'ウルトラ',''],[G,'ゴジラ','g']];
-  document.getElementById('rndgroups').innerHTML=groups.map(([t,label,cls])=>{
+  const ctl='<div class="rndctl">'+groups.map(([t,label,cls])=>{const list=DATA.filter(d=>d[0]===t);const n=list.filter(d=>sel.has(d[1])).length;
+      return `<span class="tag ${cls}">${label}</span><span class="rc">${n} / ${list.length}</span><button type="button" data-all="${t}">全部入れる</button><button type="button" data-none="${t}">全部外す</button>`;}).join('')+
+    `<span class="tag all">両方</span><span class="rc">${sel.size} / ${DATA.length}</span><button type="button" data-all="both">全部入れる</button><button type="button" data-none="both">全部外す</button></div>`;
+  document.getElementById('rndgroups').innerHTML=ctl+groups.map(([t,label,cls])=>{
     const list=DATA.map((d,i)=>({d,i})).filter(x=>x.d[0]===t);
     const n=list.filter(x=>sel.has(x.d[1])).length;
-    return `<div class="rndgrp"><div class="rndgrph"><span class="tag ${cls}">${label}</span><span>${n} / ${list.length}作品</span><button type="button" data-all="${t}">全部入れる</button><button type="button" data-none="${t}">全部外す</button></div><div class="rndchecks">`+
+    return `<div class="rndgrp"><div class="rndgrph"><span class="tag ${cls}">${label}</span><span>${n} / ${list.length}作品</span></div><div class="rndchecks">`+
       list.map(({d,i})=>`<label><input type="checkbox" data-t="${esc(d[1])}" ${sel.has(d[1])?'checked':''}><span>${esc(d[1])} <small>${d[2]}</small></span></label>`).join('')+'</div></div>';
   }).join('');
   const series=build().filter(s=>sel.has(s.title));
@@ -2252,7 +2260,7 @@ function drawPicks(){
 document.getElementById('rndgroups').addEventListener('change',e=>{const t=e.target.dataset.t;if(!t)return;
   const sel=new Set(rsel.s); e.target.checked?sel.add(t):sel.delete(t); rsel.s=DATA.map(d=>d[1]).filter(x=>sel.has(x)); saveR(); drawPicks();});
 document.getElementById('rndgroups').addEventListener('click',e=>{const a=e.target.dataset.all,n=e.target.dataset.none; if(!a&&!n)return;
-  const sel=new Set(rsel.s); DATA.forEach(d=>{if(d[0]===(a||n)){a?sel.add(d[1]):sel.delete(d[1])}}); rsel.s=DATA.map(d=>d[1]).filter(x=>sel.has(x)); saveR(); drawPicks();});
+  const sel=new Set(rsel.s); DATA.forEach(d=>{if((a||n)==='both'||d[0]===(a||n)){a?sel.add(d[1]):sel.delete(d[1])}}); rsel.s=DATA.map(d=>d[1]).filter(x=>sel.has(x)); saveR(); drawPicks();});
 document.getElementById('rndmark').addEventListener('change',()=>{saveR();drawPicks()});
 function rndCards(list,start){return '<ol class="rndlist">'+list.map(({s,it},k)=>`<li><span class="rn">${k+1}</span><span class="rb"><span class="rs">${esc(s.title)} ${it.no}</span>${it.a?`<span class="ra">${esc(it.a)}</span>`:''}<span class="rnm">${esc(it.n)}</span></span>${marks[it.id]?`<span class="rm">${marks[it.id]===3?'△':'○'}</span>`:''}</li>`).join('')+'</ol>'}
 let rhist=[];
