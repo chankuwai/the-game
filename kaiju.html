@@ -8,7 +8,8 @@
 <meta name="theme-color" content="#1d221f">
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}
 .tg-home{display:inline-block;font-size:12px;color:var(--muted);text-decoration:none;margin-bottom:6px}
-.tg-home:hover{color:var(--fg)}</style>
+.tg-home:hover{color:var(--fg)}
+[hidden]{display:none!important}</style>
 <script>(function(){var id='kaiju';try{var a=JSON.parse(localStorage.getItem('tg_recent')||'[]').filter(function(x){return x.id!==id;});a.unshift({id:id,t:Date.now()});localStorage.setItem('tg_recent',JSON.stringify(a.slice(0,10)));}catch(e){}})();</script>
 <title>怪獣チェック図鑑</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -120,6 +121,11 @@ body:not(.mode-start) #start{display:none!important}
 .rndx{font:inherit;font-size:13px;padding:5px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--muted);cursor:pointer}
 .rndopts{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;font-size:13px}
 .rndopts .primary{font:inherit;font-size:15px;padding:9px 18px;border-radius:8px;border:1px solid var(--fg);background:var(--fg);color:var(--bg);cursor:pointer}
+.rndprev{display:grid;gap:8px;border-top:1px dashed var(--line);padding-top:10px}
+.rndprev h4{margin:0;font-size:13px;font-weight:700;color:var(--muted)}
+.rndprev .rndlist li{opacity:.65;animation:none;padding:7px 10px}
+.rndprev .rn{font-size:16px}
+.rndprev .rnm{font-size:14px}
 .rndlist{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
 .rndlist li{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--bg);cursor:default;animation:rndin .25s ease both}
 .rndlist li:nth-child(2){animation-delay:.04s}.rndlist li:nth-child(3){animation-delay:.08s}.rndlist li:nth-child(4){animation-delay:.12s}.rndlist li:nth-child(5){animation-delay:.16s}.rndlist li:nth-child(6){animation-delay:.2s}
@@ -183,6 +189,11 @@ body:not(.mode-start) #start{display:none!important}
   </div>
   <ol class="rndlist" id="rndlist"></ol>
   <p class="note" id="rndmsg"></p>
+  <div class="rndprev" id="rndprevwrap" hidden>
+    <h4>1回前の6体</h4>
+    <ol class="rndlist" id="rndprev"></ol>
+    <p class="note" id="rndprevmsg"></p>
+  </div>
   <div class="rndopts">
     <label><input type="checkbox" id="rndunmarked"> 未チェックの怪獣だけ</label>
     <button type="button" id="rndgo" class="primary">6体を選ぶ</button>
@@ -2217,6 +2228,8 @@ function pickRandom(){
   build().filter(s=>sel.has(s.title)).forEach(s=>s.items.forEach(it=>{if(!only||!marks[it.id])pool.push({s,it})}));
   for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}
   const got=pool.slice(0,6);
+  const cur=document.getElementById('rndlist');
+  if(cur.children.length){document.getElementById('rndprev').innerHTML=cur.innerHTML;document.getElementById('rndprevmsg').textContent=document.getElementById('rndmsg').textContent;document.getElementById('rndprevwrap').hidden=false;}
   document.getElementById('rndlist').innerHTML=got.map(({s,it},k)=>`<li><span class="rn">${k+1}</span><span class="rb"><span class="rs">${esc(s.title)} ${it.no}</span>${it.a?`<span class="ra">${esc(it.a)}</span>`:''}<span class="rnm">${esc(it.n)}</span></span>${marks[it.id]?`<span class="rm">${marks[it.id]===3?'△':'○'}</span>`:''}</li>`).join('');
   document.getElementById('rndmsg').textContent=!sel.size?'使う作品にチェックを入れてね。':pool.length?`${sel.size}作品・${pool.length}体から選んだわ。${pool.length<6?'候補が6体に足りないから、全部出しておいたわ。':''}`:'選べる怪獣がいないわ。';
 }
