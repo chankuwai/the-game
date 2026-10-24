@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><style id="tg-notouch">*{touch-action:manipulation;-webkit-tap-highlight-color:transparent}body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}input,textarea,select,[contenteditable="true"]{-webkit-user-select:text;user-select:text}img,canvas{-webkit-user-drag:none}</style><script id="tg-notouch-js">(function(){var ok=function(t){return t&&t.closest&&t.closest('input,textarea,select,[contenteditable="true"]')};["gesturestart","gesturechange","gestureend"].forEach(function(n){document.addEventListener(n,function(e){e.preventDefault()},{passive:false})});document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length>1)e.preventDefault()},{passive:false});document.addEventListener("dblclick",function(e){if(!ok(e.target))e.preventDefault()},{passive:false});document.addEventListener("contextmenu",function(e){if(!ok(e.target))e.preventDefault()});document.addEventListener("selectstart",function(e){if(!ok(e.target))e.preventDefault()});})();</script>
+<title>ゴミ山サバイバー</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=DotGothic16&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap">
+<style>
+/* Layout: one-screen game. Scene canvas on top, status strip, scrolling work panel, tab bar pinned at the bottom. Blue tarp + rust + hazard yellow on soot. */
+:root{
+  --soot:#1b1814; --soot2:#241f19; --card:#2d271f; --card2:#382f25; --line:#4b4033;
+  --paper:#efe4cf; --dim:#a7977e;
+  --tarp:#2f6d97; --tarp-hi:#4c8fbd; --rust:#c2632f; --hazard:#e9b42a; --patina:#77a487; --blood:#d6493d; --water:#58a7d6;
+  --f-display:"Dela Gothic One","Hiragino Sans","Yu Gothic",sans-serif;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif;
+  --f-dot:"DotGothic16",ui-monospace,"Courier New",monospace;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--soot);color:var(--paper);font-family:var(--f-body);overflow:hidden;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:2px solid var(--hazard);outline-offset:2px}
+#app{height:100%;display:flex;flex-direction:column;max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* scene */
+.scene{position:relative;margin-top:10px;border-radius:6px;overflow:hidden;border:2px solid #000;box-shadow:0 0 0 1px var(--line);flex:0 0 auto}
+#scene{display:block;width:100%;height:150px}
+.scene-tag{position:absolute;left:8px;top:8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.stencil{font-family:var(--f-display);font-size:13px;letter-spacing:.06em;background:var(--hazard);color:#1b1814;padding:3px 8px 2px;border-radius:2px;box-shadow:2px 2px 0 #000}
+.chip{font-family:var(--f-dot);font-size:13px;background:rgba(20,17,13,.78);border:1px solid rgba(255,255,255,.15);padding:2px 7px;border-radius:2px}
+.money{position:absolute;right:8px;top:8px;font-family:var(--f-dot);font-size:17px;background:rgba(20,17,13,.82);padding:3px 9px;border-radius:2px;border:1px solid var(--hazard);color:var(--hazard);font-variant-numeric:tabular-nums}
+.mute{position:absolute;right:8px;bottom:8px;background:rgba(20,17,13,.7);border:1px solid rgba(255,255,255,.2);border-radius:2px;font-size:12px;padding:2px 7px;font-family:var(--f-dot)}
+
+/* status */
+.status{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;flex:0 0 auto}
+.meter{min-width:0}
+.meter .lab{display:flex;justify-content:space-between;font-size:11px;color:var(--dim);letter-spacing:.08em;font-family:var(--f-dot)}
+.meter .lab b{color:var(--paper);font-weight:400;font-variant-numeric:tabular-nums}
+.bar{height:8px;background:#0e0c0a;border:1px solid #000;margin-top:3px;position:relative;overflow:hidden}
+.bar i{position:absolute;inset:0 auto 0 0;transition:width .35s ease;background-image:repeating-linear-gradient(90deg,rgba(0,0,0,.25) 0 2px,transparent 2px 9px)}
+.bar.hp i{background-color:var(--blood)} .bar.food i{background-color:var(--rust)} .bar.water i{background-color:var(--water)}
+.bar.low{animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{border-color:var(--blood)}}
+.stam{display:flex;align-items:center;gap:8px;margin-top:8px;flex:0 0 auto}
+.stam .lab{font-family:var(--f-dot);font-size:11px;color:var(--dim);letter-spacing:.08em;white-space:nowrap}
+.pips{display:flex;gap:3px;flex-wrap:wrap}
+.pip{width:13px;height:13px;background:#0e0c0a;border:1px solid #000;transform:skew(-12deg)}
+.pip.on{background:var(--hazard);box-shadow:inset 0 -3px 0 rgba(0,0,0,.25)}
+.ticker{margin-top:8px;font-family:var(--f-dot);font-size:13px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-top:1px dashed var(--line);border-bottom:1px dashed var(--line);padding:4px 0;flex:0 0 auto}
+.ticker b{color:var(--hazard);font-weight:400}
+
+/* panel */
+.panel{flex:1 1 auto;overflow-y:auto;padding-block:12px 16px;min-height:0;-webkit-overflow-scrolling:touch}
+h2{font-family:var(--f-display);font-weight:400;font-size:19px;margin:4px 0 4px;letter-spacing:.02em;text-wrap:balance}
+h3{font-family:var(--f-dot);font-weight:400;font-size:13px;color:var(--hazard);letter-spacing:.12em;margin:18px 0 8px;display:flex;align-items:center;gap:8px}
+h3::after{content:"";flex:1;height:1px;background:repeating-linear-gradient(90deg,var(--line) 0 6px,transparent 6px 10px)}
+.sub{color:var(--dim);font-size:13px;line-height:1.6;margin:0 0 8px}
+
+/* area cards */
+.areas{display:grid;gap:10px}
+.area{display:grid;grid-template-columns:62px 1fr auto;gap:12px;align-items:center;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:4px;padding:10px;position:relative;overflow:hidden}
+.area .thumb{width:62px;height:46px;border-radius:2px;border:1px solid #000}
+.area .nm{font-family:var(--f-display);font-size:15px}
+.area .ds{font-size:12px;color:var(--dim);margin-top:2px;line-height:1.5}
+.area .risk{font-family:var(--f-dot);font-size:11px;color:var(--rust)}
+.area .go{font-family:var(--f-dot);font-size:12px;background:var(--tarp);padding:6px 9px;border-radius:2px;white-space:nowrap}
+.area.locked{opacity:.55}
+.area.locked .go{background:#3a332a;color:var(--dim)}
+
+/* dig */
+.dighead{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;flex-wrap:wrap}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:10px}
+.tile{aspect-ratio:1;max-width:100%;border:1px solid #000;border-radius:3px;position:relative;padding:0;overflow:hidden;
+  background:
+   radial-gradient(circle at var(--x1) var(--y1), rgba(0,0,0,.35) 0 18%, transparent 19%),
+   linear-gradient(var(--r1), transparent 40%, rgba(255,255,255,.07) 41% 47%, transparent 48%),
+   linear-gradient(var(--r2), transparent 55%, rgba(0,0,0,.3) 56% 62%, transparent 63%),
+   linear-gradient(160deg, var(--t1), var(--t2));
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.08), inset 0 -3px 0 rgba(0,0,0,.35)}
+.tile:active:not(.dug){transform:translateY(1px)}
+.tile.dug{background:#110f0c;box-shadow:inset 0 3px 8px rgba(0,0,0,.8)}
+.tile .ic{position:absolute;inset:0;display:grid;place-items:center;font-size:clamp(20px,7vw,30px);animation:pop .35s cubic-bezier(.2,1.6,.4,1)}
+.tile .tn{position:absolute;left:0;right:0;bottom:2px;font-size:9px;font-family:var(--f-dot);text-align:center;color:var(--paper);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 2px}
+.tile.taken .ic{opacity:.25;filter:grayscale(1)}
+.tile.haz{background:#2a0f0c}
+.tile.haz .ic{color:var(--blood)}
+.tile.shake{animation:shake .22s linear}
+.tile .spark{position:absolute;right:4px;top:3px;color:var(--hazard);font-size:12px;animation:twinkle 1.2s ease-in-out infinite}
+.tile.waiting{outline:2px dashed var(--hazard);outline-offset:-3px}
+@keyframes pop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes shake{25%{transform:translate(-2px,1px) rotate(-2deg)}50%{transform:translate(2px,-1px) rotate(2deg)}75%{transform:translate(-1px,0)}}
+@keyframes twinkle{50%{opacity:.2;transform:scale(.7)}}
+
+.bag{margin-top:14px;background:var(--soot2);border:1px solid var(--line);border-radius:4px;padding:10px}
+.bag .top{display:flex;justify-content:space-between;align-items:center;font-family:var(--f-dot);font-size:13px}
+.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(40px,1fr));gap:5px;margin-top:8px}
+.slot{aspect-ratio:1;max-width:100%;border:1px dashed #4b4033;border-radius:3px;display:grid;place-items:center;font-size:20px;background:#15120f;padding:0}
+.slot.full{border-style:solid;border-color:#5b4d3c;background:#231d17}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:none;border-radius:3px;padding:10px 14px;font-weight:700;font-size:14px;background:var(--tarp);box-shadow:0 3px 0 #173a52;letter-spacing:.03em}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 #173a52}
+.btn.warn{background:var(--hazard);color:#1b1814;box-shadow:0 3px 0 #8d6a12}
+.btn.rust{background:var(--rust);box-shadow:0 3px 0 #6d3317}
+.btn.ghost{background:var(--card2);box-shadow:0 3px 0 #15120f}
+.btn:disabled{opacity:.4;pointer-events:none}
+.btn.wide{width:100%}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.row .btn{flex:1 1 140px}
+
+/* lists */
+.list{display:grid;gap:6px}
+.it{display:grid;grid-template-columns:38px 1fr auto;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:4px;padding:8px 10px;text-align:left;width:100%}
+.it .ico{font-size:24px;text-align:center}
+.it .nm{font-weight:700;font-size:14px;min-width:0}
+.it .ds{font-size:12px;color:var(--dim);line-height:1.45;margin-top:1px}
+.it .rt{font-family:var(--f-dot);font-size:14px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.it .cnt{font-family:var(--f-dot);color:var(--hazard)}
+.tagx{display:inline-block;font-family:var(--f-dot);font-size:10px;padding:0 5px;border-radius:2px;margin-left:5px;vertical-align:2px;letter-spacing:.05em}
+.tag-junk{background:#5a3a24;color:#f2c9a5} .tag-fixed{background:#2e4d3a;color:#bfe6cb} .tag-rare{background:var(--hazard);color:#1b1814} .tag-food{background:#4a3520;color:#f4c58b}
+.need{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.need span{font-family:var(--f-dot);font-size:11px;padding:1px 6px;border-radius:2px;background:#1a1612;border:1px solid #3e3429}
+.need span.ok{border-color:var(--patina);color:#bfe6cb}
+.need span.ng{border-color:#6a2f28;color:#f0a49b}
+.recipe{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:10px;display:grid;grid-template-columns:38px 1fr;gap:10px}
+.recipe.done{opacity:.6}
+.recipe .ico{font-size:26px;text-align:center}
+.recipe .nm{font-weight:700}
+.recipe .ds{font-size:12px;color:var(--dim);line-height:1.5}
+.recipe .act{grid-column:2;display:flex;justify-content:flex-end;margin-top:4px}
+.recipe.goal{border:2px solid var(--hazard);background:linear-gradient(135deg,#3a2f1c,var(--card) 60%)}
+.owned{display:flex;flex-wrap:wrap;gap:6px}
+.owned span{font-size:12px;background:var(--card2);border:1px solid var(--line);padding:4px 8px;border-radius:2px}
+.empty{color:var(--dim);font-size:13px;padding:14px;text-align:center;border:1px dashed var(--line);border-radius:4px}
+.featured{background:repeating-linear-gradient(-45deg,var(--hazard) 0 10px,#1b1814 10px 20px);padding:3px;border-radius:4px;margin-bottom:10px}
+.featured div{background:var(--soot2);padding:8px 10px;font-size:13px;border-radius:2px}
+.featured b{color:var(--hazard)}
+.segs{display:flex;gap:6px;margin:4px 0 10px}
+.seg{flex:1;padding:8px;border:1px solid var(--line);background:var(--card);border-radius:3px;font-family:var(--f-dot);font-size:13px}
+.seg.on{background:var(--tarp);border-color:var(--tarp-hi)}
+.dex{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px}
+.dx{background:var(--card);border:1px solid var(--line);border-radius:3px;padding:6px 2px;text-align:center}
+.dx .e{font-size:24px}
+.dx .n{font-size:10px;color:var(--dim);margin-top:2px;line-height:1.3;min-height:2.6em}
+.dx.no .e{filter:brightness(0);opacity:.5}
+
+/* tabs */
+.tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding-block:8px calc(8px + env(safe-area-inset-bottom,0px));border-top:2px solid #000;flex:0 0 auto;background:var(--soot)}
+.tab{background:none;border:none;padding:6px 0 4px;font-family:var(--f-dot);font-size:12px;color:var(--dim);display:flex;flex-direction:column;align-items:center;gap:2px;border-radius:3px}
+.tab svg{width:22px;height:22px}
+.tab.on{color:var(--hazard);background:var(--soot2)}
+.tab .dot{width:6px;height:6px;border-radius:50%;background:var(--rust);display:none}
+.tab.alert .dot{display:block}
+
+/* overlays */
+.ov{position:fixed;inset:0;background:rgba(10,8,6,.78);display:flex;align-items:flex-end;justify-content:center;z-index:50;padding:0 max(0px,env(safe-area-inset-right,0px)) 0 max(0px,env(safe-area-inset-left,0px));animation:fade .2s}
+.ov.center{align-items:center;padding:16px}
+@keyframes fade{from{opacity:0}}
+.sheet{background:var(--soot2);width:100%;max-width:560px;border-top:3px solid var(--hazard);border-radius:8px 8px 0 0;padding:18px max(16px,env(safe-area-inset-left,0px)) calc(18px + env(safe-area-inset-bottom,0px));animation:up .25s ease-out;max-height:85%;overflow-y:auto}
+@keyframes up{from{transform:translateY(40px)}}
+.sheet .big{font-size:48px;line-height:1}
+.sheet .hd{display:flex;gap:14px;align-items:center}
+.sheet .nm{font-family:var(--f-display);font-size:20px}
+.sheet p{color:var(--dim);font-size:14px;line-height:1.7;margin:10px 0}
+.card{background:var(--soot2);border:2px solid #000;box-shadow:0 0 0 1px var(--line),6px 6px 0 #000;max-width:440px;width:100%;padding:22px 20px;border-radius:4px;max-height:90%;overflow-y:auto}
+.card .ttl{font-family:var(--f-display);font-size:30px;line-height:1.15;color:var(--hazard);text-shadow:3px 3px 0 #000;letter-spacing:.02em}
+.card .kick{font-family:var(--f-dot);font-size:12px;letter-spacing:.2em;color:var(--dim)}
+.card p{line-height:1.8;font-size:14px;margin:12px 0}
+.report{list-style:none;padding:0;margin:12px 0;display:grid;gap:6px}
+.report li{font-size:14px;background:var(--card);padding:7px 10px;border-radius:3px;border-left:3px solid var(--tarp)}
+.report li.bad{border-left-color:var(--blood)}
+.report li.good{border-left-color:var(--patina)}
+.toasts{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:60;display:grid;gap:6px;width:min(92vw,420px);pointer-events:none}
+.toast{background:#0f0d0b;border:1px solid var(--line);border-left:4px solid var(--hazard);padding:9px 12px;font-size:14px;border-radius:3px;box-shadow:0 6px 18px rgba(0,0,0,.5);animation:tin .25s ease-out}
+.toast.bad{border-left-color:var(--blood)} .toast.good{border-left-color:var(--patina)}
+@keyframes tin{from{transform:translateY(-10px);opacity:0}}
+.flash{position:fixed;inset:0;pointer-events:none;z-index:40;background:var(--blood);opacity:0}
+.flash.go{animation:fl .4s}
+@keyframes fl{20%{opacity:.35}}
+.night{position:fixed;inset:0;z-index:70;background:#05060a;display:grid;place-items:center;color:var(--dim);font-family:var(--f-dot);font-size:15px;animation:nf 1.6s forwards;pointer-events:none}
+@keyframes nf{0%{opacity:0}30%,70%{opacity:1}100%{opacity:0}}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+<style>body{margin:0}:root{padding-top:env(safe-area-inset-top,0px)}.scene{margin-top:44px!important}</style>
+<script>/* tg-common: クリア記録・最近遊んだゲーム */
+(function(){var id=(location.pathname.split('/').pop()||'').replace(/\.html$/,'');window.__tgAutoEver=false;
+ addEventListener('tgauto',function(){if(window.tgAuto)window.__tgAutoEver=true;});
+ window.tgClear=function(gid,info){try{if(window.tgAuto||window.tgAutoUsed||window.__tgAutoEver)return;gid=gid||id;var o=JSON.parse(localStorage.getItem('tg_clear')||'{}');var r=o[gid]||{n:0};r.n=(r.n||0)+1;r.t=Date.now();if(info)r.info=info;o[gid]=r;localStorage.setItem('tg_clear',JSON.stringify(o));}catch(e){}};
+ try{var a=JSON.parse(localStorage.getItem('tg_recent')||'[]').filter(function(x){return x.id!==id;});a.unshift({id:id,t:Date.now()});localStorage.setItem('tg_recent',JSON.stringify(a.slice(0,10)));}catch(e){}})();
+</script>
+</head>
+<body>
+
+<div id="app">
+  <div class="scene">
+    <canvas id="scene" aria-label="ゴミ山の景色"></canvas>
+    <div class="scene-tag"><span class="stencil" id="placeTag">拠点</span><span class="chip" id="dayChip">1日目</span><span class="chip" id="wxChip">晴れ</span></div>
+    <div class="money" id="money">¥0</div>
+    <button class="mute" id="mute" type="button">音 ON</button>
+  </div>
+  <div class="status">
+    <div class="meter"><div class="lab">体力HP <b id="hpV">100</b></div><div class="bar hp" id="hpB"><i></i></div></div>
+    <div class="meter"><div class="lab">満腹 <b id="foodV">100</b></div><div class="bar food" id="foodB"><i></i></div></div>
+    <div class="meter"><div class="lab">水分 <b id="waterV">100</b></div><div class="bar water" id="waterB"><i></i></div></div>
+  </div>
+  <div class="stam"><span class="lab">スタミナ</span><div class="pips" id="pips"></div></div>
+  <div class="ticker" id="ticker"></div>
+  <main class="panel" id="panel"></main>
+  <nav class="tabs" id="tabs">
+    <button class="tab" data-t="explore" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20 L10 6 L14 13 L16 10 L21 20 Z"/><path d="M14 4v4M12 6h4"/></svg>探索<span class="dot"></span></button>
+    <button class="tab" data-t="base" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11 L12 4 L21 11"/><path d="M5 10v10h14V10"/><path d="M10 20v-5h4v5"/></svg>拠点<span class="dot"></span></button>
+    <button class="tab" data-t="craft" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 6a4 4 0 0 0 5 5l-9 9-3-3 9-9a4 4 0 0 0-2-2z"/><path d="M4 4l5 5"/></svg>修理・製作<span class="dot"></span></button>
+    <button class="tab" data-t="shop" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9h16l-1 11H5z"/><path d="M8 9V6a4 4 0 0 1 8 0v3"/></svg>源さんの店<span class="dot"></span></button>
+    <button class="tab" data-t="dex" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="3" width="14" height="18" rx="1"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>図鑑<span class="dot"></span></button>
+  </nav>
+</div>
+<div class="toasts" id="toasts"></div>
+<div class="flash" id="flash"></div>
+
+<script>
+"use strict";
+// ================= DATA =================
+const ITEMS = {
+  bottle:{n:'ペットボトル',e:'🧴',v:15,c:'mat',d:'ラベルが半分はがれている。ろ過装置の材料になる。'},
+  can:{n:'空き缶',e:'🥤',v:20,c:'mat',d:'アルミ缶。焚き火台やネズミ捕りに使える。'},
+  cloth:{n:'布切れ',e:'🧣',v:20,c:'mat',d:'雑巾にもマスクにもなる万能素材。'},
+  paper:{n:'古新聞',e:'📰',v:10,c:'mat',d:'十年前の日付。ネズミ捕りのエサ台にちょうどいい。'},
+  wood:{n:'木片',e:'🪵',v:15,c:'mat',d:'乾いた廃材。焚き火台で炭にできる。'},
+  screw:{n:'ネジ',e:'🔩',v:30,c:'mat',d:'修理の基本。いくらあっても困らない。'},
+  tape:{n:'ガムテープ',e:'🩹',v:50,c:'mat',d:'だいたいのものはこれで直る。'},
+  clothes:{n:'古着',e:'👕',v:60,c:'mat',d:'少し臭うが丈夫な生地。'},
+  wire:{n:'銅線',e:'🪢',v:90,c:'mat',d:'家電から抜き取った銅。修理にも売るにも重宝する。'},
+  board:{n:'基板',e:'💾',v:80,c:'mat',d:'電子機器の修理や製作に使う。'},
+  battery:{n:'電池',e:'🔋',v:60,c:'mat',d:'まだ少しだけ残量がある。'},
+  motor:{n:'モーター',e:'🌀',v:150,c:'mat',d:'回るものの心臓部。'},
+  pipe:{n:'鉄パイプ',e:'🦯',v:60,c:'mat',d:'武器にも骨組みにもなる。'},
+  plate:{n:'鉄板',e:'🔲',v:80,c:'mat',d:'重いが頼りになる。トラックの補強に3枚必要。'},
+  gear:{n:'歯車',e:'⚙️',v:90,c:'mat',d:'油を差せばまだ回る。'},
+  tire:{n:'タイヤ',e:'🛞',v:200,c:'mat',d:'溝はまだ残っている。トラックに4本必要。'},
+  charcoal:{n:'炭',e:'⚫',v:40,c:'mat',d:'木片を焼いて作った。水をきれいにする力がある。'},
+  seat:{n:'車のシート',e:'💺',v:400,c:'mat',d:'座り心地は意外と悪くない。トラックの運転席に。'},
+  gascan:{n:'空のガソリン缶',e:'🛢️',v:150,c:'mat',d:'源さんの店で給油すれば燃料になる。'},
+  gasfull:{n:'満タンのガソリン缶',e:'⛽',v:2200,c:'fixed',d:'トラックを動かすための燃料。'},
+  ratmeat:{n:'ネズミ肉',e:'🐀',v:10,c:'food',d:'生のままは危険。焚き火台で焼こう。',food:8,raw:true},
+  bread:{n:'期限切れパン',e:'🍞',v:30,c:'food',d:'カビは……たぶんない。たまにお腹を壊す。',food:22,risky:true},
+  cancan:{n:'缶詰',e:'🥫',v:120,c:'food',d:'中身はサバの味噌煮。ゴミ山のごちそう。',food:38},
+  water_b:{n:'飲みかけの水',e:'💧',v:20,c:'food',d:'誰かが半分残した水。気にしたら負け。',water:22},
+  onigiri:{n:'おにぎり',e:'🍙',v:60,c:'food',d:'源さんの店の手作り。梅干し入り。',food:32},
+  water2:{n:'天然水2L',e:'🚰',v:50,c:'food',d:'キンキンに冷えている。',water:48},
+  yakiniku:{n:'焼きネズミ',e:'🍢',v:80,c:'food',d:'香ばしい。鶏肉に似ていると思い込む。',food:36},
+  medkit:{n:'救急箱',e:'🩺',v:200,c:'food',d:'消毒液と包帯。HPを40回復する。',hp:40},
+  doll:{n:'薄汚れた人形',e:'🧸',v:30,c:'junk',d:'じっとこちらを見ている気がする。'},
+  umbrella_b:{n:'壊れた傘',e:'☂️',v:10,c:'junk',d:'骨が折れている。雨水を集めるのに使えそう。',fix:{to:'umbrella',need:{tape:1}}},
+  umbrella:{n:'直した傘',e:'🌂',v:200,c:'fixed',d:'ガムテープで補強した傘。そこそこ売れる。'},
+  radio_b:{n:'壊れたラジオ',e:'📻',v:60,c:'junk',d:'電源が入らない。配線が切れているだけかも。',fix:{to:'radio',need:{wire:1,screw:1},tool:'solder'}},
+  radio:{n:'ラジオ',e:'📻',v:900,c:'fixed',d:'雑音まじりに演歌が流れる。'},
+  fan_b:{n:'壊れた扇風機',e:'💨',v:70,c:'junk',d:'羽根が外れているだけに見える。',fix:{to:'fan',need:{screw:2,wire:1},tool:'spanner'}},
+  fan:{n:'扇風機',e:'💨',v:1100,c:'fixed',d:'首振り機能も復活した。'},
+  toaster_b:{n:'壊れたトースター',e:'🔥',v:50,c:'junk',d:'焦げ臭い。ヒーター線の交換が必要。',fix:{to:'toaster',need:{wire:1,screw:1},tool:'solder'}},
+  toaster:{n:'トースター',e:'🔥',v:800,c:'fixed',d:'チンッといい音がする。'},
+  phone_b:{n:'画面割れスマホ',e:'📱',v:300,c:'rare',d:'中身は生きているかもしれない。',fix:{to:'phone',need:{board:1,battery:1},tool:'solder'}},
+  phone:{n:'中古スマホ',e:'📱',v:6000,c:'fixed',d:'画面以外は新品同様。高く売れる。'},
+  watch_b:{n:'止まった腕時計',e:'⌚',v:250,c:'rare',d:'裏蓋に外国の刻印がある。',fix:{to:'watch',need:{battery:1,screw:1},tool:'solder'}},
+  watch:{n:'アンティーク腕時計',e:'⌚',v:5000,c:'fixed',d:'カチコチと時を刻み始めた。'},
+  bike_f:{n:'錆びた自転車',e:'🚲',v:300,c:'rare',d:'チェーンが外れ、ギアが欠けている。',fix:{to:'bike',need:{gear:1,screw:2,tire:1},tool:'spanner'}},
+  bike:{n:'自転車',e:'🚲',v:3500,c:'fixed',d:'持っているとスタミナ+2、リュック+4。売れば大金。'},
+  toolbox_b:{n:'錆びた工具箱',e:'🧰',v:100,c:'rare',d:'鍵が錆びついて開かない。バールでこじ開けよう。',open:true},
+  safe:{n:'古い金庫',e:'🗄️',v:500,c:'rare',d:'ずっしり重い。バールでこじ開けられるかも。',open:true},
+  ring:{n:'金の指輪',e:'💍',v:9000,c:'rare',d:'内側に知らない名前が彫ってある。'},
+  antique:{n:'謎の骨董壺',e:'🏺',v:7000,c:'rare',d:'源さんいわく「本物ならすごい」。'},
+  carbat_b:{n:'上がったカーバッテリー',e:'🪫',v:400,c:'rare',d:'完全に放電している。ソーラー充電器があれば……',fix:{to:'carbat',need:{wire:1},tool:'charger'}},
+  carbat:{n:'カーバッテリー',e:'🔋',v:3500,c:'fixed',d:'満充電。トラックのセルが回る。'},
+  engine_b:{n:'壊れたエンジン',e:'🛠️',v:1000,c:'rare',d:'焼き付いている。直せばトラックの心臓になる。',fix:{to:'engine',need:{gear:2,wire:2,screw:4,motor:1},tool:'spanner'}},
+  engine:{n:'再生エンジン',e:'🛠️',v:15000,c:'fixed',d:'ドゥルン。生き返った。'},
+  panel_b:{n:'割れた太陽光パネル',e:'🔆',v:600,c:'rare',d:'セルの半分は生きている。',fix:{to:'panel',need:{board:1,wire:2,tape:1},tool:'solder'}},
+  panel:{n:'太陽光パネル',e:'🔆',v:5000,c:'fixed',d:'ソーラー充電器の材料になる。'},
+};
+const TOOLS = {spanner:'スパナ',solder:'はんだごて',crowbar:'バール',charger:'ソーラー充電器'};
+const HAZ = {
+  glass:{n:'ガラス片',e:'🩸',dmg:10,msg:'割れたガラスで手を切った'},
+  crow:{n:'カラス',e:'🐦‍⬛',dmg:0,msg:'カラスが襲ってきた'},
+  rat:{n:'ネズミ',e:'🐀',dmg:6,msg:'ネズミにかまれた'},
+  collapse:{n:'崩落',e:'💥',dmg:12,msg:'ゴミ山が崩れて下敷きに'},
+  dog:{n:'野犬',e:'🐕',dmg:15,msg:'野犬にかみつかれた'},
+  gas:{n:'有毒ガス',e:'☠️',dmg:9,msg:'有毒ガスを吸い込んだ'},
+};
+const AREAS = [
+  {id:'a1',n:'生活ゴミの丘',d:'家庭ゴミの山。食べ物や日用品が見つかる。',risk:'危険度 ★☆☆☆☆',haz:.12,
+   pal:['#6b5a44','#8a7254','#a88d65'],seed:11,
+   loot:{bottle:14,can:14,cloth:10,paper:10,wood:9,bread:9,water_b:8,clothes:7,umbrella_b:5,cancan:4,tape:3,doll:3,screw:4,watch_b:2},
+   hz:{glass:6,crow:5,rat:4}},
+  {id:'a2',n:'家電の墓場',d:'冷蔵庫やテレビが積み上がる。修理すれば化ける品が多い。',risk:'危険度 ★★☆☆☆',haz:.14,
+   pal:['#4a5258','#65707a','#8b959c'],seed:23,
+   loot:{radio_b:8,fan_b:7,toaster_b:7,wire:12,board:8,battery:8,motor:6,screw:10,phone_b:4,can:4,plate:3,tape:3,panel_b:1,water_b:3},
+   hz:{glass:5,collapse:4,rat:3}},
+  {id:'a3',n:'鉄屑の谷',d:'鉄くずだらけの谷。素手では危ない。',risk:'危険度 ★★★☆☆',haz:.16,need:'gloves',needTxt:'軍手が必要',
+   pal:['#5a3324','#7d4a30','#a5653d'],seed:37,
+   loot:{pipe:12,plate:12,gear:10,screw:12,tire:6,bike_f:4,toolbox_b:4,wire:6,motor:4,can:4,cancan:2},
+   hz:{glass:3,collapse:6,dog:5}},
+  {id:'a4',n:'自動車の墓場',d:'廃車の山。ドアはバールでこじ開けるしかない。',risk:'危険度 ★★★★☆',haz:.17,need:'crowbar',needTxt:'バールが必要',
+   pal:['#3a3f2e','#555c40','#767d56'],seed:53,
+   loot:{tire:12,gascan:7,carbat_b:6,seat:8,engine_b:4,gear:8,plate:8,wire:6,pipe:6,screw:8,safe:2,cancan:3},
+   hz:{collapse:5,dog:6,glass:3}},
+  {id:'a5',n:'立入禁止区画',d:'有毒ガスが漂う最深部。お宝が眠っているという。',risk:'危険度 ★★★★★',haz:.2,need:'mask',needTxt:'ガスマスクが必要',
+   pal:['#2a3329','#3e4b38','#5d6f4c'],seed:71,
+   loot:{panel_b:7,safe:5,ring:3,antique:4,engine_b:3,board:8,carbat_b:4,motor:6,watch_b:5,phone_b:6,wire:8},
+   hz:{gas:8,collapse:5,dog:4}},
+];
+const RARE = new Set(['phone_b','panel_b','safe','ring','antique','engine_b','watch_b','bike_f','toolbox_b','carbat_b']);
+const RECIPES = [
+  {id:'gloves',kind:'equip',n:'軍手',e:'🧤',d:'ガラス片で怪我をしなくなる。「鉄屑の谷」に入れる。',need:{cloth:2}},
+  {id:'firepit',kind:'base',n:'焚き火台',e:'🔥',d:'炭づくり・料理ができる。寝るとHPが少し多く回復。',need:{can:3,plate:1}},
+  {id:'charcoal',kind:'item',n:'炭',e:'⚫',d:'木片を焼いて炭にする。',need:{wood:2},req:'firepit'},
+  {id:'yakiniku',kind:'item',n:'焼きネズミ',e:'🍢',d:'ネズミ肉を安全に食べられるようにする。',need:{ratmeat:1},req:'firepit'},
+  {id:'trap',kind:'base',n:'ネズミ捕り',e:'🪤',d:'毎朝ときどきネズミ肉がかかる。',need:{can:1,screw:2,paper:1}},
+  {id:'sack',kind:'equip',n:'大きな袋',e:'🎒',d:'リュックの容量が+6。',need:{clothes:2,tape:1}},
+  {id:'filter',kind:'base',n:'ろ過装置',e:'🫙',d:'毎朝、水分が+30される。',need:{bottle:2,cloth:1,charcoal:1}},
+  {id:'raintank',kind:'base',n:'雨水タンク',e:'🌧️',d:'雨の日の朝、水分が全回復する。',need:{umbrella_b:1,bottle:3,tape:1}},
+  {id:'spear',kind:'equip',n:'鉄パイプ槍',e:'🗡️',d:'野犬を追い払える。',need:{pipe:1,tape:1}},
+  {id:'mask',kind:'equip',n:'ガスマスク',e:'😷',d:'「立入禁止区画」に入れる。ガスの被害も半分に。',need:{bottle:1,charcoal:2,cloth:1,tape:1}},
+  {id:'lamp',kind:'equip',n:'ヘッドランプ',e:'🔦',d:'暗くなっても動ける。スタミナ上限+2。',need:{battery:2,wire:1,can:1}},
+  {id:'detector',kind:'equip',n:'金属探知機',e:'📡',d:'お宝の場所が光って見える。お宝も出やすくなる。',need:{board:1,wire:2,battery:1,pipe:1},tool:'solder'},
+  {id:'charger',kind:'base',n:'ソーラー充電器',e:'🔌',d:'カーバッテリーを充電できるようになる。',need:{panel:1,battery:2,wire:1},tool:'solder'},
+  {id:'truck',kind:'goal',n:'ジャンクトラック',e:'🛻',d:'ガラクタの集大成。これに乗ってゴミ山を出る。',need:{engine:1,tire:4,carbat:1,gasfull:1,plate:3,seat:1},tool:'spanner'},
+];
+const SHOP = [
+  {id:'onigiri',p:150},{id:'water2',p:120},{id:'cancan',p:260},{id:'medkit',p:600},
+  {id:'screw',p:70},{id:'tape',p:140},{id:'battery',p:150},{id:'cloth',p:60},
+  {tool:'spanner',n:'スパナ',e:'🔧',p:800,d:'機械の修理に必要。'},
+  {tool:'solder',n:'はんだごて',e:'🖊️',p:1800,d:'電子機器の修理に必要。'},
+  {tool:'crowbar',n:'バール',e:'🪝',p:1500,d:'金庫や工具箱、車のドアをこじ開ける。'},
+  {fuel:true,n:'ガソリン給油',e:'⛽',p:2500,d:'空のガソリン缶を満タンにする。'},
+];
+const WEATHER = [
+  {id:'sun',n:'晴れ',w:5},{id:'cloud',n:'くもり',w:3},{id:'rain',n:'雨',w:2},{id:'heat',n:'猛暑',w:2}
+];
+const CAT_N = {mat:'素材',junk:'ジャンク',fixed:'修理品',rare:'お宝',food:'食料'};
+
+// ================= STATE =================
+const KEY = 'gomiyama-survivor-v1';
+let S = null;
+let tab = 'explore';
+let craftSeg = 'repair';
+let shopSeg = 'sell';
+
+function newGame(){
+  S = {day:1,hp:100,food:80,water:80,st:10,money:500,weather:'sun',
+    bag:[],store:{bottle:1,bread:1},owned:{},trip:null,prices:{},featured:'junk',
+    seen:{bottle:1,bread:1},stats:{dug:0,earned:0,made:0},log:['ゴミ山で目を覚ました。まずは探索だ。'],over:false,won:false};
+  rollPrices();
+  save();
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function load(){try{const t=localStorage.getItem(KEY);return t?JSON.parse(t):null}catch(e){return null}}
+
+const R = Math.random;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function pickW(obj){let t=0;for(const k in obj)t+=obj[k];let r=R()*t;for(const k in obj){r-=obj[k];if(r<=0)return k}return Object.keys(obj)[0]}
+function stMax(){return 10+(S.owned.lamp?2:0)+((S.store.bike||0)>0?2:0)}
+function bagCap(){return 8+(S.owned.sack?6:0)+((S.store.bike||0)>0?4:0)}
+function cnt(id){return S.store[id]||0}
+function add(id,n=1){S.store[id]=(S.store[id]||0)+n;S.seen[id]=1}
+function take(id,n=1){S.store[id]-=n;if(S.store[id]<=0)delete S.store[id]}
+function has(tool){return !!S.owned[tool]}
+function log(t){S.log.unshift(t);S.log=S.log.slice(0,30)}
+function yen(n){return '¥'+n.toLocaleString('ja-JP')}
+
+function rollPrices(){
+  for(const c of ['mat','junk','fixed','rare','food']) S.prices[c]=+(0.75+R()*0.5).toFixed(2);
+  const opts=['mat','junk','fixed','rare'];
+  S.featured=opts[Math.floor(R()*opts.length)];
+}
+function price(id){
+  const it=ITEMS[id];let m=S.prices[it.c]||1;if(S.featured===it.c)m*=1.5;
+  return Math.max(1,Math.round(it.v*m/5)*5);
+}
+
+// ================= SOUND =================
+let AC=null, muted=false;
+try{muted=localStorage.getItem(KEY+'-mute')==='1'}catch(e){}
+function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}return AC}
+function tone(f,d,type='square',vol=.06,slide=0){
+  if(muted)return;const a=ac();if(!a)return;
+  const o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.value=f;
+  if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(30,f+slide),a.currentTime+d);
+  g.gain.setValueAtTime(vol,a.currentTime);g.gain.exponentialRampToValueAtTime(.0001,a.currentTime+d);
+  o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+d);
+}
+function noise(d=.12,vol=.12){
+  if(muted)return;const a=ac();if(!a)return;
+  const b=a.createBuffer(1,a.sampleRate*d,a.sampleRate),c=b.getChannelData(0);
+  for(let i=0;i<c.length;i++)c[i]=(R()*2-1)*(1-i/c.length);
+  const s=a.createBufferSource(),g=a.createGain(),f=a.createBiquadFilter();f.type='lowpass';f.frequency.value=900;
+  s.buffer=b;g.gain.value=vol;s.connect(f);f.connect(g);g.connect(a.destination);s.start();
+}
+const SFX={
+  dig:()=>noise(.13,.18),
+  find:()=>{tone(660,.08);setTimeout(()=>tone(990,.12),70)},
+  rare:()=>{[660,880,1100,1320].forEach((f,i)=>setTimeout(()=>tone(f,.14,'triangle',.08),i*80))},
+  bad:()=>{tone(180,.25,'sawtooth',.08,-90)},
+  coin:()=>{tone(1200,.06,'square',.05);setTimeout(()=>tone(1600,.1,'square',.05),60)},
+  make:()=>{noise(.06,.1);setTimeout(()=>noise(.06,.1),110);setTimeout(()=>tone(880,.15,'triangle',.08),230)},
+  nope:()=>tone(140,.12,'square',.05),
+};
+
+// ================= SCENE =================
+const cv=document.getElementById('scene'), cx=cv.getContext('2d');
+let W=0,H=0,DPR=1,heap=null,heapKey='',t0=performance.now();
+const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function srng(seed){let s=seed>>>0;return()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296}}
+function shade(hex,k){const n=parseInt(hex.slice(1),16);let r=n>>16,g=n>>8&255,b=n&255;r=clamp(Math.round(r*k),0,255);g=clamp(Math.round(g*k),0,255);b=clamp(Math.round(b*k),0,255);return `rgb(${r},${g},${b})`}
+function resize(){
+  const r=cv.getBoundingClientRect();DPR=Math.min(2,window.devicePixelRatio||1);
+  W=Math.max(1,Math.round(r.width));H=Math.max(1,Math.round(r.height));
+  cv.width=W*DPR;cv.height=H*DPR;heapKey='';
+}
+function sceneKey(){return (S&&S.trip?S.trip.area:'home')+'|'+W+'|'+(S?Object.keys(S.owned).join(','):'')+(S&&S.won?'w':'')}
+function buildHeap(){
+  const off=document.createElement('canvas');off.width=W*DPR;off.height=H*DPR;const g=off.getContext('2d');g.scale(DPR,DPR);
+  const area=S.trip?AREAS.find(a=>a.id===S.trip.area):null;
+  const pal=area?area.pal:['#4b4236','#675a48','#86745b'];
+  const rnd=srng(area?area.seed:5);
+  for(let L=0;L<3;L++){
+    const base=H*(0.52+L*0.15), amp=H*(0.24-L*0.05), col=pal[L];
+    const pts=[];const n=10+L*3;
+    for(let i=0;i<=n;i++){const x=i/n*W;const y=base-amp*(0.35+0.65*Math.sin(i/n*Math.PI*(1.3+L*.4)+L)*0.5+rnd()*0.45);pts.push([x,y])}
+    g.beginPath();g.moveTo(0,H);pts.forEach(p=>g.lineTo(p[0],p[1]));g.lineTo(W,H);g.closePath();
+    const gr=g.createLinearGradient(0,base-amp,0,H);gr.addColorStop(0,col);gr.addColorStop(1,shade(col.length===7?col:'#555555',.45));
+    g.fillStyle=gr;g.fill();
+    g.strokeStyle='rgba(255,230,190,'+(0.12+L*0.05)+')';g.lineWidth=1;g.beginPath();pts.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]));g.stroke();
+    // junk silhouettes
+    const k=14+L*10;
+    for(let j=0;j<k;j++){
+      const i=Math.floor(rnd()*n);const p=pts[i],q=pts[i+1]||p;const u=rnd();
+      const x=p[0]+(q[0]-p[0])*u, ytop=p[1]+(q[1]-p[1])*u, y=ytop+6+rnd()*(H-ytop)*0.7;
+      const s=(5+rnd()*9)*(1+L*.35);const kind=rnd();
+      g.save();g.translate(x,y);g.rotate((rnd()-.5)*1.2);
+      g.fillStyle=shade(col,.62+rnd()*.25);g.strokeStyle=shade(col,.4);g.lineWidth=1.4;
+      if(kind<.3){g.beginPath();g.arc(0,0,s*.7,0,Math.PI*2);g.lineWidth=s*.35;g.strokeStyle=shade(col,.3);g.stroke()}
+      else if(kind<.6){g.fillRect(-s*.6,-s,s*1.2,s*1.6);g.strokeRect(-s*.6,-s,s*1.2,s*1.6);g.fillStyle='rgba(0,0,0,.25)';g.fillRect(-s*.4,-s*.7,s*.8,s*.4)}
+      else if(kind<.8){g.beginPath();g.moveTo(-s*1.4,0);g.lineTo(s*1.4,0);g.lineWidth=s*.22;g.strokeStyle=shade(col,1.2);g.stroke()}
+      else {g.beginPath();g.moveTo(-s,s*.4);g.lineTo(0,-s*.8);g.lineTo(s,s*.5);g.closePath();g.fill()}
+      if(rnd()<.06){g.fillStyle='rgba(47,109,151,.85)';g.fillRect(-s,-s*.5,s*2,s*.9)}
+      g.restore();
+    }
+  }
+  if(!area){ // home shack
+    const bx=W*0.62, by=H*0.86;
+    g.fillStyle='#2a241d';g.fillRect(bx-46,by-40,92,40);
+    for(let i=0;i<8;i++){g.fillStyle=i%2?'#5d5245':'#6c6050';g.fillRect(bx-46+i*11.5,by-40,11.5,40)}
+    g.fillStyle='#14110d';g.fillRect(bx-10,by-26,20,26);
+    g.beginPath();g.moveTo(bx-56,by-38);g.lineTo(bx,by-62);g.lineTo(bx+56,by-38);g.lineTo(bx+50,by-30);g.lineTo(bx-50,by-30);g.closePath();
+    const tg=g.createLinearGradient(0,by-62,0,by-30);tg.addColorStop(0,'#4c8fbd');tg.addColorStop(1,'#245a80');g.fillStyle=tg;g.fill();
+    g.strokeStyle='rgba(255,255,255,.25)';g.beginPath();g.moveTo(bx-30,by-50);g.lineTo(bx+20,by-40);g.stroke();
+    if(S.owned.raintank){g.fillStyle='#7a8a94';g.fillRect(bx+52,by-30,16,30);g.fillStyle='#4f5c64';g.fillRect(bx+52,by-30,16,4)}
+    if(S.owned.charger){g.fillStyle='#1c2c4a';g.save();g.translate(bx-20,by-64);g.rotate(-.2);g.fillRect(0,0,30,10);g.strokeStyle='#8fb2d9';g.strokeRect(0,0,30,10);g.restore()}
+    if(S.owned.trap){g.fillStyle='#8a7a5a';g.fillRect(bx-80,by-6,14,6)}
+    if(S.won){g.fillStyle='#b44a2a';g.fillRect(W*.18,by-26,70,20);g.fillRect(W*.18+40,by-40,26,16);g.fillStyle='#111';g.beginPath();g.arc(W*.18+14,by-4,7,0,7);g.arc(W*.18+56,by-4,7,0,7);g.fill()}
+  }
+  heap=off;heapKey=sceneKey();
+}
+function lerpC(a,b,t){return a.map((v,i)=>Math.round(v+(b[i]-v)*t))}
+function rgb(a){return `rgb(${a[0]},${a[1]},${a[2]})`}
+const crows=[0,1,2].map(i=>({x:R(),y:.1+R()*.25,s:.02+R()*.03,p:R()*6}));
+const dust=Array.from({length:22},()=>({x:R(),y:R(),v:.005+R()*.01}));
+const rain=Array.from({length:60},()=>({x:R(),y:R(),v:.6+R()*.5}));
+function draw(now){
+  if(!S||!W){return}
+  if(heapKey!==sceneKey())buildHeap();
+  const t=(now-t0)/1000;
+  const g=cx;g.setTransform(DPR,0,0,DPR,0,0);
+  const phase=clamp(1-S.st/stMax(),0,1);
+  let top=lerpC([120,165,190],[58,42,78],phase), bot=lerpC([230,205,150],[226,118,62],phase);
+  if(S.weather==='rain'){top=lerpC(top,[70,78,86],.7);bot=lerpC(bot,[130,136,140],.7)}
+  if(S.weather==='heat'){top=lerpC(top,[214,160,90],.5);bot=lerpC(bot,[246,224,160],.5)}
+  if(S.weather==='cloud'){top=lerpC(top,[120,124,128],.45);bot=lerpC(bot,[190,184,170],.45)}
+  const sg=g.createLinearGradient(0,0,0,H);sg.addColorStop(0,rgb(top));sg.addColorStop(1,rgb(bot));g.fillStyle=sg;g.fillRect(0,0,W,H);
+  // sun
+  if(S.weather!=='rain'){
+    const sx=W*(0.15+phase*0.7), sy=H*(0.55-Math.sin((0.15+phase*0.7)*Math.PI)*0.4);
+    const sr=S.weather==='heat'?22:16;
+    const glow=g.createRadialGradient(sx,sy,2,sx,sy,sr*4);glow.addColorStop(0,'rgba(255,240,200,.75)');glow.addColorStop(1,'rgba(255,200,120,0)');
+    g.fillStyle=glow;g.fillRect(0,0,W,H);
+    g.fillStyle=phase>.6?'#ffb36b':'#fff2cf';g.beginPath();g.arc(sx,sy,sr,0,7);g.fill();
+  }
+  // crows
+  g.strokeStyle='rgba(20,16,14,.85)';g.lineWidth=1.6;
+  crows.forEach(c=>{const x=((c.x+t*c.s)%1.2-.1)*W, y=c.y*H+Math.sin(t*2+c.p)*4, f=Math.sin(t*9+c.p)*3;
+    g.beginPath();g.moveTo(x-6,y-f);g.quadraticCurveTo(x-3,y-2,x,y);g.quadraticCurveTo(x+3,y-2,x+6,y-f);g.stroke()});
+  g.drawImage(heap,0,0,W,H);
+  // heat haze / dust
+  g.fillStyle='rgba(255,235,200,.35)';
+  dust.forEach(d=>{const y=((d.y-t*d.v)%1+1)%1*H, x=(d.x+Math.sin(t+d.y*9)*.01)*W;g.fillRect(x,y,1.4,1.4)});
+  if(S.weather==='rain'){g.strokeStyle='rgba(200,220,235,.45)';g.lineWidth=1;g.beginPath();
+    rain.forEach(r=>{const y=((r.y+t*r.v)%1)*H, x=((r.x+t*.08)%1)*W;g.moveTo(x,y);g.lineTo(x-3,y+9)});g.stroke()}
+  // firepit glow at home
+  if(!S.trip&&S.owned.firepit){const fx=W*0.62-70, fy=H*0.86-4, fl=6+Math.sin(t*12)*1.5+Math.sin(t*7)*1;
+    const fg=g.createRadialGradient(fx,fy,1,fx,fy,26);fg.addColorStop(0,'rgba(255,170,60,.7)');fg.addColorStop(1,'rgba(255,120,40,0)');g.fillStyle=fg;g.fillRect(fx-30,fy-30,60,60);
+    g.fillStyle='#ffb347';g.beginPath();g.moveTo(fx-5,fy);g.quadraticCurveTo(fx,fy-fl*2.2,fx+5,fy);g.fill();
+    g.fillStyle='#3a3530';g.fillRect(fx-9,fy,18,4)}
+  // dusk tint
+  if(phase>.5){g.fillStyle=`rgba(30,15,40,${(phase-.5)*.5})`;g.fillRect(0,0,W,H)}
+}
+function loop(now){draw(now);if(!reduce)requestAnimationFrame(loop)}
+
+// ================= UI HELPERS =================
+const $=s=>document.querySelector(s);
+const panel=$('#panel');
+function toast(msg,kind=''){
+  const el=document.createElement('div');el.className='toast '+kind;el.textContent=msg;$('#toasts').prepend(el);
+  setTimeout(()=>el.remove(),2300);
+  const ts=$('#toasts').children;while(ts.length>3)ts[ts.length-1].remove();
+}
+function flash(){const f=$('#flash');f.classList.remove('go');void f.offsetWidth;f.classList.add('go')}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function closeOv(){document.querySelectorAll('.ov').forEach(o=>o.remove())}
+function overlay(html,center=false){
+  closeOv();const o=document.createElement('div');o.className='ov'+(center?' center':'');o.innerHTML=html;
+  o.addEventListener('click',e=>{if(e.target===o&&!center)closeOv()});document.body.appendChild(o);return o;
+}
+function needHTML(need){
+  return '<div class="need">'+Object.entries(need).map(([k,n])=>{const h=cnt(k);return `<span class="${h>=n?'ok':'ng'}">${ITEMS[k].e} ${esc(ITEMS[k].n)} ${h}/${n}</span>`}).join('')+'</div>';
+}
+function hasNeed(need){return Object.entries(need).every(([k,n])=>cnt(k)>=n)}
+function catTag(id){const c=ITEMS[id].c;if(c==='mat')return '';return `<span class="tagx tag-${c}">${CAT_N[c]}</span>`}
+
+// ================= RENDER =================
+function renderTop(){
+  $('#money').textContent=yen(S.money);
+  $('#dayChip').textContent=S.day+'日目';
+  $('#wxChip').textContent=WEATHER.find(w=>w.id===S.weather).n;
+  $('#placeTag').textContent=S.trip?AREAS.find(a=>a.id===S.trip.area).n:'拠点';
+  for(const k of ['hp','food','water']){
+    $('#'+k+'V').textContent=Math.round(S[k]);
+    const b=$('#'+k+'B');b.querySelector('i').style.width=clamp(S[k],0,100)+'%';b.classList.toggle('low',S[k]<=25);
+  }
+  const m=stMax();let p='';for(let i=0;i<m;i++)p+=`<span class="pip ${i<S.st?'on':''}"></span>`;$('#pips').innerHTML=p;
+  $('#ticker').innerHTML='<b>▶</b> '+esc(S.log[0]||'');
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));
+  // alerts
+  const canMake=RECIPES.some(r=>!(r.kind!=='item'&&S.owned[r.id])&&hasNeed(r.need)&&(!r.tool||has(r.tool))&&(!r.req||has(r.req)))
+    ||Object.keys(S.store).some(id=>{const f=ITEMS[id].fix;return f&&hasNeed(f.need)&&(!f.tool||has(f.tool))});
+  document.querySelector('.tab[data-t="craft"]').classList.toggle('alert',canMake&&tab!=='craft');
+}
+function render(){
+  renderTop();
+  if(tab==='explore')renderExplore();
+  else if(tab==='base')renderBase();
+  else if(tab==='craft')renderCraft();
+  else if(tab==='shop')renderShop();
+  else renderDex();
+}
+
+function areaThumb(a){
+  return `background:linear-gradient(180deg,#8fb0bf 0 35%,transparent 35%),linear-gradient(170deg,transparent 40%,${a.pal[0]} 41%),linear-gradient(195deg,transparent 50%,${a.pal[1]} 51%),${a.pal[2]}`;
+}
+function renderExplore(){
+  if(S.trip)return renderDig();
+  let h=`<h2>どこを掘る？</h2><p class="sub">移動でスタミナを1使う。1マス掘るごとにスタミナ1。持ち帰れるのはリュックに入る分だけよ。</p><div class="areas">`;
+  AREAS.forEach(a=>{
+    const lock=a.need&&!has(a.need);
+    h+=`<button type="button" class="area ${lock?'locked':''}" data-area="${a.id}">
+      <div class="thumb" style="${areaThumb(a)}"></div>
+      <div style="min-width:0"><div class="nm">${esc(a.n)}</div><div class="ds">${esc(a.d)}</div><div class="risk">${a.risk}</div></div>
+      <span class="go">${lock?esc(a.needTxt):'向かう'}</span></button>`;
+  });
+  h+=`</div>`;
+  if(S.st<=0)h+=`<div class="row"><button class="btn warn wide" id="sleepBtn" type="button">今日はもう動けない。寝る</button></div>`;
+  panel.innerHTML=h;
+  panel.querySelectorAll('[data-area]').forEach(b=>b.onclick=()=>startTrip(b.dataset.area));
+  const sb=$('#sleepBtn');if(sb)sb.onclick=sleep;
+}
+function startTrip(id){
+  const a=AREAS.find(x=>x.id===id);
+  if(a.need&&!has(a.need)){SFX.nope();toast(a.needTxt+'。製作や店で手に入れよう。','bad');return}
+  if(S.st<2){SFX.nope();toast('スタミナが足りない。今日は休もう。','bad');return}
+  S.st-=1;
+  const tiles=[];
+  const det=has('detector');
+  for(let i=0;i<20;i++){
+    const r=R();let t;
+    if(r<a.haz)t={k:'haz',id:pickW(a.hz)};
+    else if(r<a.haz+0.52){
+      const loot={...a.loot};if(det)for(const k in loot)if(RARE.has(k))loot[k]*=1.6;
+      t={k:'item',id:pickW(loot)};
+    } else t={k:'junk'};
+    t.v=[Math.round(R()*100)+'%',Math.round(R()*100)+'%',Math.round(R()*180)+'deg',Math.round(R()*180)+'deg',a.pal[Math.floor(R()*3)],a.pal[Math.floor(R()*3)]];
+    tiles.push(t);
+  }
+  S.trip={area:id,tiles,bag:[]};
+  log(a.n+'にやってきた。');
+  save();render();
+}
+function renderDig(){
+  const a=AREAS.find(x=>x.id===S.trip.area);const det=has('detector');
+  let h=`<div class="dighead"><div><h2>${esc(a.n)}</h2><p class="sub" style="margin:0">マスをタップして掘る。危険もあるわ。</p></div>
+    <button class="btn rust" id="homeBtn" type="button">拠点に戻る</button></div><div class="grid">`;
+  S.trip.tiles.forEach((t,i)=>{
+    const st=`--x1:${t.v[0]};--y1:${t.v[1]};--r1:${t.v[2]};--r2:${t.v[3]};--t1:${t.v[4]};--t2:${shade(t.v[5],.55)}`;
+    if(!t.dug){h+=`<button type="button" class="tile" data-i="${i}" style="${st}" aria-label="掘る">${det&&t.k==='item'&&RARE.has(t.id)?'<span class="spark">✦</span>':''}</button>`;return}
+    if(t.k==='haz'){const z=HAZ[t.id];h+=`<button type="button" class="tile dug haz" data-i="${i}"><span class="ic">${z.e}</span><span class="tn">${esc(z.n)}</span></button>`}
+    else if(t.k==='item'){const it=ITEMS[t.id];h+=`<button type="button" class="tile dug ${t.taken?'taken':'waiting'}" data-i="${i}"><span class="ic">${it.e}</span><span class="tn">${t.taken?'回収済':esc(it.n)}</span></button>`}
+    else h+=`<button type="button" class="tile dug" data-i="${i}"><span class="tn" style="bottom:auto;top:40%;color:#5a4e40">ゴミ</span></button>`;
+  });
+  h+=`</div>`;
+  const bag=S.trip.bag, cap=bagCap();
+  h+=`<div class="bag"><div class="top"><span>リュック</span><span>${bag.length} / ${cap}</span></div><div class="slots">`;
+  for(let i=0;i<cap;i++){const id=bag[i];h+=id?`<button type="button" class="slot full" data-b="${i}" title="${esc(ITEMS[id].n)}">${ITEMS[id].e}</button>`:`<span class="slot"></span>`}
+  h+=`</div><p class="sub" style="margin:8px 0 0">リュックの中身をタップすると捨てられる。</p></div>`;
+  if(S.st<=0)h+=`<div class="row"><button class="btn warn wide" id="homeSleep" type="button">日が暮れた。拠点に戻って寝る</button></div>`;
+  panel.innerHTML=h;
+  panel.querySelectorAll('.tile').forEach(b=>b.onclick=()=>dig(+b.dataset.i,b));
+  panel.querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>bagItem(+b.dataset.b));
+  $('#homeBtn').onclick=()=>goHome();
+  const hs=$('#homeSleep');if(hs)hs.onclick=()=>{goHome(true)};
+}
+function dig(i,el){
+  const t=S.trip.tiles[i];
+  if(t.dug){
+    if(t.k==='item'&&!t.taken)pickup(t);
+    return;
+  }
+  if(S.st<=0){SFX.nope();toast('もうスタミナがない。拠点に戻ろう。','bad');return}
+  S.st-=1;S.stats.dug++;t.dug=true;SFX.dig();
+  el.classList.add('shake');
+  setTimeout(()=>{
+    if(t.k==='haz')hazard(t);
+    else if(t.k==='item'){
+      S.seen[t.id]=1;
+      if(RARE.has(t.id)){SFX.rare();toast('お宝発見！ '+ITEMS[t.id].n,'good')}else SFX.find();
+      pickup(t,true);
+    } else {
+      if(R()<.25){const extra=['screw','paper','can','bottle'][Math.floor(R()*4)];t.k='item';t.id=extra;S.seen[extra]=1;SFX.find();pickup(t,true)}
+      else log('ただのゴミだった。');
+    }
+    if(S.hp<=0)return gameOver();
+    save();render();
+  },reduce?0:180);
+}
+function pickup(t,fresh){
+  if(S.trip.bag.length>=bagCap()){
+    if(fresh)log(ITEMS[t.id].n+'を見つけたが、リュックがいっぱい。');
+    toast('リュックがいっぱい。何か捨てるか、拠点に戻ろう。','bad');SFX.nope();render();return;
+  }
+  S.trip.bag.push(t.id);t.taken=true;
+  log(ITEMS[t.id].n+'を手に入れた。');
+  if(!fresh){SFX.find();save();render()}
+}
+function hazard(t){
+  const z=HAZ[t.id];let dmg=z.dmg,msg=z.msg;
+  if(t.id==='glass'&&has('gloves')){dmg=0;msg='ガラス片があったが、軍手のおかげで無傷'}
+  if(t.id==='dog'&&has('spear')){dmg=0;msg='野犬が現れたが、鉄パイプ槍で追い払った'}
+  if(t.id==='gas'&&has('mask'))dmg=Math.ceil(dmg/2);
+  if(t.id==='crow'){
+    if(S.trip.bag.length){const k=Math.floor(R()*S.trip.bag.length);const id=S.trip.bag.splice(k,1)[0];msg='カラスに'+ITEMS[id].n+'を奪われた'}
+    else msg='カラスに威嚇されたが、何も取られなかった';
+  }
+  if(t.id==='collapse'){const left=S.trip.tiles.filter(x=>!x.dug);for(let n=0;n<2&&left.length;n++){const x=left.splice(Math.floor(R()*left.length),1)[0];x.dug=true;x.k='junk'}msg+='（周りのマスも埋まった）'}
+  S.hp=Math.max(0,S.hp-dmg);
+  log(msg+(dmg?`。HP-${dmg}`:'。'));
+  if(dmg||t.id==='crow'){SFX.bad();flash();toast(msg+(dmg?` HP-${dmg}`:''),'bad')}else{SFX.find();toast(msg,'good')}
+}
+function bagItem(i){
+  const id=S.trip.bag[i];const it=ITEMS[id];
+  const o=overlay(`<div class="sheet"><div class="hd"><span class="big">${it.e}</span><div><div class="nm">${esc(it.n)}</div><div class="sub" style="margin:0">今日の買取 ${yen(price(id))}</div></div></div><p>${esc(it.d)}</p>
+    <div class="row"><button class="btn rust" id="dropB" type="button">捨てる</button><button class="btn ghost" id="cl" type="button">閉じる</button></div></div>`);
+  o.querySelector('#dropB').onclick=()=>{S.trip.bag.splice(i,1);log(it.n+'を捨てた。');closeOv();save();render()};
+  o.querySelector('#cl').onclick=closeOv;
+}
+function goHome(thenSleep){
+  const bag=S.trip.bag;bag.forEach(id=>add(id));
+  if(bag.length)log(`拠点に戻った。${bag.length}個のガラクタを持ち帰った。`);else log('手ぶらで拠点に戻った。');
+  S.trip=null;save();
+  if(thenSleep)return sleep();
+  tab='base';render();
+}
+
+function renderBase(){
+  let h=`<h2>拠点</h2><p class="sub">ブルーシートの小屋。食べる・飲む・調べるはここで。</p>`;
+  if(S.trip)h=`<h2>拠点</h2><p class="sub">今は${esc(AREAS.find(a=>a.id===S.trip.area).n)}にいる。倉庫の物は拠点に戻ってから使えるわ。</p>`;
+  const ow=Object.keys(S.owned);
+  h+=`<h3>設備・装備</h3>`;
+  h+=ow.length?`<div class="owned">${ow.map(k=>{const r=RECIPES.find(x=>x.id===k);return `<span>${r?r.e+' '+r.n:(SHOP.find(s=>s.tool===k)||{}).e+' '+TOOLS[k]}</span>`}).join('')}</div>`:`<div class="empty">まだ何もない。修理・製作タブで作ろう。</div>`;
+  const ids=Object.keys(S.store);
+  const order={food:0,rare:1,fixed:2,junk:3,mat:4};
+  ids.sort((a,b)=>order[ITEMS[a].c]-order[ITEMS[b].c]||ITEMS[b].v-ITEMS[a].v);
+  h+=`<h3>倉庫（${ids.reduce((s,k)=>s+S.store[k],0)}点）</h3>`;
+  if(!ids.length)h+=`<div class="empty">空っぽ。ゴミ山を掘りに行こう。</div>`;
+  else{h+=`<div class="list">`;ids.forEach(id=>{const it=ITEMS[id];
+    let sub=it.food?`満腹+${it.food}`:it.water?`水分+${it.water}`:it.hp?`HP+${it.hp}`:it.fix?'修理できる':it.open?'こじ開けられる':CAT_N[it.c];
+    h+=`<button type="button" class="it" data-id="${id}"><span class="ico">${it.e}</span><div style="min-width:0"><div class="nm">${esc(it.n)}${catTag(id)}</div><div class="ds">${sub}</div></div><span class="rt cnt">×${S.store[id]}</span></button>`});h+=`</div>`}
+  if(!S.trip)h+=`<div class="row"><button class="btn warn wide" id="sleepB" type="button">今日を終えて寝る</button></div><p class="sub" style="margin-top:8px">寝ると満腹-22・水分-28（猛暑の日は水分-42）。どちらかが0だとHPが減るわ。</p>`;
+  panel.innerHTML=h;
+  panel.querySelectorAll('[data-id]').forEach(b=>b.onclick=()=>itemSheet(b.dataset.id));
+  const sb=$('#sleepB');if(sb)sb.onclick=sleep;
+}
+function itemSheet(id){
+  const it=ITEMS[id];const acts=[];
+  if(!S.trip){
+    if(it.food||it.water||it.hp)acts.push(['use',it.water?'飲む':it.hp?'使う':'食べる','']);
+    if(it.open)acts.push(['open','こじ開ける',has('crowbar')?'':'disabled']);
+    if(it.fix)acts.push(['fix','修理画面へ','ghost']);
+  }
+  acts.push(['drop','1つ捨てる','rust']);
+  const o=overlay(`<div class="sheet"><div class="hd"><span class="big">${it.e}</span><div><div class="nm">${esc(it.n)}${catTag(id)}</div><div class="sub" style="margin:0">所持 ${cnt(id)}　今日の買取 ${yen(price(id))}</div></div></div>
+   <p>${esc(it.d)}</p>${it.open&&!has('crowbar')?'<p style="color:var(--rust)">バールがないと開けられない。源さんの店で買える。</p>':''}
+   ${it.fix?'<div class="sub">修理に必要：</div>'+needHTML(it.fix.need)+(it.fix.tool?`<div class="need"><span class="${has(it.fix.tool)?'ok':'ng'}">道具：${TOOLS[it.fix.tool]}</span></div>`:''):''}
+   <div class="row">${acts.map(a=>`<button type="button" class="btn ${a[2]==='disabled'?'':a[2]}" data-a="${a[0]}" ${a[2]==='disabled'?'disabled':''}>${a[1]}</button>`).join('')}<button class="btn ghost" data-a="close" type="button">閉じる</button></div></div>`);
+  o.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{
+    const a=b.dataset.a;
+    if(a==='close')return closeOv();
+    if(a==='use')useItem(id);
+    if(a==='open')openBox(id);
+    if(a==='fix'){closeOv();tab='craft';craftSeg='repair';render();return}
+    if(a==='drop'){take(id);log(it.n+'を捨てた。')}
+    closeOv();save();render();
+  });
+}
+function useItem(id){
+  const it=ITEMS[id];take(id);
+  if(it.raw){S.food=clamp(S.food+it.food,0,100);S.hp=Math.max(1,S.hp-12);log('生のネズミ肉を食べてお腹を壊した。HP-12');SFX.bad();flash();toast('生肉はやめておきなさい。HP-12','bad');return}
+  if(it.food)S.food=clamp(S.food+it.food,0,100);
+  if(it.water)S.water=clamp(S.water+it.water,0,100);
+  if(it.hp)S.hp=clamp(S.hp+it.hp,0,100);
+  if(it.risky&&R()<.3){S.hp=Math.max(1,S.hp-6);log(it.n+'でお腹を壊した。HP-6');SFX.bad();toast('お腹を壊した。HP-6','bad');return}
+  log(it.n+'を'+(it.water?'飲んだ':it.hp?'使った':'食べた')+'。');SFX.find();
+  toast(it.n+'　'+(it.food?`満腹+${it.food}`:it.water?`水分+${it.water}`:`HP+${it.hp}`),'good');
+}
+function openBox(id){
+  take(id);SFX.make();
+  if(id==='toolbox_b'){
+    if(!has('spanner')){S.owned.spanner=true;log('工具箱の中にスパナが入っていた。');toast('スパナを手に入れた','good')}
+    else{add('screw',3);add('tape');log('工具箱からネジ3本とガムテープ。');toast('ネジ×3、ガムテープ','good')}
+  } else {
+    if(R()<.3){add('ring');log('金庫の中から金の指輪が出てきた。');toast('金の指輪が出てきた','good');SFX.rare()}
+    else{const m=2000+Math.floor(R()*10)*1000;S.money+=m;S.stats.earned+=m;log(`金庫の中に現金${yen(m)}。`);toast(`現金 ${yen(m)} を見つけた`,'good');SFX.coin()}
+  }
+}
+
+function renderCraft(){
+  let h=`<h2>修理・製作</h2><div class="segs"><button type="button" class="seg ${craftSeg==='repair'?'on':''}" data-s="repair">修理</button><button type="button" class="seg ${craftSeg==='make'?'on':''}" data-s="make">製作</button></div>`;
+  if(S.trip)h+=`<p class="sub">作業台は拠点にある。戻ってから作業しよう。</p>`;
+  const toolLine=`<div class="owned" style="margin-bottom:10px">${['spanner','solder','crowbar'].map(k=>`<span style="${has(k)?'':'opacity:.45'}">${has(k)?'✔':'✕'} ${TOOLS[k]}</span>`).join('')}</div>`;
+  if(craftSeg==='repair'){
+    h+=`<p class="sub">壊れた物を直すと価値が何倍にもなる。売るか、使うかはあなた次第よ。</p>`+toolLine;
+    const ids=Object.keys(S.store).filter(id=>ITEMS[id].fix);
+    if(!ids.length)h+=`<div class="empty">直せるジャンクを持っていない。家電の墓場あたりが狙い目。</div>`;
+    h+=`<div class="list">`;
+    ids.forEach(id=>{const it=ITEMS[id],f=it.fix,to=ITEMS[f.to];const ok=hasNeed(f.need)&&(!f.tool||has(f.tool))&&!S.trip;
+      h+=`<div class="recipe"><span class="ico">${it.e}</span><div style="min-width:0"><div class="nm">${esc(it.n)} → ${esc(to.n)} <span class="cnt" style="font-family:var(--f-dot);color:var(--hazard)">×${cnt(id)}</span></div>
+      <div class="ds">買取 ${yen(price(id))} → ${yen(price(f.to))}</div>${needHTML(f.need)}${f.tool?`<div class="need"><span class="${has(f.tool)?'ok':'ng'}">道具：${TOOLS[f.tool]}</span></div>`:''}</div>
+      <div class="act"><button type="button" class="btn" data-fix="${id}" ${ok?'':'disabled'}>修理する</button></div></div>`});
+    h+=`</div>`;
+  } else {
+    h+=`<p class="sub">ガラクタを組み合わせて、暮らしを少しずつ楽にしていく。最後の目標はトラックよ。</p>`+toolLine+`<div class="list">`;
+    RECIPES.forEach(r=>{
+      const done=r.kind!=='item'&&S.owned[r.id];
+      const reqOk=!r.req||has(r.req), toolOk=!r.tool||has(r.tool);
+      const ok=!done&&hasNeed(r.need)&&reqOk&&toolOk&&!S.trip;
+      const kindTxt={equip:'装備',base:'設備',item:'加工',goal:'最終目標'}[r.kind];
+      h+=`<div class="recipe ${done?'done':''} ${r.kind==='goal'?'goal':''}"><span class="ico">${r.e}</span><div style="min-width:0"><div class="nm">${esc(r.n)} <span class="tagx tag-${r.kind==='goal'?'rare':'fixed'}">${kindTxt}</span></div>
+        <div class="ds">${esc(r.d)}</div>${done?'':needHTML(r.need)}
+        ${!done&&(r.tool||r.req)?`<div class="need">${r.tool?`<span class="${toolOk?'ok':'ng'}">道具：${TOOLS[r.tool]}</span>`:''}${r.req?`<span class="${reqOk?'ok':'ng'}">設備：${RECIPES.find(x=>x.id===r.req).n}</span>`:''}</div>`:''}</div>
+        <div class="act">${done?'<span class="sub" style="margin:0">完成済み</span>':`<button type="button" class="btn ${r.kind==='goal'?'warn':''}" data-make="${r.id}" ${ok?'':'disabled'}>${r.kind==='goal'?'組み上げる':'作る'}</button>`}</div></div>`;
+    });
+    h+=`</div>`;
+  }
+  panel.innerHTML=h;
+  panel.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{craftSeg=b.dataset.s;render()});
+  panel.querySelectorAll('[data-fix]').forEach(b=>b.onclick=()=>repair(b.dataset.fix));
+  panel.querySelectorAll('[data-make]').forEach(b=>b.onclick=()=>make(b.dataset.make));
+}
+function repair(id){
+  const f=ITEMS[id].fix;for(const k in f.need)take(k,f.need[k]);take(id);add(f.to);S.stats.made++;
+  log(`${ITEMS[id].n}を直して${ITEMS[f.to].n}にした。`);SFX.make();toast(`修理完了：${ITEMS[f.to].n}`,'good');
+  save();render();
+}
+function make(id){
+  const r=RECIPES.find(x=>x.id===id);for(const k in r.need)take(k,r.need[k]);S.stats.made++;
+  if(r.kind==='item'){add(id);log(r.n+'を作った。')}
+  else S.owned[id]=true;
+  SFX.make();
+  if(r.kind==='goal'){S.won=true;save();heapKey='';return ending()}
+  if(r.kind!=='item'){log(r.n+'が完成した。');toast(`完成：${r.n}`,'good')}else toast(`${r.n}を作った`,'good');
+  save();render();
+}
+
+function renderShop(){
+  const feat=CAT_N[S.featured];
+  let h=`<h2>源さんのガラクタ屋</h2><p class="sub">ゴミ山のふもとの掘っ立て小屋。「拾ったもんは何でも買うぞ。値段は日によって変わるがな」</p>`;
+  h+=`<div class="featured"><div>本日の目玉：<b>${feat}</b> の買取 1.5倍</div></div>`;
+  if(S.trip){panel.innerHTML=h+`<div class="empty">店に行くには一度拠点に戻ろう。</div>`;return}
+  h+=`<div class="segs"><button type="button" class="seg ${shopSeg==='sell'?'on':''}" data-s="sell">売る</button><button type="button" class="seg ${shopSeg==='buy'?'on':''}" data-s="buy">買う</button></div>`;
+  if(shopSeg==='sell'){
+    const ids=Object.keys(S.store).sort((a,b)=>price(b)-price(a));
+    if(!ids.length)h+=`<div class="empty">売る物がない。</div>`;
+    h+=`<div class="list">`;
+    ids.forEach(id=>{const it=ITEMS[id];const m=(S.prices[it.c]||1)*(S.featured===it.c?1.5:1);const tr=m>=1.15?'▲':m<=.88?'▼':'';
+      h+=`<div class="it"><span class="ico">${it.e}</span><div style="min-width:0"><div class="nm">${esc(it.n)}${catTag(id)} <span class="cnt" style="font-family:var(--f-dot);color:var(--hazard)">×${S.store[id]}</span></div><div class="ds">1個 ${yen(price(id))} <span style="color:${tr==='▲'?'var(--patina)':'var(--rust)'}">${tr}</span></div></div>
+      <div style="display:flex;gap:4px;flex-direction:column"><button type="button" class="btn ghost" style="padding:6px 10px;font-size:12px" data-sell="${id}" data-n="1">1個</button>${S.store[id]>1?`<button type="button" class="btn ghost" style="padding:6px 10px;font-size:12px" data-sell="${id}" data-n="all">全部</button>`:''}</div></div>`});
+    h+=`</div>`;
+  } else {
+    h+=`<div class="list">`;
+    SHOP.forEach((s,i)=>{
+      let e,n,d,dis=S.money<s.p,owned='';
+      if(s.id){const it=ITEMS[s.id];e=it.e;n=it.n;d=it.d}
+      else{e=s.e;n=s.n;d=s.d}
+      if(s.tool&&has(s.tool)){dis=true;owned='所持済み'}
+      if(s.fuel&&!cnt('gascan')){dis=true;owned='缶がない'}
+      h+=`<div class="it"><span class="ico">${e}</span><div style="min-width:0"><div class="nm">${esc(n)}</div><div class="ds">${esc(d)}</div></div>
+       <div style="text-align:right"><div class="rt">${yen(s.p)}</div><button type="button" class="btn" style="padding:6px 12px;font-size:12px;margin-top:4px" data-buy="${i}" ${dis?'disabled':''}>${owned||'買う'}</button></div></div>`});
+    h+=`</div>`;
+  }
+  panel.innerHTML=h;
+  panel.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{shopSeg=b.dataset.s;render()});
+  panel.querySelectorAll('[data-sell]').forEach(b=>b.onclick=()=>{
+    const id=b.dataset.sell;const n=b.dataset.n==='all'?S.store[id]:1;const p=price(id)*n;
+    take(id,n);S.money+=p;S.stats.earned+=p;SFX.coin();log(`${ITEMS[id].n}×${n}を${yen(p)}で売った。`);toast(`+${yen(p)}`,'good');save();render()});
+  panel.querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>{
+    const s=SHOP[+b.dataset.buy];if(S.money<s.p)return;S.money-=s.p;SFX.coin();
+    if(s.id){add(s.id);log(ITEMS[s.id].n+'を買った。')}
+    else if(s.tool){S.owned[s.tool]=true;log(s.n+'を買った。');toast(s.n+'を手に入れた','good')}
+    else if(s.fuel){take('gascan');add('gasfull');log('ガソリン缶を満タンにした。');toast('ガソリン満タン','good')}
+    save();render()});
+}
+
+function renderDex(){
+  const ids=Object.keys(ITEMS);const got=ids.filter(id=>S.seen[id]).length;
+  let h=`<h2>ガラクタ図鑑</h2><p class="sub">手に入れた物が記録される。${got} / ${ids.length} 種類。</p><div class="dex">`;
+  ids.forEach(id=>{const it=ITEMS[id],s=S.seen[id];h+=`<div class="dx ${s?'':'no'}"><div class="e">${it.e}</div><div class="n">${s?esc(it.n):'？？？'}</div></div>`});
+  h+=`</div><h3>記録</h3><div class="owned"><span>掘ったマス ${S.stats.dug}</span><span>稼いだ額 ${yen(S.stats.earned)}</span><span>修理・製作 ${S.stats.made}回</span></div>
+  <h3>最近の出来事</h3><div class="list">${S.log.slice(0,10).map(l=>`<div class="sub" style="margin:0;padding:6px 0;border-bottom:1px dashed var(--line)">${esc(l)}</div>`).join('')}</div>
+  <div class="row"><button class="btn ghost" id="resetB" type="button">最初からやり直す</button></div>`;
+  panel.innerHTML=h;
+  $('#resetB').onclick=()=>{
+    const o=overlay(`<div class="card"><div class="kick">CONFIRM</div><p>今のデータを消して、1日目からやり直す？</p><div class="row"><button class="btn rust" id="y" type="button">やり直す</button><button class="btn ghost" id="n" type="button">やめる</button></div></div>`,true);
+    o.querySelector('#y').onclick=()=>{closeOv();newGame();tab='explore';heapKey='';render();intro()};
+    o.querySelector('#n').onclick=closeOv;
+  };
+}
+
+// ================= DAY CYCLE =================
+function sleep(){
+  if(S.trip)return goHome(true);
+  const rep=[];
+  const heat=S.weather==='heat';
+  S.food=clamp(S.food-22,0,100);S.water=clamp(S.water-(heat?42:28),0,100);
+  rep.push(['寝ている間に 満腹-22・水分-'+(heat?42:28),'']);
+  let dmg=0;if(S.food<=0)dmg+=18;if(S.water<=0)dmg+=18;
+  if(dmg){S.hp=Math.max(0,S.hp-dmg);rep.push([`${S.food<=0?'空腹':''}${S.food<=0&&S.water<=0?'と':''}${S.water<=0?'脱水':''}で HP-${dmg}`,'bad'])}
+  else{const hl=8+(S.owned.firepit?6:0);S.hp=clamp(S.hp+hl,0,100);rep.push([`ぐっすり眠れた。HP+${hl}`,'good'])}
+  if(S.hp<=0)return gameOver();
+  // new day
+  S.day++;
+  S.weather=pickW(Object.fromEntries(WEATHER.map(w=>[w.id,w.w])));
+  rollPrices();
+  S.st=stMax();
+  const wn=WEATHER.find(w=>w.id===S.weather).n;
+  rep.push([`${S.day}日目の朝。天気は${wn}。`,'']);
+  if(S.owned.filter){S.water=clamp(S.water+30,0,100);rep.push(['ろ過装置にきれいな水がたまっていた。水分+30','good'])}
+  if(S.owned.raintank&&S.weather==='rain'){S.water=100;rep.push(['雨水タンクが満杯。水分が全回復','good'])}
+  if(S.owned.trap&&R()<.6){add('ratmeat');rep.push(['ネズミ捕りにネズミがかかっていた','good'])}
+  if(S.weather==='heat')rep.push(['今日は猛暑。夜の水分の減りが激しくなる','bad']);
+  rep.push([`源さんの店の目玉は「${CAT_N[S.featured]}」`,'']);
+  if(S.food<=30||S.water<=30)rep.push(['食料か水が少ない。早めに補給しよう','bad']);
+  log(`${S.day}日目が始まった。`);
+  save();heapKey='';
+  if(!reduce){const n=document.createElement('div');n.className='night';n.textContent='……zzz';document.body.appendChild(n);setTimeout(()=>n.remove(),1700)}
+  setTimeout(()=>{
+    tab='explore';render();
+    const o=overlay(`<div class="card"><div class="kick">MORNING REPORT</div><div class="ttl" style="font-size:26px">${S.day}日目</div><ul class="report">${rep.map(r=>`<li class="${r[1]}">${esc(r[0])}</li>`).join('')}</ul><button class="btn warn wide" id="okB" type="button">今日も掘るか</button></div>`,true);
+    o.querySelector('#okB').onclick=closeOv;
+  },reduce?0:800);
+}
+function gameOver(){
+  S.over=true;save();SFX.bad();
+  const o=overlay(`<div class="card"><div class="kick">GAME OVER</div><div class="ttl" style="color:var(--blood)">力尽きた……</div>
+   <p>${S.day}日目、ゴミ山の片隅で動けなくなった。<br>掘ったマス ${S.stats.dug}、稼いだ額 ${yen(S.stats.earned)}。</p>
+   <button class="btn warn wide" id="rs" type="button">もう一度ゴミ山へ</button></div>`,true);
+  o.querySelector('#rs').onclick=()=>{closeOv();newGame();tab='explore';heapKey='';render()};
+}
+function ending(){
+  render();SFX.rare();
+  try{window.tgClear&&window.tgClear('gomiyama',{day:S.day})}catch(e){}
+  const d=S.day;const rank=d<=15?['S','伝説のスクラップ王']:d<=25?['A','腕利きのジャンク屋']:d<=40?['B','しぶといサバイバー']:['C','ゴミ山の古株'];
+  const o=overlay(`<div class="card"><div class="kick">ESCAPE</div><div class="ttl">ゴミ山を脱出</div>
+   <p>ガラクタだけで組み上げたトラックが、黒い煙を吐いて動き出した。源さんが手を振っている。<br>${d}日間の暮らしが、ミラーの中で小さくなっていく。</p>
+   <ul class="report"><li class="good">称号：ランク${rank[0]}「${rank[1]}」</li><li>かかった日数 ${d}日</li><li>掘ったマス ${S.stats.dug}</li><li>稼いだ額 ${yen(S.stats.earned)}</li><li>図鑑 ${Object.keys(S.seen).length} / ${Object.keys(ITEMS).length}</li></ul>
+   <div class="row"><button class="btn warn" id="again" type="button">新しいゴミ山へ</button><button class="btn ghost" id="stay" type="button">もう少し残る</button></div></div>`,true);
+  o.querySelector('#again').onclick=()=>{closeOv();newGame();tab='explore';heapKey='';render()};
+  o.querySelector('#stay').onclick=closeOv;
+}
+function intro(){
+  const o=overlay(`<div class="card"><div class="kick">JUNKYARD SURVIVAL</div><div class="ttl">ゴミ山<br>サバイバー</div>
+   <p>すべてを失ったあなたが流れ着いたのは、町はずれの巨大なゴミ山。<br>ガラクタを掘り、直し、組み合わせ、売って生き延びる。<br>目標は、ガラクタだけで<b style="color:var(--hazard)">トラックを組み上げて</b>ここを出ていくこと。</p>
+   <ul class="report"><li>探索：マスを掘ってアイテムを集める</li><li>修理：壊れた物を直すと高く売れる</li><li>製作：装備や設備で暮らしを楽にする</li><li>寝る前に満腹と水分をチェック</li></ul>
+   <button class="btn warn wide" id="st" type="button">ゴミ山へ</button></div>`,true);
+  o.querySelector('#st').onclick=()=>{ac();closeOv()};
+}
+
+// ================= BOOT =================
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{tab=b.dataset.t;panel.scrollTop=0;render()});
+$('#mute').onclick=()=>{muted=!muted;$('#mute').textContent=muted?'音 OFF':'音 ON';try{localStorage.setItem(KEY+'-mute',muted?'1':'0')}catch(e){}};
+$('#mute').textContent=muted?'音 OFF':'音 ON';
+window.addEventListener('resize',()=>{resize();if(reduce)draw(performance.now())});
+function start(){
+  const d=load();
+  if(d&&!d.over){S=d}else{newGame()}
+  resize();render();
+  if(reduce)draw(performance.now());else requestAnimationFrame(loop);
+  if(!d||d.over)intro();
+  else{const o=overlay(`<div class="card"><div class="kick">CONTINUE</div><div class="ttl" style="font-size:26px">${S.day}日目から</div><p>前回の続きから再開する。所持金 ${yen(S.money)}。</p><div class="row"><button class="btn warn" id="c" type="button">つづきから</button><button class="btn ghost" id="nw" type="button">はじめから</button></div></div>`,true);
+    o.querySelector('#c').onclick=()=>{ac();closeOv()};o.querySelector('#nw').onclick=()=>{closeOv();newGame();heapKey='';tab='explore';render();intro()}}
+}
+start();
+</script>
+
+<a class="tg-back" href="index.html" aria-label="ゲーム一覧にもどる">← 一覧</a>
+<style>
+.tg-back{position:fixed;z-index:2147483647;top:calc(8px + env(safe-area-inset-top,0px));left:calc(8px + env(safe-area-inset-left,0px));
+  display:inline-block;margin:0;padding:6px 12px;border-radius:999px;background:rgba(12,14,24,.72);color:#fff;
+  font:700 13px/1.2 "Hiragino Sans","Yu Gothic",sans-serif;letter-spacing:0;text-decoration:none;border:1px solid rgba(255,255,255,.35);
+  -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);-webkit-tap-highlight-color:transparent}
+.tg-back:hover{background:rgba(12,14,24,.9)}
+.tg-back:focus-visible{outline:2px solid #fff;outline-offset:2px}
+</style>
+<style>
+.tg-bar{position:fixed;z-index:2147483647;top:calc(8px + env(safe-area-inset-top,0px));left:calc(8px + env(safe-area-inset-left,0px));display:flex;gap:8px;align-items:center;pointer-events:none}
+.tg-bar>*{position:static!important;pointer-events:auto}
+</style>
+<script>
+(function(){
+  var bar=document.createElement('div'); bar.className='tg-bar'; document.body.appendChild(bar);
+  document.querySelectorAll('.tg-back:not(.tg-inline),.tg-auto:not(.tg-inline),.tg-snd').forEach(function(el){ bar.appendChild(el); });
+})();
+</script>
+<!-- tg-swipe-guard: スワイプでの更新・戻るを防ぐ -->
+<style>html,body{overscroll-behavior:none}</style>
+<script>
+(function(){
+  var GAME=!!document.querySelector('.tg-auto');
+  var sx=0,sy=0;
+  function scroller(el){for(;el&&el!==document.body&&el!==document.documentElement;el=el.parentElement){var s=getComputedStyle(el).overflowY;if((s==='auto'||s==='scroll')&&el.scrollHeight>el.clientHeight)return el;}return null;}
+  document.addEventListener('touchstart',function(e){if(e.touches.length!==1)return;var t=e.touches[0];sx=t.clientX;sy=t.clientY;
+    // 画面端からのスワイプ（戻る・進む）を止める
+    if(sx<14||sx>innerWidth-14){e.preventDefault();}},{passive:false});
+  document.addEventListener('touchmove',function(e){if(e.touches.length!==1)return;var t=e.touches[0],dy=t.clientY-sy;
+    // いちばん上で下に引っぱる（引っぱって更新）を止める
+    if(dy>0){var sc=scroller(e.target);var top=sc?sc.scrollTop:(window.scrollY||document.documentElement.scrollTop);if(top<=0&&e.cancelable)e.preventDefault();}},{passive:false});
+  // ゲーム中は「戻る」操作で一覧に戻らないようにする（左上の「← 一覧」からは戻れる）
+  if(GAME&&history.pushState){try{history.pushState({tgGuard:1},'',location.href);addEventListener('popstate',function(){history.pushState({tgGuard:1},'',location.href);});}catch(e){}}
+})();
+</script>
+</body>
+</html>
