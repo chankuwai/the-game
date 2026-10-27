@@ -1,0 +1,2424 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<meta name="theme-color" content="#1d221f">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}
+.tg-home{display:inline-block;font-size:12px;color:var(--muted);text-decoration:none;margin-bottom:6px}
+.tg-home:hover{color:var(--fg)}
+[hidden]{display:none!important}</style>
+<script>(function(){var id='kaiju';try{var a=JSON.parse(localStorage.getItem('tg_recent')||'[]').filter(function(x){return x.id!==id;});a.unshift({id:id,t:Date.now()});localStorage.setItem('tg_recent',JSON.stringify(a.slice(0,10)));}catch(e){}})();</script>
+<title>怪獣チェック図鑑</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap">
+<style>
+/* Layout: sticky counter bar on top, series sections as a long field-guide list, mark column on the right */
+:root{
+  --bg:#eef0ec; --surface:#ffffff; --fg:#1d221f; --muted:#69726c; --line:#d5dad4;
+  --ultra:#c8312b; --godzilla:#2f6b4f; --mark:#c8312b; --mark-bg:#fbe9e7; --mark2:#a86b00; --mark2-bg:#fdf3dc;
+  --display:"Dela Gothic One","Hiragino Kaku Gothic StdN",sans-serif;
+  --body:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141816; --surface:#1d2320; --fg:#e9ece8; --muted:#97a19a; --line:#2e3631;
+  --ultra:#ff6b5e; --godzilla:#6fc79b; --mark:#ff6b5e; --mark-bg:#3a1f1c; --mark2:#f2c14e; --mark2-bg:#3a3018; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141816; --surface:#1d2320; --fg:#e9ece8; --muted:#97a19a; --line:#2e3631;
+  --ultra:#ff6b5e; --godzilla:#6fc79b; --mark:#ff6b5e; --mark-bg:#3a1f1c; --mark2:#f2c14e; --mark2-bg:#3a3018; color-scheme:dark}
+html,body{background:var(--bg);color:var(--fg)}
+body{font-family:var(--body);font-size:15px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.wrap{max-width:760px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line);margin:0 calc(-1*max(16px,env(safe-area-inset-left,0px)));padding:12px max(16px,env(safe-area-inset-left,0px)) 10px}
+.top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+h1{font-family:var(--display);font-weight:400;font-size:20px;margin:0;line-height:1.2;text-wrap:balance}
+.count{text-align:right;font-variant-numeric:tabular-nums}
+.count .big{font-family:var(--display);font-size:34px;color:var(--mark);line-height:1}
+.count .of{color:var(--muted);font-size:13px}
+.sub{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-top:4px;font-variant-numeric:tabular-nums}
+.sub b{color:var(--fg)}
+.bar{height:5px;background:var(--line);border-radius:3px;margin-top:8px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--mark);width:0;transition:width .3s}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.controls input,.controls select{font:inherit;font-size:14px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);min-width:0}
+#q{flex:1 1 160px}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.controls .seg{max-width:100%;overflow-x:auto}
+.seg button{white-space:nowrap;font:inherit;font-size:13px;padding:6px 10px;border:0;background:var(--bg);color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
+section{margin-top:22px}
+.sh{display:flex;align-items:baseline;justify-content:space-between;gap:10px;border-bottom:2px solid var(--fg);padding-bottom:4px;cursor:pointer;user-select:none}
+.sh h2{font-family:var(--display);font-weight:400;font-size:17px;margin:0;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.sh .yr{font-family:var(--body);font-size:12px;color:var(--muted)}
+.tag{font-family:var(--body);font-size:11px;padding:1px 6px;border-radius:4px;color:#fff;background:var(--ultra)}
+.tag.g{background:var(--godzilla)}
+.sh .n{font-variant-numeric:tabular-nums;font-size:13px;color:var(--muted);white-space:nowrap}
+.sh .n b{color:var(--mark);font-size:15px}
+section.closed ul{display:none}
+ul{list-style:none;margin:0;padding:0}
+li{display:flex;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid var(--line);cursor:pointer;-webkit-tap-highlight-color:transparent}
+li:focus-visible{outline:2px solid var(--mark);outline-offset:-2px}
+li .nm{flex:1;min-width:0}
+li .no{flex:none;width:2.2em;text-align:right;font-family:var(--display);font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+li.on .no{color:var(--mark)}
+li .al.hero{color:#fff;background:var(--ultra);border-radius:4px;padding:0 5px;font-size:11px}
+li .al{font-size:12px;color:var(--muted);margin-right:6px}
+li .na{font-weight:700}
+li .cus{font-size:10px;color:var(--muted);border:1px solid var(--line);border-radius:3px;padding:0 4px;margin-left:6px}
+li .mk{flex:none;width:34px;height:34px;border-radius:50%;border:2px dashed var(--line);display:grid;place-items:center;font-size:20px;color:transparent;transition:all .15s}
+li.on{background:var(--mark-bg)}
+li.on .mk{border:3px solid var(--mark);color:var(--mark)}
+li.on .mk::after{content:""}
+li.on2{background:var(--mark2-bg)}
+li.on2 .mk{border:2px solid var(--mark2);border-radius:8px;color:var(--mark2);font-size:20px}
+li.on2 .no{color:var(--mark2)}
+.sub .w2 b{color:var(--mark2)}
+.sh .n i{font-style:normal;color:var(--mark2);margin-left:6px}
+.add{margin-top:32px;padding:14px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.add h3{font-family:var(--display);font-weight:400;font-size:15px;margin:0 0 8px}
+.add form{display:flex;flex-wrap:wrap;gap:8px}
+.add input,.add select,.add button,.foot button{font:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);min-width:0}
+.add input{flex:1 1 120px}
+.add button[type=submit]{background:var(--fg);color:var(--bg);border-color:var(--fg);cursor:pointer}
+.foot{margin-top:18px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:12px;color:var(--muted)}
+.foot button{cursor:pointer}
+.foot .danger{color:var(--ultra);border-color:var(--ultra)}
+.foot .primary,.share .primary{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+body.mode-rnd .wrap>:not(#rnd){display:none!important}
+body.mode-start .wrap>:not(#start){display:none!important}
+body:not(.mode-start) #start{display:none!important}
+.start{min-height:70vh;display:grid;align-content:center;gap:18px;padding-block:24px}
+.start .tg-home{justify-self:start}
+.start h1{font-size:28px;margin:0}
+.start p{margin:0;color:var(--muted);font-size:14px}
+.modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.modes button{font:inherit;text-align:left;display:grid;gap:6px;padding:18px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--fg);cursor:pointer}
+.modes button:hover,.modes button:focus-visible{border-color:var(--mark)}
+.modes b{font-family:var(--display);font-weight:400;font-size:20px}
+.modes span{font-size:13px;color:var(--muted)}
+.modes .mi{font-size:26px;color:var(--mark);font-family:var(--display)}
+.tomode{font:inherit;font-size:12px;color:var(--muted);background:none;border:none;padding:0;margin-left:12px;cursor:pointer;text-decoration:underline}
+.rndrange{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px;color:var(--muted)}
+.rndrange select{font:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);flex:1 1 150px;min-width:0}
+.rndrange button{font:inherit;font-size:12px;padding:6px 12px;border:1px solid var(--fg);border-radius:999px;background:var(--fg);color:var(--bg);cursor:pointer}
+.rndpick{display:grid;gap:10px;border-top:1px solid var(--line);padding-top:12px}
+.rndpickhead{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
+.rndpickhead b{color:var(--fg);font-size:14px}
+.rndgrp{display:grid;gap:6px}
+.rndgrph{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px}
+.rndgrph .tag{font-size:12px}
+.rndctl{display:grid;grid-template-columns:auto auto 1fr 1fr;gap:6px 8px;align-items:center;font-size:13px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);position:sticky;top:calc(var(--rndbar-h,150px) + 4px);z-index:3}
+.rndctl .tag{font-size:12px;text-align:center}
+.rndctl .tag.all{background:var(--fg);color:var(--bg)}
+.rndctl .rc{font-variant-numeric:tabular-nums;color:var(--muted);white-space:nowrap}
+.rndctl button{font:inherit;font-size:12px;padding:5px 8px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--fg);cursor:pointer;white-space:nowrap}
+.rndgrph button{font:inherit;font-size:12px;padding:4px 10px;border:1px solid var(--line);border-radius:999px;background:var(--bg);color:var(--fg);cursor:pointer}
+.rndchecks{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:4px 10px}
+.rndchecks label{display:flex;gap:6px;align-items:flex-start;font-size:13px;padding:5px 2px;cursor:pointer;min-width:0}
+.rndchecks input{margin-top:3px;flex:none;accent-color:var(--mark)}
+.rndchecks small{color:var(--muted);font-size:11px}
+.rndbtn{font:inherit;font-size:14px;padding:7px 12px;border:1px solid var(--fg);border-radius:8px;background:var(--fg);color:var(--bg);cursor:pointer}
+.rnd{margin-top:16px;padding:14px;border:1px solid var(--line);border-radius:10px;background:var(--surface);display:grid;gap:10px}
+.rndhead{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.rnd h3{font-family:var(--display);font-weight:400;font-size:16px;margin:0}
+.rndx{font:inherit;font-size:13px;padding:5px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--muted);cursor:pointer}
+.rndopts{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;font-size:13px}
+.rndopts .primary{font:inherit;font-size:15px;padding:9px 18px;border-radius:8px;border:1px solid var(--fg);background:var(--fg);color:var(--bg);cursor:pointer}
+.rndbar{position:fixed;top:0;left:0;right:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:0 2px 10px rgba(0,0,0,.06);padding-top:calc(env(safe-area-inset-top,0px) + 10px);padding-bottom:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.rndbarin{max-width:728px;margin:0 auto;display:grid;gap:8px}
+#rndspacer{height:var(--rndbar-h,150px);margin-top:-14px}
+.rndbar .rndhead h3{font-size:15px}
+.rndbar .rndx{padding:4px 10px;font-size:12px}
+.rndbar .rndopts{flex-wrap:nowrap;align-items:flex-end;gap:8px}
+.rndbar .rndleft{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;min-width:0}
+.rndbar .seg{width:max-content}
+.rndbar .seg button{padding:5px 9px;font-size:12px}
+.rndbar .rndmk select{font-size:13px;padding:5px 6px;max-width:11em}
+.rndbar .rndopts .primary{flex:none;padding:10px 14px;font-size:14px}
+.rndhist{border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.rndhist summary{cursor:pointer;padding:12px 14px;font-size:14px;font-weight:700;color:var(--muted);list-style:none;display:flex;align-items:center;gap:8px}
+.rndhist summary::-webkit-details-marker{display:none}
+.rndhist summary::before{content:"▶";font-size:10px;transition:transform .15s}
+.rndhist[open] summary::before{transform:rotate(90deg)}
+.rndhistin{display:grid;gap:14px;padding:0 14px 14px}
+.rndout{display:grid;gap:12px}
+.rset{display:grid;gap:6px}
+.rsh{margin:0;font-family:var(--display);font-weight:400;font-size:15px;display:flex;align-items:center;gap:8px}
+.rsh::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--mark)}
+.rsh.b::before{background:var(--godzilla)}
+.rset:nth-child(2) .rn{color:var(--godzilla)}
+.rndleft{display:grid;gap:8px}
+.rndmk{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.rndmk select{font:inherit;font-size:14px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);min-width:0}
+.rndprev .rsh{font-size:13px;color:var(--muted)}
+.rndprev{display:grid;gap:8px;border-top:1px dashed var(--line);padding-top:10px}
+.rndprev h4{margin:0;font-size:13px;font-weight:700;color:var(--muted)}
+.rndprev .rndlist li{opacity:.65;animation:none;padding:7px 10px}
+.rndprev .rn{font-size:16px}
+.rndprev .rnm{font-size:14px}
+.rndlist{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
+.rndlist li{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--bg);cursor:default;animation:rndin .25s ease both}
+.rndlist li:nth-child(2){animation-delay:.04s}.rndlist li:nth-child(3){animation-delay:.08s}.rndlist li:nth-child(4){animation-delay:.12s}.rndlist li:nth-child(5){animation-delay:.16s}.rndlist li:nth-child(6){animation-delay:.2s}
+@keyframes rndin{from{transform:translateY(4px);opacity:.4}to{transform:none;opacity:1}}
+.rndlist .rn{font-family:var(--display);font-size:22px;color:var(--mark);width:1.2em;text-align:center;flex:none}
+.rndlist .rb{min-width:0;display:grid;gap:1px}
+.rndlist .rs{font-size:11px;color:var(--muted)}
+.rndlist .ra{font-size:12px;color:var(--muted)}
+.rndlist .rnm{font-weight:700;font-size:15px}
+.rndlist .rm{margin-left:auto;flex:none;font-size:18px;color:var(--mark)}
+.share{margin-top:16px;padding:14px;border:1px solid var(--line);border-radius:10px;background:var(--surface);display:grid;gap:10px}
+.share h3{font-family:var(--display);font-weight:400;font-size:15px;margin:0}
+.share .seg{width:max-content;max-width:100%}
+.share textarea{font:inherit;font-size:13px;width:100%;box-sizing:border-box;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);resize:vertical}
+.sharebtns{display:flex;flex-wrap:wrap;gap:8px}
+.sharebtns button,.sharebtns a{font:inherit;font-size:14px;padding:8px 14px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);cursor:pointer;text-decoration:none}
+.sharebtns .line{background:#06C755;border-color:#06C755;color:#fff}
+.note{font-size:12px;color:var(--muted);margin-top:10px;max-width:65ch}
+.empty{color:var(--muted);padding:20px 0;text-align:center}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+<section class="start" id="start">
+  <a class="tg-home" href="index.html">← ゲーム一覧</a>
+  <h1>怪獣チェック図鑑</h1>
+  <p id="startinfo">ウルトラシリーズとゴジラシリーズの怪獣</p>
+  <div class="modes">
+    <button type="button" id="gozukan"><span class="mi">○△</span><b>図鑑モード</b><span>怪獣をタップして○と△をつけ、数を数える</span></button>
+    <button type="button" id="gornd"><span class="mi">6</span><b>ランダム6体モード</b><span>選んだ作品の怪獣から、ランダムに6体を選ぶ</span></button>
+  </div>
+</section>
+<header>
+  <a class="tg-home" href="index.html">← ゲーム一覧</a><button type="button" class="tomode" data-tomode>モード選択へ</button>
+  <div class="top">
+    <h1>怪獣チェック図鑑</h1>
+    <div class="count"><span class="big" id="tot">0</span><span class="of"> / <span id="all">0</span> 体</span></div>
+  </div>
+  <div class="sub"><span>ウルトラ <b id="cu">0</b></span><span>ゴジラ <b id="cg">0</b></span><span>○ <b id="c1">0</b></span><span class="w2">△ <b id="c2">0</b></span><span id="pct">0%</span></div>
+  <div class="bar"><i id="barfill"></i></div>
+  <div class="controls">
+    <input id="q" type="search" placeholder="名前・別名で検索">
+    <div class="seg" role="group" aria-label="絞り込み">
+      <button type="button" data-f="all" aria-pressed="true">全部</button>
+      <button type="button" data-f="ultra" aria-pressed="false">ウルトラ</button>
+      <button type="button" data-f="godzilla" aria-pressed="false">ゴジラ</button>
+      <button type="button" data-f="on1" aria-pressed="false">○だけ</button>
+      <button type="button" data-f="on2" aria-pressed="false">△だけ</button>
+      <button type="button" data-f="off" aria-pressed="false">未チェック</button>
+    </div>
+    <select id="jump" aria-label="作品へ移動"><option value="">作品へジャンプ</option></select>
+  </div>
+</header>
+
+<section class="rnd" id="rnd" hidden>
+<div class="rndbar" id="rndbar"><div class="rndbarin">
+  <div class="rndhead">
+    <button type="button" id="rndclose" class="rndx">← モード選択へ</button>
+    <h3>ランダム6体モード</h3>
+  </div>
+  <div class="rndopts">
+    <div class="rndleft">
+      <div class="seg" role="group" aria-label="組の数"><button type="button" data-g="1" aria-pressed="true">6体×1組</button><button type="button" data-g="2" aria-pressed="false">6体×2組</button></div>
+      <label class="rndmk">選ぶ対象 <select id="rndmark" aria-label="選ぶ対象"><option value="all">全部の怪獣</option><option value="any">○か△をつけた怪獣</option><option value="m1">○の怪獣だけ</option><option value="m3">△の怪獣だけ</option><option value="none">未チェックの怪獣だけ</option></select></label>
+    </div>
+    <button type="button" id="rndgo" class="primary">6体を選ぶ</button>
+  </div>
+</div></div>
+<div id="rndspacer" aria-hidden="true"></div>
+  <div class="rndout" id="rndlist"></div>
+  <p class="note" id="rndmsg"></p>
+  <details class="rndhist" id="rndprevwrap" hidden><summary id="rndhistsum">過去の結果</summary><div class="rndhistin" id="rndhistin"></div></details>
+  <div class="rndpick">
+    <div class="rndpickhead"><b>使う作品</b><span id="rndcount"></span></div>
+    <div class="rndrange"><select id="rndfrom" aria-label="範囲の最初の作品"></select>から<select id="rndto" aria-label="範囲の最後の作品"></select>まで<button type="button" id="rndrangego">この範囲にする</button></div>
+    <div id="rndgroups"></div>
+  </div>
+</section>
+
+<main id="list"></main>
+
+<div class="add">
+  <h3>怪獣を追加</h3>
+  <form id="addf">
+    <select id="as" aria-label="作品"></select>
+    <input id="aa" placeholder="別名（例: 宇宙忍者）">
+    <input id="an" placeholder="名前（例: バルタン星人）" required>
+    <button type="submit">追加</button>
+  </form>
+  <p class="note">リストに無い怪獣はここから足せるわ。追加分には「追加」の印が付き、長押しで削除できるの。</p>
+</div>
+
+<div class="foot">
+  <button type="button" id="shareopen" class="primary">結果を共有</button>
+  <button type="button" id="openall">全部ひらく</button>
+  <button type="button" id="closeall">全部たたむ</button>
+  <button type="button" id="reset" class="danger">○を全部消す</button>
+  <span id="confirm" hidden>本当に消す？ <button type="button" id="yes" class="danger">消す</button> <button type="button" id="no">やめる</button></span>
+</div>
+<div class="share" id="share" hidden>
+  <h3>結果を共有</h3>
+  <div class="seg" role="group" aria-label="共有する内容">
+    <button type="button" data-m="count" aria-pressed="true">数だけ</button>
+    <button type="button" data-m="list" aria-pressed="false">名前も入れる</button>
+  </div>
+  <textarea id="sharetext" readonly rows="10"></textarea>
+  <div class="sharebtns">
+    <button type="button" id="copy" class="primary">コピー</button>
+    <a id="line" class="line" href="#" target="_blank" rel="noopener">LINEで送る</a>
+    <button type="button" id="shareclose">閉じる</button>
+  </div>
+  <p class="note" id="sharemsg">コピーしてLINEやメッセージに貼り付けてね。名前入りが長いときは、LINEボタンよりコピーのほうが確実よ。</p>
+</div>
+<p class="note">テレビシリーズ本編と主なOV・映画を収録。各作品の主役ウルトラマンと初登場ウルトラマンも、その作品の最後に入れてあるわ。二代目・再生・改造・強化形態など、別個体として登場したものは別々に数えているわ。同じ個体が前後編で続けて出たものは1体。別名が空欄のものは資料に載っていなかった分。テオは2026年10月時点の放送分まで。</p>
+</div>
+
+<script>
+const U='ultra',G='godzilla';
+const DATA=[
+[U,'ウルトラQ','1966',`古代怪獣|ゴメス
+原始怪鳥|リトラ
+巨大猿|ゴロー
+火星怪獣|ナメゴン
+巨大植物|ジュラン
+冷凍怪獣|ペギラ
+大亀|ガメロン
+万蛇怪獣|怪竜
+竜宮人|乙姫
+岩石怪獣|ゴルゴス
+モグラ怪獣|モングラー
+|巨大地蜂
+大グモ|タランチュラ
+人工生命|M1号
+風船怪獣|バルンガ
+古代怪鳥|ラルゲユウス
+隕石怪獣|ガラモン
+冷凍怪獣|ペギラ（2代目）
+コイン怪獣|カネゴン
+隕石怪獣|ガラモン（2代目）
+宇宙怪人|セミ人間
+|1/8人間
+地底怪獣|パゴス
+誘拐怪人|ケムール人
+海底原人|ラゴン
+宇宙人|ルパーツ星人ゼミ
+宇宙エイ|ボスタング
+巨蝶|モルフォ蝶
+変身人間|巨人
+大ダコ|スダール
+貝獣|ゴーガ
+悪魔ッ子|リリー
+深海怪獣|ピーター
+四次元怪獣|トドラ
+|異次元列車`],
+[U,'ウルトラマン','1966',`宇宙怪獣|ベムラー
+宇宙忍者|バルタン星人
+透明怪獣|ネロンガ
+海底原人|ラゴン（巨大）
+怪奇植物|グリーンモンス
+肉食植物|ミロガンダ
+海獣|ゲスラ
+磁力怪獣|アントラー
+どくろ怪獣|レッドキング
+有翼怪獣|チャンドラー
+地底怪獣|マグラー
+友好珍獣|ピグモン
+怪奇植物|スフラン
+ウラン怪獣|ガボラ
+エリ巻き恐竜|ジラース
+脳波怪獣|ギャンゴ
+ミイラ怪人|ミイラ人間
+ミイラ怪獣|ドドンゴ
+油獣|ペスター
+汐吹き怪獣|ガマクジラ
+二次元怪獣|ガヴァドン
+宇宙忍者|バルタン星人（2代目）
+四次元怪獣|ブルトン
+凶悪宇宙人|ザラブ星人
+|にせウルトラマン
+青色発泡怪獣|アボラス
+赤色火焔怪獣|バニラ
+高原竜|ヒドラ
+毒ガス怪獣|ケムラー
+凶悪地底怪人|地底人
+地底怪獣|テレスドン
+棲星怪獣|ジャミラ
+深海怪獣|グビラ
+冷凍怪獣|ギガス
+彗星怪獣|ドラコ
+どくろ怪獣|レッドキング（2代目）
+古代怪獣|ゴモラ
+怪奇植物|スフラン（2代目）
+三面怪人|ダダ
+黄金怪獣|ゴルドン
+伝説怪獣|ウー
+吸血植物|ケロニア
+灼熱怪獣|ザンボラー
+悪質宇宙人|メフィラス星人
+宇宙忍者|バルタン星人（3代目）
+凶悪宇宙人|ザラブ星人（2代目）
+誘拐怪人|ケムール人（2代目）
+|巨大フジ隊員
+メガトン怪獣|スカイドン
+亡霊怪獣|シーボーズ
+変身怪獣|ザラガス
+怪獣酋長|ジェロニモン
+友好珍獣|ピグモン（再生）
+彗星怪獣|ドラコ（再生）
+地底怪獣|テレスドン（再生）
+光熱怪獣|キーラ
+砂地獄怪獣|サイゴ
+宇宙恐竜|ゼットン
+変身怪人|ゼットン星人
+主役ウルトラマン|ウルトラマン
+初登場ウルトラマン|ゾフィー`],
+[U,'ウルトラセブン','1967',`宇宙狩人|クール星人
+生物X|ワイアール星人
+変身怪人|ピット星人
+宇宙怪獣|エレキング
+カプセル怪獣|ミクラス
+カプセル怪獣|ウインダム
+カプセル怪獣|アギラ
+反重力宇宙人|ゴドラ星人
+宇宙蝦人間|ビラ星人
+放浪宇宙人|ペガッサ星人
+火炎怪人|キュラソ星人
+幻覚宇宙人|メトロン星人
+頭脳怪人|チブル星人
+アンドロイド少女|ゼロワン
+異次元宇宙人|イカルス星人
+宇宙野人|ワイルド星人
+宇宙竜|ナース
+吸血宇宙人|スペル星人
+宇宙鳥人|アイロス星人
+策略宇宙人|ペダン星人
+宇宙ロボット|キングジョー
+岩石宇宙人|アンノン
+地底ロボット|ユートム
+宇宙グモ|グモンガ
+音波怪人|ベル星人
+怪奇植物|スフラン（セブン）
+|吸血ダニ
+宇宙帝王|バド星人
+核怪獣|ギラドラス
+暗黒星人|シャプレー星人
+軍艦ロボット|アイアンロックス
+宇宙海底人|ミミー星人
+宇宙怪人|ブラコ星人
+猛毒怪獣|ガブラ
+宇宙ゲリラ|シャドー星人
+オーロラ怪人|カナン星人
+凍結怪獣|ガンダー
+ミニ宇宙人|ポール星人
+再生怪獣|ギエロン星獣
+甲冑星人|ボーグ星人
+戦車怪獣|恐竜戦車
+侵略宇宙人|キル星人
+宇宙スパイ|プロテ星人
+プラスチック怪人|プラチク星人
+宇宙細菌|ダリー
+メカニズム怪獣|リッガー
+蘇生怪人|シャドウマン
+|ユーリー星人
+発泡怪獣|ダンカン
+月怪獣|ペテロ
+復讐怪人|ザンパ星人
+催眠宇宙人|ペガ星人
+マゼラン星人|マヤ
+ロボット怪獣|クレージーゴン
+強奪宇宙人|バンダ星人
+豪力怪獣|アロン
+分身宇宙人|ガッツ星人
+カッパ怪獣|テペト
+水棲怪人|テペト星人
+蛸怪獣|ガイロス
+地球原人|ノンマルト
+|ロボット長官
+|ロボット署長
+|第四惑星人
+宇宙猿人|ゴーロン星人
+サイケ宇宙人|ペロリンガ星人
+ロボット超人|にせウルトラセブン
+侵略星人|サロメ星人
+集団宇宙人|フック星人
+幽霊怪人|ゴース星人
+双頭怪獣|パンドン
+双頭怪獣|改造パンドン
+主役ウルトラマン|ウルトラセブン`],
+[U,'帰ってきたウルトラマン','1971',`凶暴怪獣|アーストロン
+ヘドロ怪獣|ザザーン
+オイル怪獣|タッコング
+岩石怪獣|サドラ
+地底怪獣|デットン
+古代怪獣|キングザウルス三世
+地底怪獣|グドン
+古代怪獣|ツインテール
+透明怪獣|ゴルバゴス
+爆弾怪獣|ゴーストロン
+古代怪獣|ダンガー
+化石怪獣|ステゴン
+毒ガス怪獣|モグネズン
+音波怪獣|シュガロン
+竜巻怪獣|シーモンス
+津波怪獣|シーゴラス
+吸電怪獣|エレドータス
+始祖怪鳥|テロチルス
+宇宙大怪獣|ベムスター
+忍者怪獣|サータン
+磁力怪獣|マグネドン
+電波怪獣|ビーコン
+プラスチック怪獣|ゴキネズラ
+カニ座怪獣|ザニカ
+暗黒怪獣|バキューモン
+マンション怪獣|キングストロン
+宇宙小怪獣|クプクプ
+隕石怪獣|ザゴラス
+昆虫怪獣|ノコギリン
+八つ切り怪獣|グロンケン
+台風怪獣|バリケーン
+やどかり怪獣|ヤドカリン
+水牛怪獣|オクスター
+囮怪獣|プルーマ
+宇宙怪人|ゼラン星人
+変幻怪獣|キングマイマイ
+巨大魚怪獣|ムルチ
+宇宙調査員|メイツ星人
+合成怪獣|レオゴン
+光怪獣|プリズ魔
+吸血宇宙星人|ドラキュラス
+暗殺宇宙人|ナックル星人
+用心棒怪獣|ブラックキング
+津波怪獣|再生シーゴラス
+宇宙大怪獣|再生ベムスター
+雪男星人|バルダック星人
+雪女怪獣|スノーゴン
+冷凍怪人|ブラック星人
+宇宙忍者|バルタン星人Jr.
+ロボット怪獣|ビルガモ
+蜃気楼怪獣|パラゴン
+宇宙怪人|ストラ星人
+魔神怪獣|コダイゴン
+発砲怪人|グロテス星人
+燐光怪獣|グラナダス
+宇宙牛人|ケンタウルス星人
+鼠怪獣|ロボネズ
+電磁波怪人|メシエ星雲人
+|白鳥座61番星人
+ブーメラン怪獣|レッドキラー
+宇宙参謀|ズール星人
+人魂怪獣|フェミゴン
+なまけ怪獣|ヤメタランス
+宇宙怪人|ササヒラー
+銀河星人|ミステラー星人
+原始地底人|キング・ボックル
+宇宙恐竜|ゼットン二代目
+触角宇宙人|バット星人
+主役ウルトラマン|ウルトラマンジャック`],
+[U,'ウルトラマンA','1972',`異次元人|ヤプール
+ミサイル超獣|ベロクロン
+古代超獣|カメレキング
+一角超獣|バキシム
+怪魚超獣|ガラン
+地底エージェント|ギロン人
+大蟻超獣|アリブンタ
+変身超獣|ブロッケン
+蛾超獣|ドラゴリー
+巨大魚怪獣|ムルチ（2代目）
+幻覚宇宙人|メトロン星人Jr.
+二次元超獣|ガマス
+犀超獣|ザイゴン
+変身怪人|アンチラ星人
+くの一超獣|ユニタング
+さぼてん超獣|サボテンダー
+殺し屋超獣|バラバ
+異次元超人|エースキラー
+超人ロボット|エースロボット
+大蟹超獣|キングクラブ
+牛神超獣|カウラ
+大螢超獣|ホタルンガ
+大鳩超獣|ブラックピジョン
+河童超獣|キングカッパー
+異次元エージェント|アンドロイド夫妻
+大蝉超獣|ゼミストラー
+天女超獣|アプラサール
+銀星人|宇宙仮面
+暗黒超獣|ブラックサタン
+異次元超人|巨大ヤプール
+異次元人|マザロン人
+地獄超獣|マザリュース
+古代星人|オリオン星人
+古代超獣|スフィンクス
+地獄星人|ヒッポリト星人
+満月超獣|ルナチクス
+地底超人|アングラモン
+地底超獣|ギタギタンガ
+黒雲超獣|レッドジャック
+バク超獣|バクタリ
+超獣人間|コオクス
+気球船超獣|バッドバアロン
+虹超獣|カイテイガガン
+夢幻超獣|ドリームギラス
+騒音超獣|サウンドギラー
+鈍足超獣|マッハレス
+伝説怪人|ナマハゲ
+雪超獣|スノーギラン
+火炎人|ファイヤー星人
+火炎超獣|ファイヤーモンス
+宇宙超人|スチール星人
+邪神超獣|カイマンダ
+獅子超獣|シシゴラン
+氷超獣|アイスロン
+伝説怪獣|ウー（A）
+吹雪超獣|フブギララ
+鬼超獣|オニデビル
+ガス超獣|ガスゲゴン
+タイム超獣|ダイダラホーシ
+液汁超獣|ハンザギラン
+ミサイル超獣|ベロクロン二世
+異次元人|女ヤプール
+宇宙電気クラゲ|ユニバーラゲス
+水瓶超獣|アクエリウス
+|水瓶座第3星人
+信号怪人|レボール星人
+信号超獣|シグナリオン
+バイオリン超獣|ギーゴン
+遊牧星人|サイモン星人
+最強超獣|ジャンボキング
+主役ウルトラマン|ウルトラマンA
+初登場ウルトラマン|ウルトラの父`],
+[U,'ウルトラマンタロウ','1973',`オイル超獣|オイルドリンカー
+吸血植物|チグリスフラワー
+宇宙大怪獣|アストロモンス
+液体大怪獣|コスモリキッド
+再生怪獣|ライブキング
+大亀怪獣|キングトータス
+大亀怪獣|クイントータス
+大亀怪獣|ミニトータス
+なめくじ怪獣|ジレンマ
+大ガニ怪獣|ガンザ
+大ダコ怪獣|タガール
+大蛙怪獣|トンダイル
+大羽蟻怪獣|アリンドウ
+海象怪獣|デッパラス
+海象怪獣|再生デッパラス
+蔦怪獣|バサラ
+噴煙怪獣|ボルケラー
+虫歯怪獣|シェルター
+えんま怪獣|エンマーゴ
+狐火怪獣|ミエゴン
+笛吹き怪獣|オカリヤン
+火山怪鳥|バードン
+食葉怪獣|ケムジラ
+鳥怪獣|フライングライドロン
+蝉怪獣|キングゼミラ
+カンガルー怪獣|パンドラ
+カンガルー怪獣|チンペ
+しんきろう怪獣|ロードラ
+宇宙大怪獣|ムルロア
+宇宙蛾|スペースモス
+宇宙犬|ラビドッグ
+暗黒宇宙大皇帝|エンペラ星人
+百足怪獣|ムカデンダー
+悪質宇宙人|メフィラス星人（2代目）
+怪草|マンダリン草
+月光怪獣|再生エレキング
+異次元超人|改造巨大ヤプール
+宇宙大怪獣|改造ベムスター
+さぼてん超獣|改造サボテンダー
+ミサイル超獣|改造ベロクロン二世
+きのこ怪獣|マシュラ
+|お化けキノコ
+|キノコ人間
+木枯し怪獣|グロン
+極悪宇宙人|テンペラー星人
+目つぶし星人|カタン星人
+ねこ舌星人|グロスト
+逃亡怪獣|ヘルツ
+醜悪星人|メドウーサ星人
+エフェクト宇宙人|ミラクル星人
+緑色宇宙人|テロリスト星人
+うす怪獣|モチロン
+暴君怪獣|タイラント
+らくがき怪獣|ゴンゴロス
+おうむ怪獣|エレジア
+|アンドロイド聖子
+食いしん坊怪獣|モットクレロン
+鬼面宇宙人|きさらぎ星人オニバンバ
+凶悪宇宙人|ドルズ星人
+うろこ怪獣|メモール
+わんぱく宇宙人|ピッコロ
+冬眠怪獣|ゲラン
+宇宙怪獣|ゴルゴザウルス二世
+酔っぱらい怪獣|ベロン
+宇宙少年|ファイル星人
+歌好き怪獣|オルフィ
+宇宙怪人|カーン星人
+球好き怪獣|ガラキング
+不死身怪獣|リンドン
+泥棒怪獣|ドロボン
+宇宙海人|バルキー星人
+海獣|サメクジラ
+主役ウルトラマン|ウルトラマンタロウ
+初登場ウルトラマン|ウルトラの母`],
+[U,'ウルトラマンレオ','1974',`サーベル暴君|マグマ星人
+双子怪獣|ブラックギラス
+双子怪獣|レッドギラス
+奇怪宇宙人|ツルク星人
+凶剣怪獣|カネドラス
+暗闇宇宙人|カーリー星人
+植物怪獣|ケンドロス
+地獄花|剣輪草
+暴れん坊怪獣|ベキラ
+宇宙星獣|ギロ星獣
+さすらい怪獣|ロン
+怪異宇宙人|ケットル星人
+風船怪獣|バンゴ
+透明宇宙人|バイブ星人
+さそり怪獣|アンタレス
+分身宇宙人|フリップ星人
+黒い花の星人|アトラー星人
+狼男|ウルフ星人
+こうもり怪獣|バットン
+|吸血こうもり少女
+半魚人|ボーズ星人
+牡牛座怪獣|ドギュー
+小熊座人|ボック
+殺し屋宇宙人|ノースサタン
+アルファ星人|ニケの女神
+兄怪獣|ガロン
+弟怪獣|リットル
+快人|コロ星人
+虹怪獣|レンボラー
+ロボット怪獣|ガメロット
+サーリン星人|ドドル
+|アンドロイド少女カロリン
+宇宙昆虫|サタンビートル
+幻想宇宙人|クリーン星人
+怪獣人|プレッシャー
+鬼怪獣|オニオン
+|惑星アップルのニワトリ
+星獣|キングパラダイ
+海棲人|パラダイ星人
+超能力星人|ウリンガ
+|ウリー
+宇宙鶴|ローラン
+昆虫星人|バーミン星人
+|白い花の精
+月光怪獣|キララ
+月星人|弥生（かぐや姫）
+怪奇隕石|アクマニヤ
+宇宙悪霊|アクマニヤ星人
+二面凶悪怪獣|アシュラン
+怪獣ボール|セブンガー
+わんぱく怪獣|タイショー
+変身怪人|アトランタ星人
+鬼女|マザラス星人
+異次元獣|スペクター
+|にせアストラ
+暗黒星人|ババルウ星人
+|ブラック指令
+円盤生物|シルバーブルーメ
+円盤生物|ブラックドーム
+円盤生物|アブソーバ
+円盤生物|デモス
+円盤生物|ブラックガロン
+円盤生物|ブリザード
+円盤生物|ハングラー
+円盤生物|ブラックテリナ
+|テリナQ
+円盤生物|サタンモア
+怪鳥円盤|リトルモア
+円盤生物|ノーバ
+円盤生物|ブニョ
+円盤生物|ブラックエンド
+主役ウルトラマン|ウルトラマンレオ
+初登場ウルトラマン|アストラ
+初登場ウルトラマン|ウルトラマンキング`],
+[U,'ザ☆ウルトラマン','1979',`冷凍怪獣|シーグラ
+竜巻き怪獣|スパイラル
+分裂怪獣|ワニゴドン
+分裂怪獣|ペロ
+雲怪獣|レッドスモーギ
+地底怪獣|タフギラン
+地底怪獣|タフギラス
+地底子怪獣|タフギラオ
+地底子怪獣|タフギラコ
+溶岩怪獣|ファイヤバドン
+電子怪獣|コンビューゴン
+宇宙忍者|バルタン星人（ザ☆）
+モンスター怪獣|ミコノス
+頭脳怪獣|ドルフィーゴ
+テレポート怪獣|ザローム
+機械怪獣|ヘクトール
+同居怪獣|オプト
+音波怪獣|ガラドス
+宇宙怪獣|ザイクロン
+火焔怪獣|ゲロン
+火山怪獣|ガドン
+|悪魔の星
+いん石獣|ゴグラン
+幼鳥|モア
+古代怪鳥|キングモア
+こん虫獣|バダン
+岩礁怪獣|アイランダ
+は虫怪獣|ゲラド
+は虫怪獣|ジャニュール
+は虫怪獣|ベドラン
+凶悪星人|バデル族
+暗黒怪獣|バゴン
+は虫怪獣|ジャニュール三世
+異次元怪獣|ザーモス
+高速怪獣|ザンバ
+宇宙竜|ドラゴドス
+|アルファケンタウリ第5惑星人
+超進化宇宙人|アルファケンタウリ第1惑星人
+毒花怪獣|デスバラン
+凶暴怪獣|ギバルーガ
+宇宙悪魔|バラドン星人
+どくろ怪獣|レッドキング（ザ☆）
+凶暴怪獣|アーストロン（ザ☆）
+爆弾怪獣|ゴーストロン（ザ☆）
+プラスチック怪獣|ゴキネズラ（ザ☆）
+赤色火焔怪獣|バニラ（ザ☆）
+青色発泡怪獣|アボラス（ザ☆）
+合体怪獣|ダバラン
+象怪獣|ファンダス
+翼竜怪獣|クワァイラス
+侵略星人|ジャダン
+双頭怪獣|ジャゴン
+骨怪獣|スケルドン
+宇宙星獣|ガルバドス
+ロボット怪獣|メガザウラ
+暗黒星人|バビラー
+集結怪獣|ガミバ
+宇宙海賊|インベド人
+宇宙怪獣|デスパワー
+宇宙怪獣|ゴードリアン
+宇宙怪獣|プラズーン
+宇宙怪獣|ジナリオ
+宇宙怪獣|アグジョン
+宇宙怪獣|ズーマ
+宇宙怪獣|グロテング
+宇宙怪獣|グロル
+宇宙怪獣|プトゴリア
+宇宙怪獣|イドヅノス
+氷結怪獣|ダランチュラス
+|ヘラー
+|ロイガー
+カプセル怪獣|グモンス
+巨大怪猫|ヘルキャット
+ペット怪獣|オロラーン
+|改造オロラーン
+回転怪獣|ギロス
+宇宙兵士|ギロ星人
+|にせウルトラマンジョーニアス
+宇宙ハンター|ハタリ
+電送怪獣|ネオドストニー
+|ドストニー1号
+|ドストニー2号
+|モンキ・ドストニー
+円盤怪獣|スペーダー
+隕石円盤|サイエンダー
+宇宙魔軍|サイエン星人
+カプセル怪獣|カペラドン
+積雲怪獣|ゴルディング
+メカ怪獣|ゲドン
+合成獣|ヘラ・ウマーヤ
+処刑怪獣|マクダター
+主役ウルトラマン|ウルトラマンジョーニアス
+初登場ウルトラマン|エレク
+初登場ウルトラマン|ロト
+初登場ウルトラマン|アミア`],
+[U,'ウルトラマン80','1980',`月の輪怪獣|クレッセント
+羽根怪獣|ギコギラー
+硫酸怪獣|ホー
+親怪獣|マザーザンドリアス
+だだっ子怪獣|ザンドリアス
+四次元ロボ獣|メカギラス
+四次元宇宙人|バム星人
+UFO怪獣|アブドラールス
+騒音怪獣|ノイズラー
+復活怪獣|タブラ
+オイル怪獣|ガビシェール
+惑星調査員|アルマ
+宇宙生物|ジャッキー
+変形怪獣|ズルズラー
+毒ガス怪獣|メダン
+マグマ怪獣|ゴラ
+ビブロス星人|ミリー
+再生怪獣|サラマンドラ
+ドクロ怪人|ゴルゴン星人
+テレポート怪獣|ザルドン
+実験怪獣|ミュー
+テレパシィ怪獣|デビロン
+友好宇宙人|ルリヤ星人
+人間怪獣|ラブラス
+タコ怪獣|ダロン
+吸血怪獣|ギマイラ
+惑星怪獣|ガウス
+コブ怪獣|オコリンボール
+残酷怪獣|ガモス
+L85星人|ザッカル
+古代怪獣|ゴモラⅡ
+|地底人（80）
+女王|イーナス
+アメーバ怪獣|アメーザ
+友好宇宙人|ファンタス星人
+戦闘円盤|ロボフォー
+変身怪獣|アルゴン
+巨大化怪獣|ゲラ
+異次元人|アクゾーン
+泡星人|アルゴ星人
+渡り鳥怪獣|バル
+スペース・ジョーズ|ザキラ
+渓谷怪獣|キャッシー
+侵略怪獣|ザタンシルバー
+変身宇宙人|ザタン星人
+植物もどき怪獣|ゾラ
+すくらっぷ幽霊船|バラックシップ
+工作怪獣|ガゼラ
+巨大怪魚|アンゴーラス
+三つ首怪獣|ファイヤードラコ
+昆虫怪獣|グワガンダ
+宇宙忍者|バルタン星人五代目
+心霊怪獣|ゴースドン
+少年怪獣|テツオン
+寄生生命体|宇宙植物
+すもう怪獣|ジヒビキラン
+ゼロ戦怪鳥|バレバドン
+ムチ腕怪獣|ズラスイマー
+侵略星人|ガルタン大王
+遊牧星人|ガラガラ星人
+|妄想ウルトラセブン
+宇宙忍者|バルタン星人六代目
+どくろ怪獣|レッドキング三代目
+壺の精|マアジン
+紫外線怪獣|グロブスク
+マラソン怪獣|イダテンラン
+合体怪獣|プラズマ
+合体怪獣|マイナズマ
+冷凍怪獣|マーゴドン
+主役ウルトラマン|ウルトラマン80
+初登場ウルトラマン|ユリアン`],
+[U,'ウルトラマンG（グレート）','1990',`邪悪生命体|ゴーデス
+双脳地獣|ブローズ
+古代怪獣|ギガザウルス
+火炎飛龍|ゲルカドン
+風魔神|デガンジャ
+毒ガス幻影怪獣|バランガス
+邪悪生命体|ゴーデス（第2形態）
+守護獣|ガゼボ
+昆虫怪獣|マジャバ
+電脳植物|バイオス
+|ベゴイド
+変身生命体|リュグロー
+変身生命体|ベロニカ
+円盤生物|UF-0
+伝説深海怪獣|コダラー
+伝説宇宙怪獣|シラリー
+主役ウルトラマン|ウルトラマングレート`],
+[U,'ウルトラマンパワード','1993',`宇宙忍者|パワードバルタン星人
+毒ガス怪獣|パワードケムラー
+どくろ怪獣|パワードレッドキング（雄・雌）
+有翼怪獣|パワードチャンドラー
+友好珍獣|パワードピグモン
+地底怪獣|パワードテレスドン
+ウラン怪獣|パワードガボラ
+棲星怪獣|パワードジャミラ
+灼熱怪獣|パワードザンボラー
+三面怪人|パワードダダ
+青色発泡怪獣|パワードアボラス
+赤色火炎怪獣|パワードバニラ
+油獣|パワードペスター
+古代怪獣|パワードゴモラ
+彗星怪獣|パワードドラコ
+どくろ怪獣|パワードレッドキング（2代目）
+宇宙恐竜|パワードゼットン
+宇宙忍者|サイコバルタン星人
+主役ウルトラマン|ウルトラマンパワード`],
+[U,'平成ウルトラセブン','1994–2002',`変身怪人|ピット星人（2代目）
+宇宙怪獣|エレキング（3代目）
+幻覚宇宙人|メトロン星人（3代目）
+|恐竜（地球星人の大地）
+洗脳宇宙人|ヴァリエル星人
+分身宇宙人|ガッツ星人（2代目）
+硫黄怪獣|サルファス
+太陽獣|バンデラス
+寄生生命体|ヴァルキューレ星人
+帰化宇宙人|キュルウ星人
+宇宙昆虫|ガロ星人
+鉄鋼ロボット|ダイテッカイ
+犯罪宇宙人|レモジョ星系人
+植物獣|ボラジョ
+時空怪獣|ダイリュウカイ
+カプセル怪獣|ウインダム（平成セブン）
+カプセル怪獣|ミクラス（平成セブン）
+宇宙ロボット|キングジョーII
+地球原人|ノンマルト（平成セブン）
+守護神獣|ザバンギ
+円盤竜|円盤竜
+放浪宇宙人|ペガッサ星人（平成セブン）
+反重力宇宙人|ゴドラ星人（平成セブン）
+双頭合成獣|ネオパンドン
+植物生命体|ミツコ
+メタル宇宙人|ガルト星人
+妖邪剛獣|ガイモス
+主役ウルトラマン|ウルトラセブン（平成セブン）`],
+[U,'ウルトラマンゼアス','1996',`慢性ガス過多症宇宙人|ベンゼン星人
+吸金爆獣|コッテンポッペ
+妖艶宇宙女王|レディベンゼン星人
+宇宙戦闘ロボット|ウルトラマンシャドー
+Sカプセル影獣|ダークラー
+Zカプセル光獣|ミラクロン
+宇宙カード珍獣|デジタルカネゴン
+主役ウルトラマン|ウルトラマンゼアス`],
+[U,'ウルトラマンティガ','1996',`超古代怪獣|ゴルザ
+超古代竜|メルバ
+岩石怪獣|ガクマα
+岩石怪獣|ガクマβ
+炎魔人|キリエル人
+炎魔戦士|キリエロイド
+複合怪獣|リガトロン
+ゾンビ怪獣|シーリザー
+変形怪獣|ガゾート
+空中棲息生物|クリッター
+悪質宇宙人|レギュラン星人
+異次元人|ギランボ
+守護怪獣|マキーナ
+バリヤー怪獣|ガギ
+異形進化怪獣|エボリュウ
+深海怪獣|レイロンス
+誘拐宇宙人|レイビーク星人
+極悪ハンター宇宙人|ムザン星人
+|ルシア
+|ザラ
+二面鬼|宿那鬼
+変形怪獣|ガゾートⅡ
+赤色昼型宇宙人|レドル
+青色夜型宇宙人|アボルバス
+機械人形|ゴブニュ（ヴァハ）
+機械人形|ゴブニュ（ギガ）
+機械人形|ゴブニュ（オグマ）
+魔神|エノメナ
+マスコット小怪獣|デバン
+寄生怪獣|マグニア
+恐竜兵器|ウェポナイザー
+恐竜人類|ナーガ
+恐竜人類|アダム
+恐竜人類|イブ
+強酸怪獣|リトマルス
+炎魔戦士|キリエロイドⅡ
+剛力怪獣|シルバゴン
+バリヤー怪獣|ガギⅡ
+妖怪|オビコ
+甲獣|ジョバリエ
+侵略宇宙人|ナターン星人
+変異怪獣|キングモーラット
+人工生命体|ビザーモ
+怪鳥|シーラ
+吸血魔獣|キュラノス
+生体兵器|デシモニア
+生体兵器|小型デシモニア
+宇宙鋼鉄竜|グワーム
+超宇宙人|デシモ星系人
+超力怪獣|ゴルドラス
+謀略宇宙人|マノン星人
+奇獣|デスモン
+蜃気楼怪獣|ファルドン
+超古代怪獣|ガルラ
+夢幻怪獣|バクゴン
+パラサイト宇宙人|イルド
+メカ生命体|ファイバス
+仮想生命体|バーチャル・レイビーク星人
+仮想生命体|バーチャル・ムザン星人
+地中鮫|ゲオザーク
+|イーヴィルティガ
+超古代狛犬怪獣|ガーディー
+超古代植物|ギジェラ
+虹色怪獣|タラバン
+異形進化怪獣|メタモルガ
+エイリアン|メンジュラ
+宇宙魔人|チャリジャ
+宇宙恐竜|ヤナカーギー
+超古代尖兵怪獣|ゾイガー
+邪神|ガタノゾーア
+主役ウルトラマン|ウルトラマンティガ`],
+[U,'ウルトラマンダイナ','1997',`宇宙球体|スフィア
+合成獣|ダランビア
+超合成獣|ネオダランビア
+溶岩合成獣|グラレーン
+再生怪獣|グロッシーナ
+宇宙寄生獣|サイクロメトラ
+肉食地底怪獣|ダイゲルン
+変異昆虫|シルドロン
+菌糸怪獣|サタンフォーガス
+凶悪怪獣|ギャビッシュ
+特別捜査官|ダイス星人
+催眠怪獣|バオーン
+吸電怪獣|ギアクーダ
+高速怪獣|デキサドル
+念力種族|ゼネキンダール人
+破壊獣|モンスアーガー
+迷子珍獣|ハネジロー
+怪盗宇宙人|ヒマラ
+三面ロボ頭獣|ガラオン
+知略宇宙人|ミジー星人
+宇宙帝王|ヌアザ星人イシリス
+尖兵怪獣|ギャンザー
+諜報宇宙人|クレア星雲人シオン
+ハイパークローン怪獣|ネオザルス
+剛力怪獣|クローンシルバゴン
+変異昆虫|クローンシルドロン
+幽霊船怪獣|ゾンバイユ
+ゾンビ怪人|シルバック星人
+大魔獣|ビシュメル
+凶獣|姑獲鳥
+瑠璃色宇宙人|ラセスタ星人
+超高熱怪獣|ソドム
+妖獣|モズイ
+深海竜|ディプラス
+吸血生命体|マリキュラ
+吸血生命体|小型マリキュラ
+宇宙海獣|レイキュバス
+半魚人兵士|ディゴン
+水棲生命体|スヒューム
+スーパー必殺怪獣|デマゴーグ
+双体宇宙人|チェーン星人
+巨大猿人|ギガンテス
+彗星怪獣|ガイガレード
+特殊戦闘用メカニックモンスター|コガラオン
+改造怪獣|グロッシーナⅡ
+|ニセウルトラマンダイナ
+宇宙格闘士|グレゴール人
+破壊獣|モンスアーガーⅡ
+モンスターマシン|サタンラブモス
+アイドルロボット|ラブモス
+生物兵器|メノーファ
+超悪質宇宙人|ナルチス星人
+宇宙スパーク大怪獣|バゾブ
+宇宙合成獣|ジオモス
+超宇宙合成獣|ネオジオモス
+ゴミ塊物|ユメノカタマリ
+バロック怪獣|ブンダー
+肉食地底怪獣|クローンダイゲルン
+異形進化兵|ゾンボーグ兵
+超異形進化怪獣|ゾンボーグ
+宇宙魔樹|ゴッドジャギラ
+魔樹宇宙人|ジャギラ星人
+宇宙大昆虫|ダイオリウス
+悪質宇宙人|レギュラン星人ヅウォーカァ将軍
+MG-0005-RX|マウンテンガリバー5号
+超古代怪獣|ゴルザⅡ
+灼熱合成獣|グライキス
+宇宙超獣|トロンガー
+|ギガール星人チュラサ
+恐怖エネルギー魔体|モルヴァイア
+魔石超人|デビルファビラス
+放浪宇宙人|ファビラス星人
+地底怪獣|モゲドン
+変心宇宙人|チャダビン星人
+超合成獣|ネオダランビアⅡ
+人造ウルトラマン|テラノイド
+超合成獣人|ゼルガノイド
+超合成獣|ネオガイガレード
+暗黒惑星|グランスフィア
+主役ウルトラマン|ウルトラマンダイナ`],
+[U,'ウルトラマンガイア','1998',`宇宙戦闘獣|コッヴ
+マグマ怪地底獣|ギール
+金属生命体|アパテー
+超空間波動怪獣|メザード
+波動生命体|プライマルメザード
+大海魔|ボクラグ
+奇獣|ガンQ
+超空間共生怪獣|アネモス
+超空間共生怪獣|クラブガン
+惑星破壊機|ヴァーサイト
+宇宙戦闘獣|コッヴⅡ
+地帝大怪獣|ミズノエノリュウ
+獣人|ウルフガス
+超空間波動怪獣|サイコメザード
+反物質怪獣|アンチマター
+奇怪生命|マザーディーンツ
+奇怪生命|ディーンツ
+金属生命体|アルギュロス
+甲殻怪地底獣|ゾンネル
+超巨大天体生物|ディグローブ
+超空間波動怪獣|サイコメザードⅡ
+絶対生物|ゲシェンク
+無酸素海獣|カンデア
+宇宙雷獣|パズズ
+剛腕怪地底獣|ゴメノス
+甲殻怪地底獣|ゾンネルⅡ
+マグマ怪地底獣|ギールⅡ
+巨獣|ゾーリム
+電子生命体|クリシスゴースト
+金属生命体|ミーモス
+守護獣|ルクー
+宇宙怪獣|ゴキグモン
+奇獣|ガンQ（コードNo.02）
+時空怪獣|エアロヴァイパー
+伝説魔獣|シャザック
+サイボーグ獣人|ウルフファイヤー
+古代怪獣|アルゴナ
+宇宙忍獣|Xサバーガ
+成体兵器|小Xサバーガ
+超空間波動怪獣|クインメザード
+地殻怪地底獣|ティグリス
+泥怪人|ツチケラ
+大宙魔|パスギーク
+宇宙捕獲メカ獣|Σズイグル
+精神寄生獣|ビゾーム
+巨大異形獣|サタンビゾー
+アルテスタイガー怪獣|イザク
+宇宙戦闘獣|超コッヴ
+宇宙雷獣|超パズズ
+破滅魔人|ブリッツブロッツ
+地殻怪地底獣|ティグリスⅡ
+超巨大単極子生物|モキアン
+破滅魔人|ゼブブ
+破滅魔虫|ドビシ
+破滅魔虫|カイザードビシ
+根源破滅天使|ゾグ
+地殻怪地底獣|ティグリスⅢ
+剛腕怪地底獣|ゴメノスⅡ
+マグマ怪地底獣|ギールⅢ
+根源破滅天使|ゾグ（第2形態）
+主役ウルトラマン|ウルトラマンガイア
+初登場ウルトラマン|ウルトラマンアグル`],
+[U,'ウルトラマンネオス','2000',`脳魂宇宙人|ザム星人
+宇宙鉱石怪獣|ドレンゲラン
+鉱脈怪獣|アーナガルゲ
+群体怪獣|シーゴリアン
+北極怪獣|ノゼラ
+南極怪獣|サゾラ
+昆虫怪獣|シルドバン
+寄生怪獣|バッカクーン
+復讐ロボット|ザムリベンジャー
+凶暴竜|ロックイーター
+変貌怪獣|キングバモス
+幻聖魔獣|ラフレシオン
+合体恐竜|キングダイナス
+隕石怪獣|ギガドレッド
+暗殺怪獣|グラール
+究極進化帝王|メンシュハイト
+脳魂宇宙人|ザム星人エスラー
+主役ウルトラマン|ウルトラマンネオス
+初登場ウルトラマン|ウルトラセブン21`],
+[U,'ウルトラマンコスモス','2001',`友好巨鳥|リドリアス
+|カオスヘッダー
+|カオスリドリアス
+|カオスゴルメデ
+|ゴルメデ
+襟巻き怪獣|スピットル
+友達ロボット|イゴマス
+|カオスバグ
+隕石大怪獣|ガモラン
+夢幻魔獣|インキュラス
+童心妖怪|ヤマワラワ
+青銅魔神|ゲシュート
+骨格恐竜|ムードン
+薄明幼獣|イフェメラ
+邪悪宇宙生命体|ワロガ
+古代怪獣|ガルバス
+深海貝獣|ジェルガ
+|フライホエールジラーク
+三面異次元人|ギギ
+怨霊鬼|戀鬼
+情念化身獣|アングリラ
+TK銀河人|ミゲロン星人
+電撃怪獣|ボルギルス
+遊星守護獣|パラスタン
+変幻生命体|ゲルワーム
+|ニセウルトラマンコスモス
+電磁魔獣|グラガス
+惑星破壊ロボット|グインジェ
+超銀河宇宙人|スレイユ星人ラミア
+|カオスヘッダー・イブリース
+宇宙怪獣|ザランガ
+宇宙怪獣|ベビーザランガ
+|カオスエリガル
+|エリガル
+|カオスヘッダー・メビュート
+スーパーハイテクロボット|クレバーゴン
+|カオスクレバーゴン
+岩石怪獣|ネルドラント
+|カオスネルドラント
+|ゴルメデβ
+古代海神|レイキュラ
+催眠魔獣|ラグストーン
+伝説悪鬼|マハゲノム
+地底怪獣|テールダス
+|カオステールダス
+侵略変形メカ|ヘルズキング
+侵略宇宙人|ベリル星人
+|カオスウルトラマン
+|カオスネルドラントⅡ
+岩石怪獣|ネルドラントⅡ
+破滅可変マシン|サイドバクター
+強襲アンドロイド|エクステル・レイダー
+グリーンベルト星人|プラテア
+|カオスデルゴラン
+彗星怪獣|デルゴラン
+怪獣狩人|ノワール星人
+|テールダス・メカレーター
+|ネルドラント・メカレーター
+異次元人|プログレスギギ
+異次元人|ギギドクター
+|クレバーゴン・ジャイアント
+伝説妖精|ムゲラ
+浄化宇宙人|キュリア星人
+共生宇宙生命体|ギリバネス
+邪悪宇宙生命体|ワロガ（2代目）
+甲殻怪獣|アルケラ
+神秘群獣|スノースター
+密輸怪獣|バデータ
+天敵怪獣|マザルガス
+|カオスマザルガス
+パートナー怪獣|ザゲル
+平和文明人|コイシス星人ジュネ
+|ラグストーン・メカレーター
+未来怪獣|アラドス
+怪獣狩人|ノワール星人（2代目）
+分身怪獣|タブリス
+隕石大怪獣|ガモランⅡ
+隕石小怪獣|ミーニン
+超高度文明人|ミトル
+河童|かわのじ
+伝説聖獣|グラルファン
+共生宇宙生命体|ギラッガス
+|カオスウルトラマンカラミティ
+対カオスヘッダー殲滅兵器|ヘルズキング改
+|カオスドルバ
+古代怪獣|ドルバ
+|カオスエリガルⅡ
+|エリガルⅡ
+|カオスダークネス
+地中怪獣|モグルドン
+|カオスヘッダー0
+主役ウルトラマン|ウルトラマンコスモス
+初登場ウルトラマン|ウルトラマンジャスティス`],
+[U,'ULTRAMAN（映画）','2004',`分類不詳|ザ・ワン
+主役ウルトラマン|ウルトラマン・ザ・ネクスト`],
+[U,'ウルトラQ dark fantasy','2004',`東京地空間清掃ロボット|TGS-55
+隕石怪獣|ガラゴン
+|ガラQ
+落書き宇宙人|ジラフ星人
+リビングブレイン|生き続ける脳
+|綺亞羅
+スシ大好き遊星人|ウニトローダ
+宇宙怪獣|サビコング
+コスモネット星人|ヤマダ
+呪神彫像|三つ目のトーテムポール
+|ウツギ星人
+鏡の番人|ヴァーノ
+遊星人|セミ女
+月の魔人|ヘカテ
+コイン怪獣|カネゴンヌ
+球体関節人形|ヒナ
+電波怪人|レキューム人`],
+[U,'ウルトラマンネクサス','2004',`ブロブタイプビースト|ペドレオン
+ブロブタイプビースト|クライン
+ブロブタイプビースト|フリーゲン
+ブロブタイプビースト|グロース
+インセクトタイプビースト|ビーセクタ
+インセクトタイプビースト|バグバズン
+インセクトタイプビースト|バグバズングローラー
+インセクトタイプビースト|バグバズンブルード
+フィンディッシュタイプビースト|ガルベロス
+フィンディッシュタイプビースト|ダークガルベロス
+フィンディッシュタイプビースト|ノスフェル
+フィンディッシュタイプビースト|ビーストヒューマン
+フィンディッシュタイプビースト|クトゥーラ
+フィンディッシュタイプビースト|イズマエル
+ブルームタイプビースト|ラフレイア
+インセクティボラタイプビースト|アラクネア
+アンフィビアタイプビースト|フログロス
+アンフィビアタイプビースト|フログロス（B）
+インビジブルタイプビースト|ゴルゴレム
+クラスティシアンタイプビースト|グランテラ
+アースロポッドタイプビースト|バンピーラ
+レプタイルタイプビースト|リザリアス
+レプタイルタイプビースト|リザリアスグローラー
+ノーチラスタイプビースト|メガフラシ
+|ダークファウスト
+|ダークメフィスト
+|ダークメフィスト（ツヴァイ）
+|ダークザギ
+主役ウルトラマン|ウルトラマンネクサス
+初登場ウルトラマン|ウルトラマンノア`],
+[U,'ウルトラマンマックス','2005',`溶岩怪獣|グランゴン
+冷凍怪獣|ラゴラス
+古代怪鳥|レギーラ
+高速宇宙人|スラン星人
+飛膜怪獣|パラグラー
+両棲怪獣|サラマドン
+宇宙工作員|ケサム
+放電竜|エレキング（マックス）
+変身怪人|ピット星人（マックス）
+甲虫型宇宙怪獣|バグダラス
+伝説怪龍|ナツノメリュウ
+空間転移怪獣|メタシサス
+装甲怪獣|レッドキング（マックス）
+電脳珍獣|ピグモン（マックス）
+超音速怪獣|ヘイレン
+完全生命体|イフ
+宇宙化猫|タマ・ミケ・クロ
+宇宙古代怪獣|エラーガ
+幻影宇宙人|シャマー星人
+戦神|ギルファス
+氷の美女|ニーナ
+空間移動宇宙人|ターラ星人
+亜空間怪獣|クラウドス
+夢幻神獣|魔デウス
+飛魚怪獣|フライグラー
+磁力怪獣|アントラー（マックス）
+巨大異星人|ゴドレイ星人
+神話の幻獣|ユニジン
+放電竜|エレキング（マックス・2代目）
+凶獣|ルガノーガー
+友好宇宙人|リリカ
+宇宙恐竜|ゼットン（マックス）
+変身怪人|ゼットン星人（マックス）
+牛鬼怪獣|ゲロンガ
+進化怪獣|ラゴラスエヴォ
+溶岩怪獣|グランゴン（2代目）
+侵略ロボット|キングジョー（マックス）
+挑発星人|モエタランガ
+宇宙工作員|ケルス
+宇宙工作員|ケダム
+古代怪獣|ゴモラ（マックス）
+対話宇宙人|メトロン星人（マックス）
+友好異星人|ネリル星人キーフ
+子供の超科学星人|タイニーバルタン
+超科学星人|ダークバルタン
+星雲小獣|アダムとイブ
+装甲怪獣|レッドキング（マックス・2代目）
+星雲守護獣|ホップホップ
+星獣|ケプルス
+機械人形|オートマトン
+星空の創造主|サトン星人
+機械獣|スカウトバーサーク
+機械獣|サテライトバーサーク
+機械獣|ギガバーサーク
+地底人類|デロス人
+主役ウルトラマン|ウルトラマンマックス
+初登場ウルトラマン|ウルトラマンゼノン`],
+[U,'ウルトラマンメビウス','2006',`宇宙斬鉄怪獣|ディノゾール
+地底怪獣|グドン（メビウス）
+火山怪鳥|バードン（メビウス）
+宇宙凶険怪獣|ケルビム
+マケット怪獣|ミクラス（メビウス）
+岩石怪獣|サドラ（メビウス）
+古代怪獣|ツインテール（メビウス）
+高次元捕食体|ボガール
+健啖宇宙人|ファントン星人
+肥大糧食|シーピン929
+マケット怪獣|リムエレキング
+マケット怪獣|エレキミクラス
+高次元捕食体|ボガールモンス
+宇宙斬鉄怪獣|ディノゾールリバース
+マケット怪獣|ウインダム（メビウス）
+魔神怪獣|コダイゴンジアザー
+百足怪獣|ムカデンダー（メビウス）
+昆虫型甲殻怪獣|インセクタス
+宇宙磔岩怪獣|グロマイト
+宇宙剣豪|ザムシャー
+サーベル暴君|マグマ星人（ブラザーブルー）
+サーベル暴君|マグマ星人（ブラザーレッド）
+宇宙海人|バルキー星人（メビウス）
+再生怪獣|サラマンドラ（メビウス）
+宇宙大怪獣|ベムスター（メビウス）
+宇宙量子怪獣|ディガルーグ
+凶暴怪獣|アーストロン（メビウス）
+高次元捕食獣|レッサーボガール
+時間怪獣|クロノーム
+優美宇宙人|アンヘル星人トーリ
+一角超獣|バキシム（メビウス）
+異次元超人|巨大ヤプール
+マケット怪獣|ファイヤーウインダム
+蛾超獣|ドラゴリー（メビウス）
+ミサイル超獣|ベロクロン（メビウス）
+プロトマケット怪獣|ゼットン（プロトマケット）
+プロトマケット怪獣|グドン（プロトマケット）
+円盤生物|ノーバ（メビウス）
+無双鉄神|インペライザー
+円盤生物|ロベルガー
+巨大魚怪獣|ゾアムルチ
+宇宙調査員|メイツ星人ビオ
+人魂怪獣|フェミゴンフレイム
+光波宇宙人|リフレクト星人
+暗黒星人|ババルウ星人（メビウス）
+ニセハンターナイト|ツルギ
+土塊怪獣|アングロス
+念動宇宙人|サイコキノ星人
+念動宇宙人|サイコキノ星人カコ
+宇宙三面魔像|ジャシュライン
+宇宙有翼怪獣|アリゲラ
+憑依宇宙人|サーペント星人
+宇宙植物怪獣|ソリチュラ
+宇宙植物怪人|ソリチュラン
+円盤生物|ロベルガー二世
+硫酸怪獣|ホー（メビウス）
+宇宙同化獣|ガディバ
+古代怪獣|ゴモラ（メビウス）
+どくろ怪獣|レッドキング（メビウス）
+策謀宇宙人|デスレム
+冷凍星人|グローザム
+悪質宇宙人|メフィラス星人（メビウス）
+異次元超人|メビウスキラー
+満月超獣|ルナチクス（メビウス）
+暗黒宇宙大皇帝|エンペラ星人（メビウス）
+無双鉄神|インペライザー（量産型）
+主役ウルトラマン|ウルトラマンメビウス
+初登場ウルトラマン|ウルトラマンヒカリ`],
+[U,'ULTRASEVEN X','2007',`|ペジネラ
+|ヒュプナス
+|ガルキメス
+|マーキンド星人（UX）
+|バドリュード
+|ボーダ星人
+|ヴァイロ星人ナタル
+|グラキエス
+主役ウルトラマン|ウルトラセブンX`],
+[U,'ウルトラギャラクシー大怪獣バトル','2007',`古代怪獣|ゴモラ（レイ）
+宇宙怪獣|エレキング（大怪獣バトル）
+宇宙怪獣|リムエレキング（大怪獣バトル）
+原始怪鳥|リトラ（S）
+原始怪鳥|ファイヤーリトラ
+地底怪獣|テレスドン（大怪獣バトル）
+岩石怪獣|サドラ（大怪獣バトル）
+どくろ怪獣|レッドキング（大怪獣バトル）
+冷凍怪獣|ペギラ（大怪獣バトル）
+百足怪獣|ムカデンダー（大怪獣バトル）
+古代植物|ジュラン（大怪獣バトル）
+超古代怪獣|ゴルザ（大怪獣バトル）
+超古代怪獣|ファイヤーゴルザ
+透明怪獣|ネロンガ（大怪獣バトル）
+地底怪獣|グドン（大怪獣バトル）
+宇宙大怪獣|ベムスター（大怪獣バトル）
+アースロポッドタイプビースト|バンピーラ（大怪獣バトル）
+奇獣|ガンQ（大怪獣バトル）
+古代怪獣|ツインテール（大怪獣バトル）
+四次元怪獣|ブルトン（大怪獣バトル）
+アンフィビアタイプビースト|フログロス（大怪獣バトル）
+宇宙凶険怪獣|ケルビム（大怪獣バトル）
+凶暴怪獣|アーストロン（大怪獣バトル）
+土塊怪獣|アングロス（大怪獣バトル）
+宇宙礫岩怪獣|グロマイト（大怪獣バトル）
+宇宙有翼怪獣|アリゲラ（大怪獣バトル）
+巨大魚怪獣|ゾアムルチ（大怪獣バトル）
+円盤生物|ノーバ（大怪獣バトル）
+再生怪獣|サラマンドラ（大怪獣バトル）
+満月超獣|ルナチクス（大怪獣バトル）
+宇宙ロボット|キングジョーブラック
+ミサイル超獣|ベロクロン（大怪獣バトル）
+蛾超獣|ドラゴリー（大怪獣バトル）
+古代怪獣|EXゴモラ
+宇宙恐竜|ゼットン（大怪獣バトル）`],
+[U,'大怪獣バトルNEO','2008',`古代怪獣|ゴモラ（ブレイブバースト）
+古代怪獣|ゴモラ（レイオニックバースト）
+カプセル怪獣|ミクラス（NEO）
+変身怪人|ピット星人（NEO）
+策略宇宙人|ペダン星人（NEO）
+古代怪獣|ゴメス（S）
+地底怪獣|マグラー（NEO）
+彗星怪獣|ドラコ（NEO）
+彗星怪獣|ドラコ（NEO・再生）
+集団宇宙人|フック星人（NEO）
+分身宇宙人|ガッツ星人（NEO）
+宇宙大怪獣|ベムスター（NEO）
+宇宙怪人|ゼラン星人（NEO）
+暗殺宇宙人|ナックル星人（NEO）
+凶暴怪獣|アーストロン（NEO）
+フィンディッシュタイプビースト|ガルベロス（NEO）
+宇宙恐竜|ゼットン（NEO・幻影）
+幻覚宇宙人|メトロン星人（NEO）
+蛾超獣|ドラゴリー（NEO）
+暗黒星人|ババルウ星人（NEO）
+磁力怪獣|アントラー（NEO）
+溶岩怪獣|グランゴン（NEO）
+伝説怪龍|ナツノメリュウ（NEO）
+一角超獣|バキシム（NEO）
+戦略星人|キール星人グランデ
+暴君怪獣|タイラント（NEO）
+凶悪宇宙人|ザラブ星人（NEO）
+|にせウルトラマン（NEO）
+悪質宇宙人|メフィラス星人（NEO）
+悪質宇宙人|アーマードメフィラス
+極悪宇宙人|テンペラー星人（NEO）
+三面怪人|ダダ（NEO）
+宇宙有翼怪獣|アリゲラ（NEO）
+暗黒魔鎧装|アーマードダークネス
+変身怪人|ゼットン星人（NEO）
+地底怪獣|テレスドン（NEO）
+宇宙凶険怪獣|ケルビム（NEO）
+宇宙ロボット|キングジョーブラック（NEO）
+宇宙ロボット|キングジョースカーレット
+どくろ怪獣|レッドキング（NEO）
+どくろ怪獣|レッドキング（ブレイブバースト）
+どくろ怪獣|EXレッドキング
+火山怪鳥|バードン（NEO）
+光波宇宙人|リフレクト星人（NEO）
+|レイモン
+究極生命体|レイブラッド星人`],
+[U,'ネオ・ウルトラQ','2013',`宇宙ビジネスマン|ヴァルカヌス星人
+暗黒悪意|マーラー
+人造人間|エピゴノイド
+悪臭怪獣|セーデガン
+鉄貝獣|ガストロポッド
+ギ・ノール星侍従武官|ハタ・ギ・ノール
+宇宙暗殺者|ホウショウ族
+吸引怪獣|プラーナ
+見習い怪獣|ファルマガン
+知的恐球|アルゴス
+古代生物|ソーマ
+|ニルワニエ
+|ブレザレン`],
+[U,'ウルトラマンギンガ','2013',`宇宙海人|バルキー星人（ギンガ）
+暗殺宇宙人|ナックル星人グレイ
+超合成獣|サンダーダランビア
+用心棒怪獣|ブラックキング（ギンガ）
+誘拐怪人|ケムール人（ギンガ）
+双頭怪獣|キングパンドン
+海底原人|ラゴン（ギンガ）
+|ジャンキラー
+蛾超獣|ドラゴリー（ギンガ）
+|ティガダーク
+|ジャンナイン
+フィンディッシュタイプビースト|ダークガルベロス（ギンガ）
+変身怪獣|ザラガス（ギンガ）
+どくろ怪獣|レッドキング（ギンガ）
+|ウルトラマンダーク
+|ウルトラセブンダーク
+磁力怪獣|アントラー（ギンガ）
+宇宙三面魔像|ジャシュライン（ギンガ）
+超怪獣|スーパーグランドキング
+暗黒の魔神|ダークルギエル
+サーベル暴君|マグマ星人（ギンガ）
+宇宙恐竜|ゼットン（ギンガ）
+異次元宇宙人|イカルス星人（ギンガ）
+暴君怪獣|タイラント（ギンガ）
+|バグレー
+メカロボット怪獣|メカゴモラ
+主役ウルトラマン|ウルトラマンギンガ`],
+[U,'ウルトラマンギンガS','2014',`頭脳星人|チブル星人エクセラー
+傀儡戦士|チブロイド
+|EXレッドキング
+地底聖獣|シェパードン
+宇宙怪獣|エレキング（ギンガS）
+宇宙ロボット|キングジョーカスタム
+無双鉄神|インペライザー（ギンガS）
+分身宇宙人|ガッツ星人ボルスト
+岩石怪獣|サドラ（ギンガS）
+地底怪獣|グドン（ギンガS）
+異次元超人|巨大ヤプール（ギンガS）
+一角超獣|バキシム（ギンガS）
+古代怪獣|ゴモラ（ギンガS）
+超古代怪獣|ファイヤーゴルザ
+奇獣|ガンQ（ギンガS）
+超合体怪獣|ファイブキング
+宇宙大怪獣|ベムスター（ギンガS）
+宇宙怪獣|ベムラー（ギンガS）
+ミサイル超獣|ベロクロン（ギンガS）
+宇宙悪霊|アクマニヤ星人ムエルテ
+幻覚宇宙人|メトロン星人ジェイス
+火山怪鳥|バードン（ギンガS）
+宇宙恐竜|ハイパーゼットン（イマーゴ）
+超咆哮獣|ビクトルギエル
+変身怪人|ゼットン星人ベルメ
+超時空魔神|エタルガー
+初登場ウルトラマン|ウルトラマンビクトリー
+初登場ウルトラマン|ウルトラマンギンガビクトリー`],
+[U,'ウルトラマンX','2015',`熔鉄怪獣|デマーガ
+宇宙怪獣|ベムラー（X）
+冷凍怪獣|ペギラ（X）
+青色発泡怪獣|アボラス（X）
+赤色火焔怪獣|バニラ（X）
+地底怪獣|マグラー（X）
+油獣|ペスター（X）
+火山怪鳥|バードン（X）
+地底怪獣|テレスドン（X）
+|地底女
+宇宙大怪獣|ベムスター（X）
+凶悪宇宙人|ザラブ星人（X）
+暗殺宇宙人|ナックル星人バンデロ
+用心棒怪獣|ブラックキング（X）
+用心棒怪獣|ブラックキング ドリルカスタム
+メカ守護獣|ルディアン
+亡命宇宙人|ゴールド星人tE・rU
+石化魔獣|ガーゴルゴン
+宇宙恐竜|ゼットン（X）
+高速宇宙人|スラン星人クワイラ
+宇宙海人|バルキー星人ハルキ
+異次元宇宙人|イカルス星人イカリ
+暗殺宇宙人|ナックル星人ナクリ
+暗黒星人|ババルウ星人（X）
+変身怪人|ゼットン星人（X）
+誘拐怪人|ケムール人（X）
+三面怪人|ダダ（X）
+宇宙悪霊|アクマニヤ星人（X）
+海獣|サメクジラ
+不動怪獣|ホオリンガ
+宇宙ロボット|キングジョー（X）
+電脳怪獣|サイバーゴモラ
+熔鉄怪獣|ツルギデマーガ
+幻影宇宙女王|ギナ・スペクター
+変身怪獣|ザラガス（X）
+サーベル暴君|マグマ星人（X）
+暗黒星人|シャプレー星人（X）
+幻影宇宙大王|モルド・スペクター
+幻影合身大魔帝|グア・スペクター
+宇宙商人|マーキンド星人
+ロボット怪獣|メカゴモラ（X）
+古代怪獣|ゴメス（S）
+深海怪獣|グビラ（X）
+遊星怪人|セミ女
+海獣|キングゲスラ
+友好珍獣|ピグモン（X）
+どくろ怪獣|レッドキング（X）
+どくろ怪獣|EXレッドキング
+宇宙化猫|ムー
+古代怪獣|ゴモラ（X）
+古代怪獣|EXゴモラ
+人工生命|M1号（X）
+インセクトタイプビースト|バグバズンブルード（X）
+虚空怪獣|グリーザ
+虚空怪獣|グリーザ（第二形態）
+虚空怪獣|グリーザ（第三形態）
+主役ウルトラマン|ウルトラマンエックス`],
+[U,'ウルトラマンオーブ','2016',`風ノ魔王獣|マガバッサー
+光ノ魔王獣|マガゼットン
+土ノ魔王獣|マガグランドキング
+水ノ魔王獣|マガジャッパ
+火ノ魔王獣|マガパンドン
+宇宙恐竜|ハイパーゼットンデスサイス
+変身怪人|ゼットン星人マドック
+大蟻超獣|アリブンタ（オーブ）
+悪質宇宙人|メフィラス星人ノストラ
+幻覚宇宙人|メトロン星人タルデ
+暗殺宇宙人|ナックル星人ナグス
+硫酸怪獣|ホー（オーブ）
+海底原人|ラゴン（オーブ）
+深海怪獣|グビラ（オーブ）
+暗黒星人|ババルウ星人ババリュー
+|にせウルトラマンオーブ
+地底怪獣|テレスドン（オーブ）
+宇宙凶険怪獣|ケルビム（オーブ）
+用心棒怪獣|ブラックキング（オーブ）
+無幻魔人|ジャグラスジャグラー
+大魔王獣|マガオロチ
+シビルジャッジメンター|ギャラクトロン
+合体魔王獣|ゼッパンドン
+宇宙怪獣|ベムラー（オーブ・強化）
+暗黒星人|シャプレー星人カタロヒ
+宇宙怪人|ゼラン星人（オーブ）
+怨霊鬼|戀鬼（紅蓮騎）
+人工生命体|マーヤ
+円盤生物|ノーバ（オーブ）
+円盤マスター|ブラック店長
+変身怪人|ピット星人ミュー
+宇宙怪獣|カマイタドン
+超大魔王獣|マガタノオロチ
+熔鉄怪獣|デマーガ（オーブ）
+古代怪獣|ゴメス（S）（オーブ）
+主役ウルトラマン|ウルトラマンオーブ`],
+[U,'ウルトラマンジード','2017',`ベリアル融合獣|スカルゴモラ
+三面怪人|ダダ820号
+|ダークロプスゼロ
+宇宙怪獣|エレキング（ジード）
+変身怪人|ピット星人トリィ=ティプ
+集団宇宙人|フック星人（ジード）
+宇宙植物|ルグス
+凶暴怪獣|アーストロン（ジード）
+小珍獣|モコ
+ベリアル融合獣|サンダーキラー
+|ウルトラマンベリアル
+シビルジャッジメンター|ギャラクトロン（ジード）
+暴君怪獣|タイラント（ジード）
+だだっ子怪獣|ザンドリアス（ジード）
+ゾベタイ星人|ナビア
+ベリアル融合獣|ペダニウムゼットン
+宇宙帝王|バド星人（ジード）
+策略宇宙人|ペダン星人（ジード）
+憑依宇宙人|サーペント星人（ジード）
+|グローザ星系人
+|ドーブル星人
+友好異星人|ネリル星人（ジード）
+時空破壊神|ゼガン
+宇宙ゲリラ|シャドー星人（ジード）
+宇宙ゲリラ|シャドー星人クルト
+昆虫宇宙人|クカラッチ星人
+ベリアル融合獣|キメラベロス
+反重力宇宙人|ゴドラ星人ゴドー=ウィン
+三面怪人|ダダ116号
+帝国機兵|レギオノイド ダダ・カスタマイズ
+閻魔獣|ザイゴーグ
+ロボット怪獣|メカゴモラ（ジード）
+再生怪獣|ギエロン星獣（ジード）
+電波怪人|レキューム人
+深海怪獣|グビラ（ジード）
+ベリアル融合獣|キングギャラクトロン
+ベリアル融合獣|ペダニウムゼットン・エボルド
+|ウルトラマンベリアル アトロシアス
+友好巨鳥|リドリアス（ジード）
+主役ウルトラマン|ウルトラマンジード`],
+[U,'ウルトラマンR/B','2018',`火炎骨獣|グルジオボーン
+用心棒怪獣|ブラックキング（R/B）
+石化魔獣|ガーゴルゴン（R/B）
+どくろ怪獣|レッドキング（R/B）
+猛禽怪獣|グエバッサー
+ロボット怪獣|メカゴモラ（R/B）
+|ウルトラマンオーブダーク
+大蟻超獣|アリブンタ（R/B）
+豪烈暴獣|ホロボロス
+古代怪獣|ゴメス（R/B）
+宇宙悪魔|ベゼルブ
+深海怪獣|グビラ（R/B）
+爆撃骨獣|グルジオキング
+透明怪獣|ネロンガ（R/B）
+三面怪人|ダダ（R/B）
+友好珍獣|ピグモン（R/B）
+悪質宇宙人|メフィラス星人（R/B）
+凶悪宇宙人|ザラブ星人（R/B）
+超鎧装獣|グルジオレギーナ
+コスモイーター|ルーゴサイト
+主役ウルトラマン|ウルトラマンロッソ
+主役ウルトラマン|ウルトラマンブル
+初登場ウルトラマン|ウルトラマンルーブ
+初登場ウルトラマン|ウルトラウーマングリージョ`],
+[U,'ウルトラマンタイガ','2019',`|ウルトラマントレギア
+最凶獣|ヘルベロス
+若親怪獣|ヤングマザーザンドリアス
+雛怪獣|ベビーザンドリアス
+時空破壊神|ゼガン（タイガ）
+宇宙商人|マーキンド星人（タイガ）
+サーベル暴君|マグマ星人（タイガ）
+宇宙怪人|セミ人間（タイガ）
+昆虫宇宙人|クカラッチ星人（タイガ）
+|リヴァーズ星人
+幼海獣|チビスケ
+海獣|キングゲスラ（タイガ）
+電波怪人|レキューム人（タイガ）
+シビルジャッジメンター|ギャラクトロンMK2
+奇機械怪獣|デアボリック
+|ヴォルク
+憑依宇宙人|サーペント星人（タイガ）
+|ガルメス人
+変身怪人|ゼットン星人ゾリン
+健啖宇宙人|ファントン星人（タイガ）
+毒炎怪獣|セグメゲル
+召喚士|セゲル星人
+|ダマーラ星人
+宇宙ヒットマン|ガピヤ星人アベル
+サイケ宇宙人|ペロリンガ星人（タイガ）
+暗黒星人|ババルウ星人（タイガ）
+集団宇宙人|フック星人（タイガ）
+悪夢魔獣|ナイトファング
+水異怪獣|マジャッパ
+戦略星人|キール星人（タイガ）
+暗殺宇宙人|ナックル星人オデッサ
+用心棒怪獣|ブラックキング（タイガ）
+地底怪獣|パゴス（タイガ）
+吸血怪獣|ギマイラ（タイガ）
+宇宙怪人|ゼラン星人オショロ
+|サラサ星人
+惑星守護神|ギガデロス
+培養合成獣|スカルゴモラ（タイガ）
+頭脳星人|チブル星人マブゼ
+宇宙怪獣|リムエレキング（タイガ）
+奇獣|デスモン（タイガ）
+宇宙昆虫|ガロ星人
+吸引怪獣|プラーナ
+熔鉄怪獣|デマーガ（タイガ）
+|セモン星人
+宇宙恐竜|ゼットン（タイガ）
+宇宙怪獣|ベムラー（タイガ）
+触角宇宙人|バット星人（タイガ）
+変身怪人|ピット星人（タイガ）
+雷撃獣神|ゴロサンダー
+大蟻超獣|アリブンタ（タイガ）
+宇宙帝王|バド星人エル・レイ
+|ヘイズ星人
+双頭怪獣|パンドン（タイガ）
+幽霊怪人|ゴース星人（タイガ）
+オイル怪獣|タッコング（タイガ）
+凶猛怪獣|ギーストロン
+|ニセウルトラマンベリアル
+凶悪宇宙人|ザラブ星人（タイガ）
+反重力宇宙人|ゴドラ星人（タイガ）
+高速宇宙人|スラン星人（タイガ）
+宇宙爆蝕怪獣|ウーラー
+主役ウルトラマン|ウルトラマンタイガ
+初登場ウルトラマン|ウルトラマンタイタス
+初登場ウルトラマン|ウルトラマンフーマ`],
+[U,'ウルトラマンZ','2020',`凶暴宇宙鮫|ゲネガーグ
+特空機1号|セブンガー（Z）
+古代怪獣|ゴメス（Z）
+四次元怪獣|ブルトン（Z）
+寄生生物|セレブロ
+透明怪獣|ネロンガ（Z）
+古代怪獣|ゴモラ（Z）
+冷凍怪獣|ギガス（Z）
+地底怪獣|テレスドン（Z）
+強化地底怪獣|エリマキテレスドン
+冷凍怪獣|ペギラ（Z）
+合体魔王獣|ゼッパンドン（Z）
+ラストジャッジメンター|ギルバリス
+特空機2号|ウインダム（Z）
+アンドロイド兵|バリスレイダー
+ベリアル融合獣|スカルゴモラ（Z）
+ベリアル融合獣|サンダーキラー（Z）
+ベリアル融合獣|ペダニウムゼットン（Z）
+ペガッサ星人|ペガ
+合体怪獣|トライキング
+超合体怪獣|ファイブキング（Z）
+変身怪人|ピット星人（Z）
+宇宙ロボット|キングジョー（Z）
+特空機3号|キングジョーストレイジカスタム
+海賊宇宙人|バロッサ星人
+どくろ怪獣|レッドキングA・B
+爆撃雷獣|グルジオライデン
+コイン怪獣|カネゴン（Z）
+虚空怪獣|グリーザ（Z）
+豪烈暴獣|ホロボロス（Z）
+寄生破滅獣|メツボロス
+海賊宇宙人|バロッサ星人（二代目）
+誘拐怪人|ケムール人（Z）
+地底怪獣|パゴス（Z）
+殺し屋超獣|バラバ（Z）
+宇宙大怪獣|ベムスター（Z）
+人工生命|M1号（Z）
+宇宙凶険怪獣|ケルビム（Z）
+宇宙凶険怪獣|マザーケルビム
+海賊宇宙人|バロッサ星人（三代目）
+海獣|キングゲスラ（Z）
+オイル怪獣|タッコング（Z）
+熔鉄怪獣|デマーガ（Z）
+殲滅機甲獣|デストルドス
+主役ウルトラマン|ウルトラマンゼット`],
+[U,'ウルトラマントリガー','2021',`超古代闇怪獣|ゴルバー
+吸血怪獣|ギマイラ（トリガー）
+変形闇怪獣|ガゾート
+古代地底獣|オカグビラ
+破壊暴竜|デスドラゴ
+破壊闇暴竜|デスドラゴ（闇）
+妖麗戦士|カルミラ
+剛力闘士|ダーゴン
+俊敏策士|ヒュドラム
+惑星破壊神|サタンデロス
+海賊宇宙人|バロッサ星人（四代目）
+海賊雛怪獣|ベビーザンドリアス・ケダミャー
+特空機3号|キングジョーストレイジカスタム（トリガー）
+特空機1号改|宇宙セブンガー
+|ブルトン（トリガー）
+生体兵器|小型デシモニア（トリガー）
+|吸血ボール
+三面怪人|ダダ（トリガー）
+石化闇魔獣|ガーゴルゴン（トリガー）
+変身怪獣|ザラガス（トリガー）
+闇黒勇士|トリガーダーク
+メトロン星人|マルゥル
+究極生命体|アブソリュートディアボロ
+究極生命体|アブソリュートタルタロス
+奇機械怪獣|デアボリック（トリガー）
+宇宙竜|ナース（トリガー）
+宇宙伝説魔獣|メツオーガ
+新宇宙伝説魔獣|メツオロチ
+超古代闇怪獣|ゴルバーⅡ
+炎魔戦士|キリエロイド（トリガー）
+炎魔人|キリエル人（トリガー）
+電撃獣人|バリガイラー
+青色発泡怪獣|アボラス（トリガー）
+赤色火焔怪獣|バニラ（トリガー）
+カラクリ武者|メカムサシン
+邪神|メガロゾーア
+古代怪獣|ゴモラ（トリガー）
+地底怪獣|パゴス（トリガー）
+地底怪獣|テレスドン（トリガー）
+凶暴怪獣|アーストロン（トリガー）
+主役ウルトラマン|ウルトラマントリガー`],
+[U,'ウルトラマンデッカー','2022',`精強融合獣|スフィアザウルス
+破壊暴竜|デスドラゴ（デッカー）
+ディメンションカード怪獣|ミクラス（デッカー）
+古代怪獣|ゴモラ（デッカー）
+古代合成獣|スフィアゴモラ
+破壊獣|モンスアーガー（デッカー）
+宇宙怪獣|エレキング（デッカー）
+地底怪獣|パゴス（デッカー）
+地底怪獣|グドン（デッカー）
+地底怪獣|テレスドン（デッカー）
+地底怪獣|ツインテール（デッカー）
+ディメンションカード怪獣|アギラ（デッカー）
+邪神|スフィアメガロゾーア
+妖麗戦士|カルミラ（デッカー）
+超古代植物|ギジェラン
+宇宙格闘士|グレゴール人グレース
+どくろ怪獣|レッドキング（デッカー）
+どくろ合成獣|スフィアレッドキング
+ディメンションカード怪獣|ウインダム（デッカー）
+新創獣|ネオメガス
+海獣|キングゲスラ（デッカー）
+岩石怪獣|サドラ（デッカー）
+電脳魔人|テラフェイザー
+稲妻怪鳥|ライバッサー
+稲妻怪鳥|ヒナバッサー
+新創合成獣|スフィアネオメガス
+騒音怪獣|ノイズラー（デッカー）
+浮遊幼獣|スピニー
+双頭怪獣|パンドン（デッカー）
+メトロン星人|ナイゲル
+古代怪獣|ゴメス（S）（デッカー）
+大蟻超獣|アリブンタ（デッカー）
+異次元人|ヤプール（デッカー）
+スフィアジャッジメンター|ギャラクトロンMK2（デッカー）
+異形進化兵|ゾンボーグ兵（デッカー）
+海底原人|ラゴン（デッカー）
+Sプラズマ融合獣|スフィアジオモス
+有翼怪獣|チャンドラー（デッカー）
+最強スフィア獣|マザースフィアザウルス
+主役ウルトラマン|ウルトラマンデッカー`],
+[U,'ウルトラマンブレーザー','2023',`宇宙甲殻怪獣|バザンガ
+深海怪獣|ゲードス
+甲虫怪獣|タガヌラー
+軟体怪獣|レヴィーラ
+山怪獣|ドルゴ
+オーロラ怪人|カナン星人（ブレーザー）
+天弓怪獣|ニジカガチ
+ロボット怪獣|ガラモン（ブレーザー）
+宇宙怪人|セミ人間（ブレーザー）
+溶鉄怪獣|デマーガ（ブレーザー）
+溶鉄怪獣|ベビーデマーガ
+宇宙電磁怪獣|ゲバルガ
+月光怪獣|デルタンダル
+二次元怪獣|ガヴァドン（ブレーザー）
+幻視怪獣|モグージョン
+宇宙侍|ザンギル
+汚染獣|イルーゴ
+宇宙汚染超獣|ブルードゲバルガ
+炎竜怪獣|ファードラン
+地底甲獣|ズグガン
+月光怪獣|デルタンダルB
+どくろ怪獣|レッドキング（ブレーザー）
+冷凍怪獣|ギガス（ブレーザー）
+宇宙爆弾怪獣|ヴァラロン
+主役ウルトラマン|ウルトラマンブレーザー`],
+[U,'ウルトラマンアーク','2024',`鎧甲殻獣|シャゴン
+宇宙寄生生物|ウーズ
+古代怪獣|リオド
+宇宙獣|ディゲロス
+電鼠怪獣|ネズドロン
+巨鯨水獣|リヴィジラ
+茸狩宇宙人|クロコ星人
+灼熱怪獣|ホムガー
+V怪獣|インターネット・カネゴン
+透明怪獣|ネロンガ（アーク）
+地底怪獣|パゴス（アーク）
+騒音怪獣|ノイズラー（アーク）
+機械巨像|ギヴァス
+古代地底獣|オカグビラ（アーク）
+宇宙獣|ザディーメ
+|スイード
+幻視怪獣|モグージョン（アーク）
+宇宙侍|ザンギル（アーク）
+冥府闇将軍獣|ヘルナラク
+古代怪獣|ゴメス（アーク）
+宇宙生命体|スペッキオ
+最強合体獣|キングオブモンス
+夢咲き鳥怪獣|ベビーザンドリアス（アーク）
+宇宙獣|トリゲロス
+夢幻獣|ギルバグ
+暗黒宇宙卿|ゼ・ズー
+主役ウルトラマン|ウルトラマンアーク`],
+[U,'ウルトラマンオメガ','2025',`宇宙甲獣|ヴァグセクト
+熱線怪獣|グライム
+水棲毒獣|ドグリド
+メテオカイジュウ|レキネス
+無重力怪獣|ペグノス
+刃爪怪獣|テリジラス
+伝説蛇獣|オオヘビヌシノミコト
+猛突怪獣|ゲドラゴ
+メテオカイジュウ|トライガロン
+古代怪獣|ゴモラ（オメガ）
+破壊獣|モンスアーガー（オメガ）
+深海怪獣|グビラ（オメガ）
+熔鉄怪獣|デマーガ（オメガ）
+古代怪獣|リオド（オメガ）
+爆進細胞怪獣|エルドギメラ
+友好珍獣|ピグモン（オメガ）
+殲滅創世体|ゾヴァラス
+メテオカイジュウ|ヴァルジェネス
+深海怪獣|キングアリゲトータス
+地底怪獣|パゴス（オメガ）
+古代粘菌怪獣|エドマフィラ
+海賊宇宙人|バロッサ星人ザーゴン
+海賊宇宙人|バロッサ星人ギルダ
+海賊宇宙人|バロッサ星人（母）
+深海怪獣|ゲードス（小型）
+猪突猛進怪獣|バグリゴン
+時空漂流獣|クロノケロス
+氷山怪獣|イッカクキング
+ウラン怪獣|ガボラ（オメガ）
+甲虫怪獣|タガヌラー（オメガ）
+ゲネス人|アーデル
+光波怪獣|ガイリュウガ
+殲滅細胞怪獣|ゾメラ
+メテオカイジュウ|ガメドン
+主役ウルトラマン|ウルトラマンオメガ`],
+[U,'ウルトラマンテオ','2026',`暴悪星獣|ヴィアロガ
+|ヴィアロガⅡ
+地底有翼獣|ソデラ
+触手怪獣|ドシハガチ
+孤独怪鳥|バルミリオス
+電獣|ヴォルトグ
+海獣|キングゲスラ
+プチ怪獣|プッチー
+|オズヤヌシ
+|バデロバ
+|ブラックドグルフ
+|ネボラ
+吸血星獣|ギマイラ（テオ版）
+古代龍獣|ジャガラ
+破壊暴竜|デスドラゴ
+|リムエレキング
+|ゼイノス星人
+|ゼイヴィアノス
+|アレイメガス
+|アレイモス
+|ピグテラス
+主役ウルトラマン|ウルトラマンテオ`],
+[G,'ゴジラ（昭和）','1954–1975',`水爆大怪獣|ゴジラ（1954）
+水爆大怪獣|ゴジラ（2代目）
+暴龍|アンギラス
+大怪力怪獣|キングコング
+海魔|大ダコ
+巨大蛾怪獣|モスラ（成虫）
+巨大蛾怪獣|モスラ（幼虫）
+空の大怪獣|ラドン
+宇宙超怪獣|キングギドラ
+巨大えび怪獣|エビラ
+怪鳥|大コンドル
+両刀怪獣|カマキラス
+大蜘蛛怪獣|クモンガ
+ちびっ子怪獣|ミニラ
+地底怪獣|バラゴン
+原始恐竜|ゴロザウルス
+守護竜|マンダ
+むささび怪獣|バラン
+凶悪怪獣|ガバラ
+公害怪獣|ヘドラ
+サイボーグ怪獣|ガイガン
+昆虫怪獣|メガロ
+|ジェットジャガー
+ロボット怪獣|メカゴジラ
+伝説怪獣|キングシーサー
+ロボット怪獣|メカゴジラ2
+恐竜怪獣|チタノザウルス`],
+[G,'ゴジラ（平成VS）','1984–1995',`|ゴジラ（1984）
+|ショッキラス
+バイオ怪獣|ビオランテ
+古代恐竜|ゴジラザウルス
+|ドラット
+|キングギドラ（平成）
+|メカキングギドラ
+戦闘破壊獣|バトラ
+|モスラ（平成）
+|ベビーゴジラ
+ロボット怪獣|メカゴジラ（平成）
+|スーパーメカゴジラ
+|ファイヤーラドン
+|ラドン（平成）
+|リトルゴジラ
+宇宙凶悪戦闘獣|スペースゴジラ
+|フェアリーモスラ
+|MOGERA
+|ゴジラジュニア
+|バーニングゴジラ
+完全生命体|デストロイア`],
+[G,'平成モスラ三部作','1996–1998',`|モスラ・レオ
+|デスギドラ
+|ダガーラ
+|グランドキングギドラ`],
+[G,'ゴジラ（ミレニアム）','1999–2004',`|ゴジラ（ミレニアム）
+|ミレニアン
+|オルガ
+古代昆虫|メガギラス
+|メガニューラ
+|メガヌロン
+|ゴジラ（GMK）
+護国聖獣|バラゴン（GMK）
+護国聖獣|モスラ（GMK）
+護国聖獣|キングギドラ（GMK）
+|ゴジラ（機龍）
+|3式機龍
+大亀怪獣|カメーバ
+|モスラ（東京SOS）
+|ゴジラ（FINAL WARS）
+強足怪獣|ジラ
+ちびっ子怪獣|ミニラ（FW）
+両刀怪獣|カマキラス（FW）
+大蜘蛛怪獣|クモンガ（FW）
+守護竜|マンダ（FW）
+サイボーグ怪獣|ガイガン（FW）
+伝説怪獣|キングシーサー（FW）
+巨大えび怪獣|エビラ（FW）
+公害怪獣|ヘドラ（FW）
+|ラドン（FW）
+|アンギラス（FW）
+|モスラ（FW）
+|モンスターX
+|カイザーギドラ`],
+[G,'シン・ゴジラ','2016',`|ゴジラ（第2形態）
+|ゴジラ（第3形態）
+|ゴジラ（第4形態）
+|ゴジラ（第5形態）`],
+[G,'アニメ映画三部作','2017–2018',`|ゴジラ・フィリウス
+|ゴジラ・アース
+|セルヴァム
+|メカゴジラシティ
+|ギドラ
+|ドゴラ`],
+[G,'ゴジラS.P','2021',`|ゴジラ・ウルティマ
+|ゴジラアクアティリス
+|ゴジラアンフィビア
+|ゴジラテレストリス
+|ラドン（S.P）
+|サルンガ
+|カマンガ
+|ハネンガ
+|ゼンブンガ
+|アンギラス（S.P）
+|クモンガ（S.P）
+|マンダ（S.P）
+|メガヌロン（S.P）
+|ジェットジャガー（S.P）
+|ロボゴジラ`],
+[G,'ゴジラ-1.0','2023',`|ゴジラ（-1.0）`],
+[G,'ハリウッド版／モンスターバース','1998–2024',`強足怪獣|ジラ（1998）
+|ゴジラ（レジェンダリー）
+|ムートー
+|コング
+|スカルクローラー
+|ギドラ（モンスター・ゼロ）
+|モスラ（レジェンダリー）
+|ラドン（レジェンダリー）
+|ベヒモス
+|スキュラ
+|メトシェラ
+|メカゴジラ（レジェンダリー）
+|ワーバット
+|スカーキング
+|シーモ
+|スーコ
+|ティアマット`]
+];
+
+const KEY='kaiju-check-v1', CKEY='kaiju-custom-v1', OKEY='kaiju-open-v1';
+const load=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
+const save=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+let marks=load(KEY,{}), custom=load(CKEY,[]), closed=load(OKEY,{});
+// 旧◎(2)は○(1)に戻す。△は3
+Object.keys(marks).forEach(k=>{if(marks[k]===2)marks[k]=1}); save(KEY,marks);
+let filter='all', query='';
+
+function build(){
+  return DATA.map(([type,title,yr,txt],si)=>{
+    const items=txt.split('\n').map(s=>s.trim()).filter(Boolean).map(l=>{
+      const [a,n]=l.includes('|')?l.split('|'):['',l];return {a:a.trim(),n:n.replace(/\?\s*$/,'').trim()}});
+    custom.filter(c=>c.s===title).forEach(c=>items.push({a:c.a,n:c.n,c:true}));
+    return {type,title,yr,si,items:items.map((it,i)=>({...it,id:title+'|'+it.n,no:i+1}))};
+  });
+}
+const listEl=document.getElementById('list');
+function esc(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+
+function render(){
+  const series=build();
+  let html='', all=0,on=0,cu=0,cg=0,c2=0;
+  series.forEach(s=>{
+    s.items.forEach(it=>{all++; if(marks[it.id]){on++; s.type===U?cu++:cg++; if(marks[it.id]===3)c2++}});
+    if(filter===U&&s.type!==U||filter===G&&s.type!==G) return;
+    const vis=s.items.filter(it=>{
+      if(query&&!(it.n+it.a).includes(query)) return false;
+      if(filter==='on'&&!marks[it.id]) return false;
+      if(filter==='off'&&marks[it.id]) return false;
+      if(filter==='on2'&&marks[it.id]!==3) return false;
+      if(filter==='on1'&&marks[it.id]!==1) return false;
+      return true});
+    if(!vis.length&&(query||filter==='on1'||filter==='on2'||filter==='off')) return;
+    const sOn=s.items.filter(it=>marks[it.id]).length, s2=s.items.filter(it=>marks[it.id]===3).length;
+    const isClosed=closed[s.title]&&!query;
+    html+=`<section id="s${s.si}" class="${isClosed?'closed':''}"><div class="sh" data-t="${esc(s.title)}" role="button" tabindex="0" aria-expanded="${!isClosed}"><h2><span class="tag ${s.type===G?'g':''}">${s.type===G?'ゴジラ':'ウルトラ'}</span>${esc(s.title)}<span class="yr">${s.yr}</span></h2><span class="n"><b>${sOn}</b> / ${s.items.length}${s2?`<i>△${s2}</i>`:''}</span></div><ul>`+
+      vis.map(it=>`<li class="${marks[it.id]===3?'on on2':marks[it.id]?'on':''}" data-id="${esc(it.id)}" ${it.c?'data-c="1"':''} tabindex="0" role="checkbox" aria-checked="${marks[it.id]===3?'mixed':!!marks[it.id]}" aria-label="${esc(it.n)} ${marks[it.id]===3?'三角':marks[it.id]?'丸':'未チェック'}"><span class="no">${it.no}</span><span class="nm">${it.a?`<span class="al${/^(主役|初登場)ウルトラマン$/.test(it.a)?' hero':''}">${esc(it.a)}</span>`:''}<span class="na">${esc(it.n)}</span>${it.c?'<span class="cus">追加</span>':''}</span><span class="mk" aria-hidden="true">${marks[it.id]===3?'△':'○'}</span></li>`).join('')+`</ul></section>`;
+  });
+  listEl.innerHTML=html||'<p class="empty">見つからないわ。</p>';
+  document.getElementById('tot').textContent=on;
+  document.getElementById('all').textContent=all;
+  document.getElementById('cu').textContent=cu;
+  document.getElementById('cg').textContent=cg;
+  document.getElementById('c2').textContent=c2;
+  document.getElementById('c1').textContent=on-c2;
+  const p=all?Math.round(on/all*1000)/10:0;
+  document.getElementById('pct').textContent=p+'%';
+  document.getElementById('barfill').style.width=p+'%';
+}
+function updateCounts(){render()}
+
+listEl.addEventListener('click',e=>{
+  const sh=e.target.closest('.sh');
+  if(sh){const t=sh.dataset.t;closed[t]=!closed[t];save(OKEY,closed);render();return}
+  const li=e.target.closest('li');
+  if(li){const id=li.dataset.id; if(marks[id]===3)delete marks[id]; else if(marks[id])marks[id]=3; else marks[id]=1; save(KEY,marks); render();}
+});
+listEl.addEventListener('keydown',e=>{
+  if(e.key!=='Enter'&&e.key!==' ')return;
+  const t=e.target; if(t.matches('li,.sh')){e.preventDefault();t.click()}
+});
+let pressT;
+listEl.addEventListener('pointerdown',e=>{
+  const li=e.target.closest('li[data-c]'); if(!li)return;
+  pressT=setTimeout(()=>{
+    const id=li.dataset.id; const [s,n]=[id.slice(0,id.indexOf('|')),id.slice(id.indexOf('|')+1)];
+    custom=custom.filter(c=>!(c.s===s&&c.n===n)); delete marks[id];
+    save(CKEY,custom); save(KEY,marks); render();
+  },700);
+});
+['pointerup','pointerleave','pointercancel'].forEach(ev=>listEl.addEventListener(ev,()=>clearTimeout(pressT)));
+
+document.getElementById('q').addEventListener('input',e=>{query=e.target.value.trim();render()});
+document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>{
+  filter=b.dataset.f;document.querySelectorAll('.seg button').forEach(x=>x.setAttribute('aria-pressed',x===b));render()}));
+
+// ランダム6体モード（裏機能）
+const rndEl=document.getElementById('rnd'), RK='kaiju-rnd-v2';
+let rsel=(function(){const v=load(RK,null);return v&&Array.isArray(v.s)?v:{s:DATA.map(d=>d[1]),u:false}})();
+if(!rsel.m)rsel.m=rsel.u?'none':'all';
+document.getElementById('rndmark').value=rsel.m;
+function saveR(){rsel.m=document.getElementById('rndmark').value;save(RK,rsel)}
+function rndOk(it){const v=marks[it.id];switch(rsel.m){case 'any':return !!v;case 'm1':return v===1;case 'm3':return v===3;case 'none':return !v;default:return true}}
+function drawPicks(){
+  const sel=new Set(rsel.s);
+  const groups=[[U,'ウルトラ',''],[G,'ゴジラ','g']];
+  const ctl='<div class="rndctl">'+groups.map(([t,label,cls])=>{const list=DATA.filter(d=>d[0]===t);const n=list.filter(d=>sel.has(d[1])).length;
+      return `<span class="tag ${cls}">${label}</span><span class="rc">${n} / ${list.length}</span><button type="button" data-all="${t}">全部入れる</button><button type="button" data-none="${t}">全部外す</button>`;}).join('')+
+    `<span class="tag all">両方</span><span class="rc">${sel.size} / ${DATA.length}</span><button type="button" data-all="both">全部入れる</button><button type="button" data-none="both">全部外す</button></div>`;
+  document.getElementById('rndgroups').innerHTML=ctl+groups.map(([t,label,cls])=>{
+    const list=DATA.map((d,i)=>({d,i})).filter(x=>x.d[0]===t);
+    const n=list.filter(x=>sel.has(x.d[1])).length;
+    return `<div class="rndgrp"><div class="rndgrph"><span class="tag ${cls}">${label}</span><span>${n} / ${list.length}作品</span></div><div class="rndchecks">`+
+      list.map(({d,i})=>`<label><input type="checkbox" data-t="${esc(d[1])}" ${sel.has(d[1])?'checked':''}><span>${esc(d[1])} <small>${d[2]}</small></span></label>`).join('')+'</div></div>';
+  }).join('');
+  const series=build().filter(s=>sel.has(s.title));
+  const cnt=series.reduce((a,s)=>a+s.items.filter(rndOk).length,0);
+  document.getElementById('rndcount').textContent=`${sel.size}作品・${cnt}体`;
+}
+document.getElementById('rndgroups').addEventListener('change',e=>{const t=e.target.dataset.t;if(!t)return;
+  const sel=new Set(rsel.s); e.target.checked?sel.add(t):sel.delete(t); rsel.s=DATA.map(d=>d[1]).filter(x=>sel.has(x)); saveR(); drawPicks();});
+document.getElementById('rndgroups').addEventListener('click',e=>{const a=e.target.dataset.all,n=e.target.dataset.none; if(!a&&!n)return;
+  const sel=new Set(rsel.s); DATA.forEach(d=>{if((a||n)==='both'||d[0]===(a||n)){a?sel.add(d[1]):sel.delete(d[1])}}); rsel.s=DATA.map(d=>d[1]).filter(x=>sel.has(x)); saveR(); drawPicks();});
+document.getElementById('rndmark').addEventListener('change',()=>{saveR();drawPicks()});
+function rndCards(list,start){return '<ol class="rndlist">'+list.map(({s,it},k)=>`<li><span class="rn">${k+1}</span><span class="rb"><span class="rs">${esc(s.title)} ${it.no}</span>${it.a?`<span class="ra">${esc(it.a)}</span>`:''}<span class="rnm">${esc(it.n)}</span></span>${marks[it.id]?`<span class="rm">${marks[it.id]===3?'△':'○'}</span>`:''}</li>`).join('')+'</ol>'}
+let rhist=[];
+function pickRandom(){
+  saveR(); const sel=new Set(rsel.s); const pool=[]; const sets=rsel.g===2?2:1;
+  build().filter(s=>sel.has(s.title)).forEach(s=>s.items.forEach(it=>{if(rndOk(it))pool.push({s,it})}));
+  for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}
+  const out=document.getElementById('rndlist');
+  if(out.children.length){rhist.unshift({html:out.innerHTML,msg:document.getElementById('rndmsg').textContent});rhist=rhist.slice(0,10);
+    const w=document.getElementById('rndprevwrap');w.hidden=false;
+    document.getElementById('rndhistsum').textContent=`過去の結果（${rhist.length}回分）`;
+    document.getElementById('rndhistin').innerHTML=rhist.map((r,i)=>`<div class="rndprev"><h4>${i+1}回前の結果</h4><div class="rndout">${r.html}</div><p class="note">${esc(r.msg)}</p></div>`).join('');}
+  if(sets===1){out.innerHTML=rndCards(pool.slice(0,6));}
+  else{const a=pool.slice(0,6),b=pool.slice(6,12);
+    out.innerHTML=`<div class="rset"><h4 class="rsh a">1組目</h4>${rndCards(a)}</div>`+(b.length?`<div class="rset"><h4 class="rsh b">2組目</h4>${rndCards(b)}</div>`:'');}
+  const need=sets*6;
+  document.getElementById('rndmsg').textContent=!sel.size?'使う作品にチェックを入れてね。':pool.length?`${sel.size}作品の${{all:'',any:'○か△の',m1:'○の',m3:'△の',none:'未チェックの'}[rsel.m]}${pool.length}体から選んだわ。${sets===2&&pool.length>=need?'2組の間で同じ怪獣は出ないようにしてあるわ。':''}${pool.length<need?`候補が${need}体に足りないから、あるだけ出しておいたわ。`:''}`:(rsel.m==='all'?'選べる怪獣がいないわ。':'この条件に合う怪獣がいないわ。図鑑モードで○や△をつけてみてね。');
+}
+// 範囲でまとめてチェック
+const rfS=document.getElementById('rndfrom'), rtS=document.getElementById('rndto');
+DATA.forEach(([t,title],i)=>{rfS.add(new Option(title,i)); rtS.add(new Option(title,i));});
+rfS.value=0; rtS.value=DATA.length-1;
+(function(){const v=load('kaiju-rnd-range',null); if(v&&v.f<DATA.length&&v.t<DATA.length){rfS.value=v.f;rtS.value=v.t}})();
+document.getElementById('rndrangego').onclick=()=>{let a=+rfS.value,b=+rtS.value; if(a>b)[a,b]=[b,a];
+  save('kaiju-rnd-range',{f:+rfS.value,t:+rtS.value}); rsel.s=DATA.slice(a,b+1).map(d=>d[1]); saveR(); drawPicks(); pickRandom(); toResults();};
+// モード切り替え
+function setMode(m){
+  document.body.classList.toggle('mode-start',m==='start');
+  document.body.classList.toggle('mode-rnd',m==='rnd');
+  rndEl.hidden=m!=='rnd';
+  if(m==='rnd'){requestAnimationFrame(barH);drawPicks();if(!document.getElementById('rndlist').children.length)pickRandom();}
+  if(m==='zukan')render();
+  try{history.replaceState(null,'',location.pathname+location.search+(m==='rnd'?'#random':m==='zukan'?'#zukan':''))}catch(e){}
+  scrollTo(0,0);
+}
+document.getElementById('startinfo').textContent=`ウルトラシリーズとゴジラシリーズの怪獣 ${build().reduce((n,s)=>n+s.items.length,0)}体・${DATA.length}作品`;
+function barH(){const b=document.getElementById('rndbar');document.documentElement.style.setProperty('--rndbar-h',(b.offsetHeight-(parseFloat(getComputedStyle(b).paddingTop)-10))+'px')}
+addEventListener('resize',()=>{if(!rndEl.hidden)barH()});
+function toResults(){scrollTo({top:0,behavior:'smooth'})}
+document.getElementById('rndgo').onclick=()=>{pickRandom();drawPicks();toResults()};
+function syncG(){document.querySelectorAll('[data-g]').forEach(b=>b.setAttribute('aria-pressed',String((rsel.g===2?2:1)===+b.dataset.g)));document.getElementById('rndgo').textContent=rsel.g===2?'6体×2組を選ぶ':'6体を選ぶ';}
+document.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{rsel.g=+b.dataset.g;saveR();syncG();pickRandom();toResults();});
+syncG();
+document.getElementById('gozukan').onclick=()=>setMode('zukan');
+document.getElementById('gornd').onclick=()=>setMode('rnd');
+document.getElementById('rndclose').onclick=()=>setMode('start');
+document.querySelectorAll('[data-tomode]').forEach(b=>b.onclick=()=>setMode('start'));
+setMode(location.hash==='#random'?'rnd':location.hash==='#zukan'?'zukan':'start');
+const jump=document.getElementById('jump'), as=document.getElementById('as');
+DATA.forEach(([t,title],i)=>{jump.add(new Option(title,'s'+i)); as.add(new Option(title,title))});
+jump.addEventListener('change',()=>{
+  if(!jump.value)return; const title=DATA[+jump.value.slice(1)][1];
+  if(closed[title]){closed[title]=false;save(OKEY,closed)}
+  filter='all';query='';document.getElementById('q').value='';
+  document.querySelectorAll('.seg button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.f==='all'));
+  render(); const el=document.getElementById(jump.value);
+  if(el){const y=el.getBoundingClientRect().top+scrollY-document.querySelector('header').offsetHeight-8;scrollTo({top:y,behavior:'smooth'})}
+  jump.value='';
+});
+document.getElementById('addf').addEventListener('submit',e=>{
+  e.preventDefault(); const n=document.getElementById('an').value.trim(); if(!n)return;
+  custom.push({s:as.value,a:document.getElementById('aa').value.trim(),n}); save(CKEY,custom);
+  document.getElementById('an').value='';document.getElementById('aa').value=''; render();
+});
+document.getElementById('openall').onclick=()=>{closed={};save(OKEY,closed);render()};
+document.getElementById('closeall').onclick=()=>{DATA.forEach(d=>closed[d[1]]=true);save(OKEY,closed);render()};
+const conf=document.getElementById('confirm');
+document.getElementById('reset').onclick=()=>{conf.hidden=false};
+document.getElementById('no').onclick=()=>{conf.hidden=true};
+document.getElementById('yes').onclick=()=>{marks={};save(KEY,marks);conf.hidden=true;render()};
+
+// 共有
+let shareMode='count';
+function shareText(){
+  const series=build(); let all=0,on=0,w2=0; const rows=[];
+  series.forEach(s=>{
+    const got=s.items.filter(it=>marks[it.id]); all+=s.items.length; on+=got.length; const g2=got.filter(it=>marks[it.id]===3).length; w2+=g2;
+    if(!got.length)return;
+    if(shareMode==='count') rows.push(`${s.title} ${got.length}/${s.items.length}${g2?`（△${g2}）`:''}`);
+    else rows.push(`■${s.title}（${got.length}/${s.items.length}）\n`+got.map(it=>`${marks[it.id]===3?'△':'○'}${it.no}. ${it.a?it.a+' ':''}${it.n}`).join('\n'));
+  });
+  const pct=all?Math.round(on/all*1000)/10:0;
+  const head=`【怪獣チェック図鑑】\n○ ${on-w2} 体　△ ${w2} 体（合計 ${on} / ${all} 体・${pct}%）`;
+  const url='\n\nhttps://chankuwai.github.io/the-game/kaiju.html';
+  return head+(rows.length?'\n\n'+rows.join(shareMode==='count'?'\n':'\n\n'):'\n\nまだ○が付いていないわ。')+url;
+}
+const shareEl=document.getElementById('share'), ta=document.getElementById('sharetext'), lineA=document.getElementById('line');
+function refreshShare(){const t=shareText(); ta.value=t; lineA.href='https://line.me/R/share?text='+encodeURIComponent(t);}
+document.getElementById('shareopen').onclick=()=>{shareEl.hidden=false;refreshShare();shareEl.scrollIntoView({behavior:'smooth',block:'nearest'})};
+document.getElementById('shareclose').onclick=()=>{shareEl.hidden=true};
+shareEl.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>{
+  shareMode=b.dataset.m; shareEl.querySelectorAll('.seg button').forEach(x=>x.setAttribute('aria-pressed',x===b)); refreshShare();}));
+document.getElementById('copy').onclick=()=>{
+  const msg=document.getElementById('sharemsg');
+  const fallback=()=>{ta.focus();ta.select();msg.textContent='選択しておいたから、長押しかCtrl+Cでコピーしてね。'};
+  try{navigator.clipboard.writeText(ta.value).then(()=>{msg.textContent='コピーしたわ。LINEに貼り付けて送ってね。'},fallback)}catch(e){fallback()}
+};
+const _render=render; render=function(){_render(); if(!shareEl.hidden) refreshShare();};
+render();
+</script>
+
+</body>
+</html>
