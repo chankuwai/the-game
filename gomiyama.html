@@ -121,8 +121,8 @@ room(rid('ow',0,0),{name:'錆び沼',th:'swamp',rows:[
  '#~~~.,...#',
  '#~~.....::',
  '#~..,....:',
- '#.,.~~...#',
- '#...~~.,.#',
+ '#.~~..,..#',
+ '#.~~.....#',
  '####..####'],ene:[['sludge',5,4],['sludge',7,2],['crow',3,5]],warp:{'6,1':['d3',0,1,4,5]}});
 room(rid('ow',1,0),{name:'暗いトンネル',th:'slope',dark:1,rows:[
  '##########',
@@ -177,10 +177,10 @@ const ITEM={sling:{n:'パチンコ',d:'Bボタンで ネジを 飛ばす。遠�
  engine:{n:'エンジン',d:'トラックの 心臓。まだ 回る！'},tire:{n:'タイヤ 4本',d:'溝は まだ 残っている。'},handle:{n:'ハンドル',d:'錆びているが しっかり 回る。'},fuel:{n:'ガソリン',d:'満タンの ガソリン缶。これで 走れる！'}};
 const PARTS=['engine','tire','handle','fuel'];
 // ---------------- 敵 ----------------
-const ENE={rat:{hp:2,dmg:1,spd:34,r:5,name:'ドブネズミ'},crow:{hp:2,dmg:1,spd:46,r:5,fly:1,name:'カラス'},robo:{hp:4,dmg:2,spd:30,r:6,name:'暴走そうじき'},
- golem:{hp:4,dmg:1,spd:12,r:6,name:'空き缶ゴーレム'},sludge:{hp:4,dmg:1,spd:16,r:6,name:'ヘドロ'},mini:{hp:2,dmg:1,spd:24,r:4,name:'ちびヘドロ'},
- oven:{hp:10,dmg:2,spd:28,r:11,boss:1,name:'暴走レンジ'},snake:{hp:12,dmg:2,spd:44,r:8,boss:1,name:'タイヤ大蛇'},sludgeking:{hp:14,dmg:2,spd:14,r:12,boss:1,name:'ヘドロ大王'},
- king:{hp:20,dmg:2,spd:18,r:14,boss:1,name:'ゴミの王'}};
+const ENE={rat:{hp:2,dmg:1,spd:34,r:5,name:'ドブネズミ'},crow:{hp:2,dmg:1,spd:46,r:5,fly:1,name:'カラス'},robo:{hp:4,dmg:2,spd:36,r:6,name:'暴走そうじき'},
+ golem:{hp:6,dmg:1,spd:12,r:6,name:'空き缶ゴーレム'},sludge:{hp:4,dmg:1,spd:16,r:6,name:'ヘドロ'},mini:{hp:2,dmg:1,spd:24,r:4,name:'ちびヘドロ'},
+ oven:{hp:16,dmg:2,spd:28,r:11,boss:1,name:'暴走レンジ'},snake:{hp:20,dmg:2,spd:44,r:8,boss:1,name:'タイヤ大蛇'},sludgeking:{hp:22,dmg:2,spd:14,r:12,boss:1,name:'ヘドロ大王'},
+ king:{hp:30,dmg:3,spd:18,r:14,boss:1,name:'ゴミの王'}};
 // ---------------- 会話 ----------------
 const STORY={
  intro:['……嵐の 夜だった。','乗っていた 小船は 波に のまれ、','気がつくと 見知らぬ 浜に 打ち上げられていた。','あたり一面、どこまでも ゴミの 山。','ここは 世界中の ゴミが 流れ着く 島――「ゴミ山」。'],
@@ -355,7 +355,7 @@ function puff(x,y){for(let i=0;i<6;i++)RT.fx.push({k:'puff',x,y,vx:rnd(-30,30),v
 /* ---------------- 部屋の 移動 ---------------- */
 function edgeGo(d){const rm=curRoom();const nx=G.rx+DX[d],ny=G.ry+DY[d];const nid=rid(G.map,nx,ny);if(!ROOMS[nid])return false;
  const snap=document.createElement('canvas');snap.width=SW;snap.height=SH-HUD;snap.getContext('2d').drawImage(cv,0,HUD,SW,SH-HUD,0,0,SW,SH-HUD);
- G.rx=nx;G.ry=ny;if(d===1)G.x=6;if(d===3)G.x=RW*16-6;if(d===0)G.y=RH*16-5;if(d===2)G.y=6;enterRoom();trans={d,t:0,snap};return true;}
+ G.rx=nx;G.ry=ny;if(d===1)G.x=10;if(d===3)G.x=RW*16-10;if(d===0)G.y=RH*16-10;if(d===2)G.y=10;enterRoom();trans={d,t:0,snap};return true;}
 async function warpTo(w){mode='warp';SFX.door();for(let i=0;i<=8;i++){flash=i/8;await wait(25);}
  G.map=w[0];G.rx=w[1];G.ry=w[2];G.x=w[3]*16+8;G.y=w[4]*16+10;G.dir=w[0]==='ow'?2:0;enterRoom();
  for(let i=8;i>=0;i--){flash=i/8;await wait(25);}mode='play';const rm=curRoom();if(rm.dun&&rm.id===rid(G.map,0,1)&&!G.flags['seen'+rm.dun]){G.flags['seen'+rm.dun]=1;await say(`――${rm.name}――`);}
@@ -676,7 +676,7 @@ function uiInput(dt){const s=TGPad.stick;const d=Math.abs(s.y)>.5?(s.y>0?2:0):-1
 let last=performance.now(),TT=0;
 function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;TT+=dt;
  try{uiInput(dt);if(trans){trans.t+=dt/.4;if(trans.t>=1)trans=null;}shake=Math.max(0,shake-dt);
-  if(mode==='play'){const n=window.tgAuto?2:1;for(let i=0;i<n;i++)update(dt);}else if(!STACK.length)IN.ev.length=0;
+  if(mode==='play'){const n=window.tgAuto?3:1;for(let i=0;i<n;i++)update(dt);}else if(!STACK.length)IN.ev.length=0;
   render(TT);}catch(e){console.error(e);}
  requestAnimationFrame(frame);}
 requestAnimationFrame(frame);
