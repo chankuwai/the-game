@@ -197,8 +197,28 @@ li.rt{flex-wrap:wrap}
 /* 1体ずつ出す */
 .rndlist li.pend{visibility:hidden}
 .rndlist li.pop{animation:rndpop .38s cubic-bezier(.2,1.3,.4,1) both}
+/* ウルトラマン系はキラッと */
+.rndlist li.uh{position:relative;overflow:hidden;border-color:#d9a92b;background:linear-gradient(135deg,var(--bg) 60%,rgba(240,195,70,.18))}
+.rndlist li.uh .rnm::after{content:" ✦";color:#d9a92b;font-size:.8em}
+.rndlist li.shine{animation:rndpop .38s cubic-bezier(.2,1.3,.4,1) both,uhglow 1.1s ease-out .2s 2}
+.rndlist li.shine::after{content:"";position:absolute;inset:-40% auto -40% -60%;width:45%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.85),transparent);transform:skewX(-20deg);animation:uhsweep .9s ease-out .25s 1 both;pointer-events:none}
+.rndlist li.shine::before{content:"✦　✧　✦";position:absolute;right:10px;top:4px;color:#e8b830;font-size:14px;letter-spacing:2px;animation:uhstar 1.4s ease-out .2s 1 both;pointer-events:none}
+@keyframes uhglow{0%{box-shadow:0 0 0 0 rgba(240,190,50,.0)}35%{box-shadow:0 0 0 3px rgba(240,190,50,.9),0 0 22px 6px rgba(255,215,90,.75)}100%{box-shadow:0 0 0 0 rgba(240,190,50,0)}}
+@keyframes uhsweep{from{left:-60%}to{left:130%}}
+@keyframes uhstar{0%{opacity:0;transform:translateY(8px) scale(.6)}30%{opacity:1;transform:translateY(-2px) scale(1.15)}100%{opacity:0;transform:translateY(-14px) scale(.9)}}
+@media (prefers-reduced-motion:reduce){.rndlist li.shine,.rndlist li.shine::after,.rndlist li.shine::before{animation:none}}
 .rndlist li.wait{border:2px dashed var(--line);background:var(--surface)}
 .rndlist li.wait .rnm{color:var(--muted);font-size:20px}
+.rndlist li.wait .rnm::after{content:none}
+.rndlist li.wait .rhint{display:none;font-size:11px;color:var(--muted)}
+.rndlist li.wait.next{border-color:var(--mark);border-style:solid;cursor:pointer;animation:rndnext 1.2s ease-in-out infinite}
+.rndlist li.wait.next .rhint{display:block}
+.rndlist li.wait.next .rn{opacity:1}
+@keyframes rndnext{0%,100%{transform:none}50%{transform:translateY(-3px)}}
+.rndlist li.flip{animation:rndflip .45s ease-out both}
+.rndlist li.flip.shine{animation:rndflip .45s ease-out both,uhglow 1.1s ease-out .3s 2}
+@keyframes rndflip{0%{transform:perspective(600px) rotateY(90deg);opacity:.3}100%{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.rndlist li.flip,.rndlist li.wait.next{animation:none}}
 .rndlist li.wait .rn{opacity:.45}
 .rndlist li.spin{border:2px dashed var(--mark);background:var(--surface)}
 .rndlist li.spin .rb{animation:rndroll .12s linear infinite}
@@ -2598,28 +2618,48 @@ document.getElementById('rndgroups').addEventListener('change',e=>{const t=e.tar
 document.getElementById('rndgroups').addEventListener('click',e=>{const a=e.target.dataset.all,n=e.target.dataset.none; if(!a&&!n)return;
   const sel=new Set(rsel.s); DATA.forEach(d=>{if((a||n)==='both'||d[0]===(a||n)){a?sel.add(d[1]):sel.delete(d[1])}}); rsel.s=DATA.map(d=>d[1]).filter(x=>sel.has(x)); saveR(); drawPicks();});
 document.getElementById('rndmark').addEventListener('change',()=>{saveR();drawPicks()});
+const ULTRA_EXTRA=new Set(['ゾフィー','アストラ','ユリアン','ウルトラの父','ウルトラの母','エレク','ロト','アミア','イーヴィルティガ','ティガダーク','トリガーダーク','イーヴィルトリガー','ダークザギ','ダークファウスト','ダークメフィスト','ダークメフィスト（ツヴァイ）','ゾーフィ']);
+function isUltra(it){return /^(主役|初登場)ウルトラマン$/.test(it.a)||/ウルトラ(マン|セブン|ウーマン)/.test(it.n)||ULTRA_EXTRA.has(it.n)}
 function rndCards(list,edit){return '<ol class="rndlist">'+list.map(({s,it},k)=>{
   const head=`<span class="rn">${k+1}</span><span class="rb"><span class="rs">${esc(s.title)} ${it.no}</span>${it.a?`<span class="ra">${esc(it.a)}</span>`:''}<span class="rnm">${esc(it.n)}</span></span>`;
   const mk=marks[it.id]?`<span class="rm">${marks[it.id]===3?'△':'○'}</span>`:'';
-  if(app==='zukan')return `<li>${head}${mk}</li>`;
-  if(app==='score')return `<li class="sc">${head}${mk}${edit?scoreCtl(it.id):`<span class="rv">${scores[it.id]!=null?scores[it.id]+'点':'-'}</span>`}</li>`;
-  return `<li class="rt">${head}${mk}${edit?rateCtl(it.id):`<span class="rvs">${rateStr(it.id)}</span>`}</li>`;}).join('')+'</ol>'}
+  const uh=isUltra(it)?' uh':'';
+  if(app==='zukan')return `<li class="${uh}">${head}${mk}</li>`;
+  if(app==='score')return `<li class="sc${uh}">${head}${mk}${edit?scoreCtl(it.id):`<span class="rv">${scores[it.id]!=null?scores[it.id]+'点':'-'}</span>`}</li>`;
+  return `<li class="rt${uh}">${head}${mk}${edit?rateCtl(it.id):`<span class="rvs">${rateStr(it.id)}</span>`}</li>`;}).join('')+'</ol>'}
 function setsHtml(sets,edit){return sets.length===1?rndCards(sets[0],edit):sets.map((l,i)=>l.length?`<div class="rset"><h4 class="rsh ${i?'b':'a'}">${i+1}組目</h4>${rndCards(l,edit)}</div>`:'').join('')}
 let curSets=null, revealT=null;
-let revealGen=0;
+let revealGen=0, revealNext=null;
+// 画面のどこをタッチしても次の1枚をめくる（操作部品のタッチは除く）
+document.addEventListener('click',e=>{
+  if(!revealNext||document.getElementById('rnd').hidden)return;
+  if(e.target.closest('#rndbar,button,a,input,select,label,summary,.rndpick,.rndhist'))return;
+  revealNext();
+});
+document.addEventListener('keydown',e=>{if(revealNext&&(e.key===' '||e.key==='Enter')&&!e.target.closest('input,select,button,textarea')){e.preventDefault();revealNext()}});
 function revealCards(out,pool){
   if(revealT&&revealT.clear)revealT.clear(); else clearTimeout(revealT); const gen=++revealGen;
   const lists=[...out.querySelectorAll('.rndlist')].map(l=>[...l.children]);
   const n=Math.max(0,...lists.map(l=>l.length));
-  if(matchMedia('(prefers-reduced-motion: reduce)').matches||!pool||!pool.length)return;
+  revealNext=null;
+  if(!pool||!pool.length)return;
   const finals=new Map(); lists.flat().forEach(li=>{finals.set(li,li.innerHTML);li.classList.add('pend')});
-  // 1番から順に出す（1番は約2秒後、以降は約0.9秒ごと）
-  const timers=[]; revealT={clear:()=>timers.forEach(clearTimeout)};
+  // 画面をタッチするたびに1枚ずつめくる（2組のときは同じ番号を2枚同時に）
+  revealT=null;
+  const steps=[];
   for(let k=0;k<n;k++){
     const lis=lists.map(l=>l[k]).filter(Boolean);
-    lis.forEach(li=>{li.classList.remove('pend');li.classList.add('wait');li.innerHTML=`<span class="rn">${k+1}</span><span class="rb"><span class="rnm">？</span></span>`});
-    timers.push(setTimeout(()=>{if(gen!==revealGen)return;lis.forEach(li=>{li.innerHTML=finals.get(li);li.classList.remove('wait');li.classList.add('pop')})},1800+k*900));
+    lis.forEach(li=>{li.classList.remove('pend');li.classList.add('wait');li.innerHTML=`<span class="rn">${k+1}</span><span class="rb"><span class="rnm">？</span><span class="rhint">タップでめくる</span></span>`});
+    steps.push(lis);
   }
+  let k=0;
+  const mark=()=>{steps.forEach((lis,i)=>lis.forEach(li=>li.classList.toggle('next',i===k)))};
+  mark();
+  revealNext=()=>{
+    if(gen!==revealGen||k>=steps.length)return false;
+    steps[k].forEach(li=>{li.innerHTML=finals.get(li);li.classList.remove('wait','next');li.classList.add('flip');if(li.classList.contains('uh'))li.classList.add('shine')});
+    k++; mark(); if(k>=steps.length)revealNext=null; return true;
+  };
 }
 
 let rhist=[];
