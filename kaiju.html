@@ -94,6 +94,29 @@ body:not(.mode-start) #start{display:none!important}
 .start .tg-home{justify-self:start}
 .start h1{font-size:28px;margin:0}
 .start p{margin:0;color:var(--muted);font-size:14px}
+.apps{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.appcard{display:grid;gap:8px;padding:16px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.apphead{display:flex;align-items:baseline;gap:10px}
+.apphead b{font-family:var(--display);font-weight:400;font-size:20px}
+.apphead .mi{font-family:var(--display);font-size:18px;color:var(--mark);min-width:2.6em}
+.appdesc{font-size:13px;color:var(--muted)}
+.appbtns{display:flex;gap:8px;flex-wrap:wrap}
+.appbtns button{font:inherit;font-size:14px;padding:9px 14px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer;flex:1 1 auto}
+.appbtns .main{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+li.sc,li.rt{cursor:default}
+.scin{font:inherit;font-size:16px;width:4.2em;padding:6px 6px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);text-align:center;font-variant-numeric:tabular-nums;flex:none}
+.scin.has{border-color:var(--mark);color:var(--mark);font-weight:700}
+li.rt{flex-wrap:wrap}
+.rates{flex-basis:100%;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;padding-left:2.6em}
+.rates label{display:grid;gap:2px;justify-items:center;font-size:11px;color:var(--muted)}
+.rates select{font:inherit;font-size:16px;width:100%;padding:3px 0;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg);text-align:center;text-align-last:center}
+.rates select.has{border-color:var(--mark);color:var(--mark);font-weight:700}
+.mkb{font-size:12px;color:var(--mark);margin-left:6px}
+.mkb.t{color:var(--mark2)}
+.rndlist li.sc,.rndlist li.rt{flex-wrap:wrap}
+.rndlist .rates{padding-left:0}
+.rndlist .rv{margin-left:auto;font-size:18px;font-weight:700;color:var(--mark);font-variant-numeric:tabular-nums}
+.rndlist .rvs{flex-basis:100%;font-size:13px;color:var(--fg);letter-spacing:.02em}
 .modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
 .modes button{font:inherit;text-align:left;display:grid;gap:6px;padding:18px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--fg);cursor:pointer}
 .modes button:hover,.modes button:focus-visible{border-color:var(--mark)}
@@ -186,20 +209,24 @@ body:not(.mode-start) #start{display:none!important}
 <div class="wrap">
 <section class="start" id="start">
   <a class="tg-home" href="index.html">← ゲーム一覧</a>
-  <h1>怪獣チェック図鑑</h1>
+  <h1>怪獣図鑑</h1>
   <p id="startinfo">ウルトラシリーズとゴジラシリーズの怪獣</p>
-  <div class="modes">
-    <button type="button" id="gozukan"><span class="mi">○△</span><b>図鑑モード</b><span>怪獣をタップして○と△をつけ、数を数える</span></button>
-    <button type="button" id="gornd"><span class="mi">6</span><b>ランダム6体モード</b><span>選んだ作品の怪獣から、ランダムに6体を選ぶ</span></button>
+  <div class="apps">
+    <div class="appcard"><div class="apphead"><span class="mi">○△</span><b>怪獣図鑑</b></div><span class="appdesc">怪獣をタップして○と△をつけ、数を数える</span>
+      <div class="appbtns"><button type="button" class="main" data-go="list" data-app="zukan">図鑑をひらく</button><button type="button" data-go="rnd" data-app="zukan">6体ランダム</button></div></div>
+    <div class="appcard"><div class="apphead"><span class="mi">100</span><b>怪獣採点</b></div><span class="appdesc">怪獣ごとに1〜100点をつける</span>
+      <div class="appbtns"><button type="button" class="main" data-go="list" data-app="score">採点をひらく</button><button type="button" data-go="rnd" data-app="score">6体ランダム</button></div></div>
+    <div class="appcard"><div class="apphead"><span class="mi">S〜G</span><b>怪獣評価</b></div><span class="appdesc">近接・遠隔・耐久・特殊・技巧の5項目を S〜G で評価する</span>
+      <div class="appbtns"><button type="button" class="main" data-go="list" data-app="rate">評価をひらく</button><button type="button" data-go="rnd" data-app="rate">6体ランダム</button></div></div>
   </div>
 </section>
 <header>
   <a class="tg-home" href="index.html">← ゲーム一覧</a><button type="button" class="tomode" data-tomode>モード選択へ</button>
   <div class="top">
-    <h1>怪獣チェック図鑑</h1>
+    <h1 id="apptitle">怪獣チェック図鑑</h1>
     <div class="count"><span class="big" id="tot">0</span><span class="of"> / <span id="all">0</span> 体</span></div>
   </div>
-  <div class="sub"><span>ウルトラ <b id="cu">0</b></span><span>ゴジラ <b id="cg">0</b></span><span>○ <b id="c1">0</b></span><span class="w2">△ <b id="c2">0</b></span><span id="pct">0%</span></div>
+  <div class="sub" id="subline"></div>
   <div class="bar"><i id="barfill"></i></div>
   <div class="controls">
     <input id="q" type="search" placeholder="名前・別名で検索">
@@ -210,6 +237,7 @@ body:not(.mode-start) #start{display:none!important}
       <button type="button" data-f="on1" aria-pressed="false">○だけ</button>
       <button type="button" data-f="on2" aria-pressed="false">△だけ</button>
       <button type="button" data-f="off" aria-pressed="false">未チェック</button>
+      <button type="button" data-f="todo" aria-pressed="false" id="todobtn" hidden>未採点</button>
     </div>
     <select id="jump" aria-label="作品へ移動"><option value="">作品へジャンプ</option></select>
   </div>
@@ -219,7 +247,7 @@ body:not(.mode-start) #start{display:none!important}
 <div class="rndbar" id="rndbar"><div class="rndbarin">
   <div class="rndhead">
     <button type="button" id="rndclose" class="rndx">← モード選択へ</button>
-    <h3>ランダム6体モード</h3>
+    <h3 id="rndtitle">ランダム6体モード</h3>
   </div>
   <div class="rndopts">
     <div class="rndleft">
@@ -257,7 +285,7 @@ body:not(.mode-start) #start{display:none!important}
   <button type="button" id="shareopen" class="primary">結果を共有</button>
   <button type="button" id="openall">全部ひらく</button>
   <button type="button" id="closeall">全部たたむ</button>
-  <button type="button" id="reset" class="danger">○を全部消す</button>
+  <button type="button" id="reset" class="danger">○△を全部消す</button>
   <span id="confirm" hidden>本当に消す？ <button type="button" id="yes" class="danger">消す</button> <button type="button" id="no">やめる</button></span>
 </div>
 <div class="share" id="share" hidden>
@@ -2223,6 +2251,16 @@ let marks=load(KEY,{}), custom=load(CKEY,[]), closed=load(OKEY,{});
 // 旧◎(2)は○(1)に戻す。△は3
 Object.keys(marks).forEach(k=>{if(marks[k]===2)marks[k]=1}); save(KEY,marks);
 let filter='all', query='';
+const SKEY='kaiju-score-v1', RTKEY='kaiju-rate-v1';
+let scores=load(SKEY,{}), rates=load(RTKEY,{});
+const RK5=['近接','遠隔','耐久','特殊','技巧'], GR=['S','A','B','C','D','E','F','G'];
+let app='zukan';
+const APPN={zukan:'怪獣チェック図鑑',score:'怪獣採点',rate:'怪獣評価'};
+function isDone(id){return app==='score'?scores[id]!=null:app==='rate'?!!(rates[id]&&rates[id].some(Boolean)):!!marks[id]}
+function rateStr(id){const r=rates[id]||[];return RK5.map((k,i)=>k[0]+(r[i]||'-')).join(' ')}
+function scoreCtl(id){const v=scores[id];return `<input class="scin${v!=null?' has':''}" type="number" inputmode="numeric" min="1" max="100" placeholder="点" data-sid="${esc(id)}" value="${v!=null?v:''}" aria-label="点数">`}
+function rateCtl(id){const r=rates[id]||[];return '<span class="rates">'+RK5.map((k,i)=>`<label>${k}<select data-rid="${esc(id)}" data-k="${i}" class="${r[i]?'has':''}" aria-label="${k}"><option value="">-</option>${GR.map(g=>`<option${r[i]===g?' selected':''}>${g}</option>`).join('')}</select></label>`).join('')+'</span>'}
+function mkBadge(id){return marks[id]?`<span class="mkb${marks[id]===3?' t':''}">${marks[id]===3?'△':'○'}</span>`:''}
 
 function build(){
   return DATA.map(([type,title,yr,txt],si)=>{
@@ -2247,23 +2285,31 @@ function render(){
       if(filter==='off'&&marks[it.id]) return false;
       if(filter==='on2'&&marks[it.id]!==3) return false;
       if(filter==='on1'&&marks[it.id]!==1) return false;
+      if(filter==='todo'&&isDone(it.id)) return false;
       return true});
-    if(!vis.length&&(query||filter==='on1'||filter==='on2'||filter==='off')) return;
-    const sOn=s.items.filter(it=>marks[it.id]).length, s2=s.items.filter(it=>marks[it.id]===3).length;
+    if(!vis.length&&(query||filter==='on1'||filter==='on2'||filter==='off'||filter==='todo')) return;
+    const sOn=s.items.filter(it=>isDone(it.id)).length, s2=app==='zukan'?s.items.filter(it=>marks[it.id]===3).length:0;
     const isClosed=closed[s.title]&&!query;
     html+=`<section id="s${s.si}" class="${isClosed?'closed':''}"><div class="sh" data-t="${esc(s.title)}" role="button" tabindex="0" aria-expanded="${!isClosed}"><h2><span class="tag ${s.type===G?'g':''}">${s.type===G?'ゴジラ':'ウルトラ'}</span>${esc(s.title)}<span class="yr">${s.yr}</span></h2><span class="n"><b>${sOn}</b> / ${s.items.length}${s2?`<i>△${s2}</i>`:''}</span></div><ul>`+
-      vis.map(it=>`<li class="${marks[it.id]===3?'on on2':marks[it.id]?'on':''}" data-id="${esc(it.id)}" ${it.c?'data-c="1"':''} tabindex="0" role="checkbox" aria-checked="${marks[it.id]===3?'mixed':!!marks[it.id]}" aria-label="${esc(it.n)} ${marks[it.id]===3?'三角':marks[it.id]?'丸':'未チェック'}"><span class="no">${it.no}</span><span class="nm">${it.a?`<span class="al${/^(主役|初登場)ウルトラマン$/.test(it.a)?' hero':''}">${esc(it.a)}</span>`:''}<span class="na">${esc(it.n)}</span>${it.c?'<span class="cus">追加</span>':''}</span><span class="mk" aria-hidden="true">${marks[it.id]===3?'△':'○'}</span></li>`).join('')+`</ul></section>`;
+      vis.map(it=>app==='zukan'?`<li class="${marks[it.id]===3?'on on2':marks[it.id]?'on':''}" data-id="${esc(it.id)}" ${it.c?'data-c="1"':''} tabindex="0" role="checkbox" aria-checked="${marks[it.id]===3?'mixed':!!marks[it.id]}" aria-label="${esc(it.n)} ${marks[it.id]===3?'三角':marks[it.id]?'丸':'未チェック'}"><span class="no">${it.no}</span><span class="nm">${it.a?`<span class="al${/^(主役|初登場)ウルトラマン$/.test(it.a)?' hero':''}">${esc(it.a)}</span>`:''}<span class="na">${esc(it.n)}</span>${it.c?'<span class="cus">追加</span>':''}</span><span class="mk" aria-hidden="true">${marks[it.id]===3?'△':'○'}</span></li>`:`<li class="${app==='score'?'sc':'rt'}" data-id="${esc(it.id)}" ${it.c?'data-c="1"':''}><span class="no">${it.no}</span><span class="nm">${it.a?`<span class="al${/^(主役|初登場)ウルトラマン$/.test(it.a)?' hero':''}">${esc(it.a)}</span>`:''}<span class="na">${esc(it.n)}</span>${mkBadge(it.id)}${it.c?'<span class="cus">追加</span>':''}</span>${app==='score'?scoreCtl(it.id):rateCtl(it.id)}</li>`).join('')+`</ul></section>`;
   });
   listEl.innerHTML=html||'<p class="empty">見つからないわ。</p>';
-  document.getElementById('tot').textContent=on;
+  headerCounts();
+}
+function headerCounts(){
+  const series=build(); let all=0,done=0,cu=0,cg=0,c2=0,sum=0,full=0;
+  series.forEach(s=>s.items.forEach(it=>{all++; if(isDone(it.id)){done++; s.type===U?cu++:cg++;
+    if(app==='zukan'&&marks[it.id]===3)c2++; if(app==='score')sum+=scores[it.id]; if(app==='rate'&&rates[it.id].every(Boolean))full++;}}));
+  document.getElementById('tot').textContent=done;
   document.getElementById('all').textContent=all;
-  document.getElementById('cu').textContent=cu;
-  document.getElementById('cg').textContent=cg;
-  document.getElementById('c2').textContent=c2;
-  document.getElementById('c1').textContent=on-c2;
-  const p=all?Math.round(on/all*1000)/10:0;
-  document.getElementById('pct').textContent=p+'%';
+  const p=all?Math.round(done/all*1000)/10:0;
+  let sub=`<span>ウルトラ <b>${cu}</b></span><span>ゴジラ <b>${cg}</b></span>`;
+  if(app==='zukan') sub+=`<span>○ <b>${done-c2}</b></span><span class="w2">△ <b>${c2}</b></span>`;
+  if(app==='score') sub+=`<span>平均 <b>${done?Math.round(sum/done*10)/10:'-'}</b>点</span>`;
+  if(app==='rate') sub+=`<span>5項目そろった <b>${full}</b></span>`;
+  document.getElementById('subline').innerHTML=sub+`<span>${p}%</span>`;
   document.getElementById('barfill').style.width=p+'%';
+  // 旧ID互換
 }
 function updateCounts(){render()}
 
@@ -2271,26 +2317,42 @@ listEl.addEventListener('click',e=>{
   const sh=e.target.closest('.sh');
   if(sh){const t=sh.dataset.t;closed[t]=!closed[t];save(OKEY,closed);render();return}
   const li=e.target.closest('li');
-  if(li){const id=li.dataset.id; if(marks[id]===3)delete marks[id]; else if(marks[id])marks[id]=3; else marks[id]=1; save(KEY,marks); render();}
+  if(li&&app==='zukan'){const id=li.dataset.id; if(marks[id]===3)delete marks[id]; else if(marks[id])marks[id]=3; else marks[id]=1; save(KEY,marks); render();}
 });
 listEl.addEventListener('keydown',e=>{
   if(e.key!=='Enter'&&e.key!==' ')return;
-  const t=e.target; if(t.matches('li,.sh')){e.preventDefault();t.click()}
+  const t=e.target; if(t.matches('li,.sh')&&!(app!=='zukan'&&t.matches('li'))){e.preventDefault();t.click()}
 });
+function onEdit(e){
+  const t=e.target;
+  if(t.dataset.sid){const id=t.dataset.sid; let v=parseInt(t.value,10);
+    if(isNaN(v)){delete scores[id];t.value='';} else {v=Math.max(1,Math.min(100,v));scores[id]=v;t.value=v;}
+    t.classList.toggle('has',scores[id]!=null); save(SKEY,scores); syncEdits(id); headerCounts(); return true;}
+  if(t.dataset.rid){const id=t.dataset.rid,k=+t.dataset.k; const r=(rates[id]||['','','','','']).slice(); r[k]=t.value;
+    if(r.some(Boolean))rates[id]=r; else delete rates[id];
+    t.classList.toggle('has',!!t.value); save(RTKEY,rates); syncEdits(id); headerCounts(); return true;}
+  return false;
+}
+function syncEdits(id){document.querySelectorAll('[data-sid],[data-rid]').forEach(el=>{
+  if(el.dataset.sid===id&&el!==document.activeElement){const v=scores[id];el.value=v!=null?v:'';el.classList.toggle('has',v!=null)}
+  if(el.dataset.rid===id){const r=rates[id]||[];el.value=r[+el.dataset.k]||'';el.classList.toggle('has',!!el.value)}})}
+listEl.addEventListener('change',onEdit);
+document.getElementById('rnd').addEventListener('change',onEdit);
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.dataset&&e.target.dataset.sid){e.target.blur()}});
 let pressT;
 listEl.addEventListener('pointerdown',e=>{
   const li=e.target.closest('li[data-c]'); if(!li)return;
   pressT=setTimeout(()=>{
     const id=li.dataset.id; const [s,n]=[id.slice(0,id.indexOf('|')),id.slice(id.indexOf('|')+1)];
-    custom=custom.filter(c=>!(c.s===s&&c.n===n)); delete marks[id];
-    save(CKEY,custom); save(KEY,marks); render();
+    custom=custom.filter(c=>!(c.s===s&&c.n===n)); delete marks[id]; delete scores[id]; delete rates[id];
+    save(CKEY,custom); save(KEY,marks); save(SKEY,scores); save(RTKEY,rates); render();
   },700);
 });
 ['pointerup','pointerleave','pointercancel'].forEach(ev=>listEl.addEventListener(ev,()=>clearTimeout(pressT)));
 
 document.getElementById('q').addEventListener('input',e=>{query=e.target.value.trim();render()});
-document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>{
-  filter=b.dataset.f;document.querySelectorAll('.seg button').forEach(x=>x.setAttribute('aria-pressed',x===b));render()}));
+document.querySelectorAll('.controls .seg button').forEach(b=>b.addEventListener('click',()=>{
+  filter=b.dataset.f;document.querySelectorAll('.controls .seg button').forEach(x=>x.setAttribute('aria-pressed',x===b));render()}));
 
 // ランダム6体モード（裏機能）
 const rndEl=document.getElementById('rnd'), RK='kaiju-rnd-v2';
@@ -2298,7 +2360,7 @@ let rsel=(function(){const v=load(RK,null);return v&&Array.isArray(v.s)?v:{s:DAT
 if(!rsel.m)rsel.m=rsel.u?'none':'all';
 document.getElementById('rndmark').value=rsel.m;
 function saveR(){rsel.m=document.getElementById('rndmark').value;save(RK,rsel)}
-function rndOk(it){const v=marks[it.id];switch(rsel.m){case 'any':return !!v;case 'm1':return v===1;case 'm3':return v===3;case 'none':return !v;default:return true}}
+function rndOk(it){const v=marks[it.id];switch(rsel.m){case 'any':return !!v;case 'm1':return v===1;case 'm3':return v===3;case 'none':return !v;case 'done':return app!=='zukan'&&isDone(it.id);case 'todo':return app!=='zukan'&&!isDone(it.id);default:return true}}
 function drawPicks(){
   const sel=new Set(rsel.s);
   const groups=[[U,'ウルトラ',''],[G,'ゴジラ','g']];
@@ -2320,22 +2382,29 @@ document.getElementById('rndgroups').addEventListener('change',e=>{const t=e.tar
 document.getElementById('rndgroups').addEventListener('click',e=>{const a=e.target.dataset.all,n=e.target.dataset.none; if(!a&&!n)return;
   const sel=new Set(rsel.s); DATA.forEach(d=>{if((a||n)==='both'||d[0]===(a||n)){a?sel.add(d[1]):sel.delete(d[1])}}); rsel.s=DATA.map(d=>d[1]).filter(x=>sel.has(x)); saveR(); drawPicks();});
 document.getElementById('rndmark').addEventListener('change',()=>{saveR();drawPicks()});
-function rndCards(list,start){return '<ol class="rndlist">'+list.map(({s,it},k)=>`<li><span class="rn">${k+1}</span><span class="rb"><span class="rs">${esc(s.title)} ${it.no}</span>${it.a?`<span class="ra">${esc(it.a)}</span>`:''}<span class="rnm">${esc(it.n)}</span></span>${marks[it.id]?`<span class="rm">${marks[it.id]===3?'△':'○'}</span>`:''}</li>`).join('')+'</ol>'}
+function rndCards(list,edit){return '<ol class="rndlist">'+list.map(({s,it},k)=>{
+  const head=`<span class="rn">${k+1}</span><span class="rb"><span class="rs">${esc(s.title)} ${it.no}</span>${it.a?`<span class="ra">${esc(it.a)}</span>`:''}<span class="rnm">${esc(it.n)}</span></span>`;
+  const mk=marks[it.id]?`<span class="rm">${marks[it.id]===3?'△':'○'}</span>`:'';
+  if(app==='zukan')return `<li>${head}${mk}</li>`;
+  if(app==='score')return `<li class="sc">${head}${mk}${edit?scoreCtl(it.id):`<span class="rv">${scores[it.id]!=null?scores[it.id]+'点':'-'}</span>`}</li>`;
+  return `<li class="rt">${head}${mk}${edit?rateCtl(it.id):`<span class="rvs">${rateStr(it.id)}</span>`}</li>`;}).join('')+'</ol>'}
+function setsHtml(sets,edit){return sets.length===1?rndCards(sets[0],edit):sets.map((l,i)=>l.length?`<div class="rset"><h4 class="rsh ${i?'b':'a'}">${i+1}組目</h4>${rndCards(l,edit)}</div>`:'').join('')}
+let curSets=null;
 let rhist=[];
+function drawHist(){const w=document.getElementById('rndprevwrap'); if(!rhist.length){w.hidden=true;return}
+  w.hidden=false; document.getElementById('rndhistsum').textContent=`過去の結果（${rhist.length}回分）`;
+  document.getElementById('rndhistin').innerHTML=rhist.map((r,i)=>`<div class="rndprev"><h4>${i+1}回前の結果</h4><div class="rndout">${setsHtml(r.sets,false)}</div><p class="note">${esc(r.msg)}</p></div>`).join('');}
 function pickRandom(){
   saveR(); const sel=new Set(rsel.s); const pool=[]; const sets=rsel.g===2?2:1;
   build().filter(s=>sel.has(s.title)).forEach(s=>s.items.forEach(it=>{if(rndOk(it))pool.push({s,it})}));
   for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}
   const out=document.getElementById('rndlist');
-  if(out.children.length){rhist.unshift({html:out.innerHTML,msg:document.getElementById('rndmsg').textContent});rhist=rhist.slice(0,10);
-    const w=document.getElementById('rndprevwrap');w.hidden=false;
-    document.getElementById('rndhistsum').textContent=`過去の結果（${rhist.length}回分）`;
-    document.getElementById('rndhistin').innerHTML=rhist.map((r,i)=>`<div class="rndprev"><h4>${i+1}回前の結果</h4><div class="rndout">${r.html}</div><p class="note">${esc(r.msg)}</p></div>`).join('');}
-  if(sets===1){out.innerHTML=rndCards(pool.slice(0,6));}
-  else{const a=pool.slice(0,6),b=pool.slice(6,12);
-    out.innerHTML=`<div class="rset"><h4 class="rsh a">1組目</h4>${rndCards(a)}</div>`+(b.length?`<div class="rset"><h4 class="rsh b">2組目</h4>${rndCards(b)}</div>`:'');}
+  if(curSets){rhist.unshift({sets:curSets,msg:document.getElementById('rndmsg').textContent});rhist=rhist.slice(0,10);}
+  drawHist();
+  curSets=sets===1?[pool.slice(0,6)]:[pool.slice(0,6),pool.slice(6,12)];
+  out.innerHTML=setsHtml(curSets,true);
   const need=sets*6;
-  document.getElementById('rndmsg').textContent=!sel.size?'使う作品にチェックを入れてね。':pool.length?`${sel.size}作品の${{all:'',any:'○か△の',m1:'○の',m3:'△の',none:'未チェックの'}[rsel.m]}${pool.length}体から選んだわ。${sets===2&&pool.length>=need?'2組の間で同じ怪獣は出ないようにしてあるわ。':''}${pool.length<need?`候補が${need}体に足りないから、あるだけ出しておいたわ。`:''}`:(rsel.m==='all'?'選べる怪獣がいないわ。':'この条件に合う怪獣がいないわ。図鑑モードで○や△をつけてみてね。');
+  document.getElementById('rndmsg').textContent=!sel.size?'使う作品にチェックを入れてね。':pool.length?`${sel.size}作品の${{all:'',any:'○か△の',m1:'○の',m3:'△の',none:'未チェックの',done:app==='score'?'採点済みの':'評価済みの',todo:app==='score'?'未採点の':'未評価の'}[rsel.m]}${pool.length}体から選んだわ。${sets===2&&pool.length>=need?'2組の間で同じ怪獣は出ないようにしてあるわ。':''}${pool.length<need?`候補が${need}体に足りないから、あるだけ出しておいたわ。`:''}`:(rsel.m==='all'?'選べる怪獣がいないわ。':'この条件に合う怪獣がいないわ。図鑑モードで○や△をつけてみてね。');
 }
 // 範囲でまとめてチェック
 const rfS=document.getElementById('rndfrom'), rtS=document.getElementById('rndto');
@@ -2345,13 +2414,28 @@ rfS.value=0; rtS.value=DATA.length-1;
 document.getElementById('rndrangego').onclick=()=>{let a=+rfS.value,b=+rtS.value; if(a>b)[a,b]=[b,a];
   save('kaiju-rnd-range',{f:+rfS.value,t:+rtS.value}); rsel.s=DATA.slice(a,b+1).map(d=>d[1]); saveR(); drawPicks(); pickRandom(); toResults();};
 // モード切り替え
-function setMode(m){
+function setApp(a){
+  if(a!==app){app=a;rhist=[];curSets=null;document.getElementById('rndlist').innerHTML='';drawHist();filter='all';
+    document.querySelectorAll('.controls .seg button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.f==='all'));}
+  document.getElementById('apptitle').textContent=APPN[app];
+  document.getElementById('rndtitle').textContent=app==='zukan'?'ランダム6体モード':`${APPN[app]}：ランダム6体`;
+  const tb=document.getElementById('todobtn'); tb.hidden=app==='zukan'; tb.textContent=app==='score'?'未採点':'未評価';
+  document.getElementById('reset').textContent=app==='score'?'点数を全部消す':app==='rate'?'評価を全部消す':'○△を全部消す';
+  const sel=document.getElementById('rndmark'); const extra=[['done',app==='score'?'採点済みの怪獣だけ':'評価済みの怪獣だけ'],['todo',app==='score'?'未採点の怪獣だけ':'未評価の怪獣だけ']];
+  sel.querySelectorAll('option[data-x]').forEach(o=>o.remove());
+  if(app!=='zukan')extra.forEach(([v,t])=>{const o=new Option(t,v);o.dataset.x='1';sel.add(o)});
+  if(app==='zukan'&&(rsel.m==='done'||rsel.m==='todo'))rsel.m='all';
+  sel.value=rsel.m; document.title=APPN[app];
+}
+const HASH={list:{zukan:'#zukan',score:'#score',rate:'#rate'},rnd:{zukan:'#random',score:'#score-random',rate:'#rate-random'}};
+function setMode(m,a){
+  if(a)setApp(a);
   document.body.classList.toggle('mode-start',m==='start');
   document.body.classList.toggle('mode-rnd',m==='rnd');
   rndEl.hidden=m!=='rnd';
-  if(m==='rnd'){requestAnimationFrame(barH);drawPicks();if(!document.getElementById('rndlist').children.length)pickRandom();}
-  if(m==='zukan')render();
-  try{history.replaceState(null,'',location.pathname+location.search+(m==='rnd'?'#random':m==='zukan'?'#zukan':''))}catch(e){}
+  if(m==='rnd'){requestAnimationFrame(barH);drawPicks();if(!curSets)pickRandom();}
+  if(m==='list'||m==='zukan')render();
+  try{history.replaceState(null,'',location.pathname+location.search+(m==='start'?'':HASH[m==='zukan'?'list':m][app]))}catch(e){}
   scrollTo(0,0);
 }
 document.getElementById('startinfo').textContent=`ウルトラシリーズとゴジラシリーズの怪獣 ${build().reduce((n,s)=>n+s.items.length,0)}体・${DATA.length}作品`;
@@ -2362,18 +2446,17 @@ document.getElementById('rndgo').onclick=()=>{pickRandom();drawPicks();toResults
 function syncG(){document.querySelectorAll('[data-g]').forEach(b=>b.setAttribute('aria-pressed',String((rsel.g===2?2:1)===+b.dataset.g)));document.getElementById('rndgo').textContent=rsel.g===2?'6体×2組を選ぶ':'6体を選ぶ';}
 document.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{rsel.g=+b.dataset.g;saveR();syncG();pickRandom();toResults();});
 syncG();
-document.getElementById('gozukan').onclick=()=>setMode('zukan');
-document.getElementById('gornd').onclick=()=>setMode('rnd');
+document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>setMode(b.dataset.go,b.dataset.app));
 document.getElementById('rndclose').onclick=()=>setMode('start');
 document.querySelectorAll('[data-tomode]').forEach(b=>b.onclick=()=>setMode('start'));
-setMode(location.hash==='#random'?'rnd':location.hash==='#zukan'?'zukan':'start');
+(function(){const hs=location.hash;for(const m of ['list','rnd'])for(const a in HASH[m])if(HASH[m][a]===hs){setMode(m,a);return}setMode('start','zukan')})();
 const jump=document.getElementById('jump'), as=document.getElementById('as');
 DATA.forEach(([t,title],i)=>{jump.add(new Option(title,'s'+i)); as.add(new Option(title,title))});
 jump.addEventListener('change',()=>{
   if(!jump.value)return; const title=DATA[+jump.value.slice(1)][1];
   if(closed[title]){closed[title]=false;save(OKEY,closed)}
   filter='all';query='';document.getElementById('q').value='';
-  document.querySelectorAll('.seg button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.f==='all'));
+  document.querySelectorAll('.controls .seg button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.f==='all'));
   render(); const el=document.getElementById(jump.value);
   if(el){const y=el.getBoundingClientRect().top+scrollY-document.querySelector('header').offsetHeight-8;scrollTo({top:y,behavior:'smooth'})}
   jump.value='';
@@ -2388,22 +2471,25 @@ document.getElementById('closeall').onclick=()=>{DATA.forEach(d=>closed[d[1]]=tr
 const conf=document.getElementById('confirm');
 document.getElementById('reset').onclick=()=>{conf.hidden=false};
 document.getElementById('no').onclick=()=>{conf.hidden=true};
-document.getElementById('yes').onclick=()=>{marks={};save(KEY,marks);conf.hidden=true;render()};
+document.getElementById('yes').onclick=()=>{if(app==='score'){scores={};save(SKEY,scores)}else if(app==='rate'){rates={};save(RTKEY,rates)}else{marks={};save(KEY,marks)}conf.hidden=true;render()};
 
 // 共有
 let shareMode='count';
 function shareText(){
-  const series=build(); let all=0,on=0,w2=0; const rows=[];
+  const series=build(); let all=0,on=0,w2=0,sum=0; const rows=[];
   series.forEach(s=>{
-    const got=s.items.filter(it=>marks[it.id]); all+=s.items.length; on+=got.length; const g2=got.filter(it=>marks[it.id]===3).length; w2+=g2;
+    const got=s.items.filter(it=>isDone(it.id)); all+=s.items.length; on+=got.length;
+    const g2=app==='zukan'?got.filter(it=>marks[it.id]===3).length:0; w2+=g2;
+    const ss=app==='score'?got.reduce((a,it)=>a+scores[it.id],0):0; sum+=ss;
     if(!got.length)return;
-    if(shareMode==='count') rows.push(`${s.title} ${got.length}/${s.items.length}${g2?`（△${g2}）`:''}`);
-    else rows.push(`■${s.title}（${got.length}/${s.items.length}）\n`+got.map(it=>`${marks[it.id]===3?'△':'○'}${it.no}. ${it.a?it.a+' ':''}${it.n}`).join('\n'));
+    if(shareMode==='count') rows.push(`${s.title} ${got.length}/${s.items.length}`+(g2?`（△${g2}）`:'')+(app==='score'?` 平均${Math.round(ss/got.length*10)/10}点`:''));
+    else rows.push(`■${s.title}（${got.length}/${s.items.length}）\n`+got.map(it=>app==='zukan'?`${marks[it.id]===3?'△':'○'}${it.no}. ${it.a?it.a+' ':''}${it.n}`:app==='score'?`${it.no}. ${it.n}　${scores[it.id]}点`:`${it.no}. ${it.n}　${rateStr(it.id)}`).join('\n'));
   });
   const pct=all?Math.round(on/all*1000)/10:0;
-  const head=`【怪獣チェック図鑑】\n○ ${on-w2} 体　△ ${w2} 体（合計 ${on} / ${all} 体・${pct}%）`;
-  const url='\n\nhttps://chankuwai.github.io/the-game/kaiju.html';
-  return head+(rows.length?'\n\n'+rows.join(shareMode==='count'?'\n':'\n\n'):'\n\nまだ○が付いていないわ。')+url;
+  const head=app==='zukan'?`【怪獣チェック図鑑】\n○ ${on-w2} 体　△ ${w2} 体（合計 ${on} / ${all} 体・${pct}%）`:
+    app==='score'?`【怪獣採点】\n採点済み ${on} / ${all} 体　平均 ${on?Math.round(sum/on*10)/10:'-'} 点`:`【怪獣評価】\n評価済み ${on} / ${all} 体`;
+  const url='\n\nhttps://chankuwai.github.io/the-game/kaiju.html'+HASH.list[app];
+  return head+(rows.length?'\n\n'+rows.join(shareMode==='count'?'\n':'\n\n'):'\n\nまだ何もつけていないわ。')+url;
 }
 const shareEl=document.getElementById('share'), ta=document.getElementById('sharetext'), lineA=document.getElementById('line');
 function refreshShare(){const t=shareText(); ta.value=t; lineA.href='https://line.me/R/share?text='+encodeURIComponent(t);}
