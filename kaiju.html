@@ -168,6 +168,12 @@ li.rt{flex-wrap:wrap}
 .rndhist[open] summary::before{transform:rotate(90deg)}
 .rndhistin{display:grid;gap:14px;padding:0 14px 14px}
 .matchbar{display:grid;gap:8px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
+.mnames{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.matchbar{grid-template-columns:minmax(0,1fr)}
+.mnames input{flex:1 1 0;min-width:0;width:0;font:inherit;font-size:16px;font-weight:700;padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);text-align:center}
+.mnames .mna{color:var(--mark);border-color:var(--mark)} .mnames .mnb{color:var(--godzilla);border-color:var(--godzilla)}
+.mscore .tn{max-width:7em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rsh .tn{overflow-wrap:anywhere}
 .mscore{display:flex;align-items:baseline;justify-content:center;gap:10px;font-variant-numeric:tabular-nums}
 .mscore b{font-family:var(--display);font-weight:400;font-size:34px;line-height:1}
 .mscore .ma,.mscore #mwa{color:var(--mark)} .mscore .mb,.mscore #mwb{color:var(--godzilla)}
@@ -353,7 +359,8 @@ li.rt{flex-wrap:wrap}
 </div></div>
 <div id="rndspacer" aria-hidden="true"></div>
   <div class="matchbar" id="matchbar" hidden>
-    <div class="mscore"><span class="ma">1組目</span><b id="mwa">0</b><span class="mvs">勝 － 勝</span><b id="mwb">0</b><span class="mb">2組目</span></div>
+    <div class="mnames"><input id="mna" class="mna" maxlength="12" placeholder="1組目" aria-label="1組目の名前"><span>vs</span><input id="mnb" class="mnb" maxlength="12" placeholder="2組目" aria-label="2組目の名前"></div>
+    <div class="mscore"><span class="ma tn" data-side="a">1組目</span><b id="mwa">0</b><span class="mvs">勝 － 勝</span><b id="mwb">0</b><span class="mb tn" data-side="b">2組目</span></div>
     <div class="mdraw"><button type="button" class="drawbtn" id="mdrawbtn">引き分け（ノーカウント）</button><span id="mdc"></span></div>
     <div class="mctl"><label>先に <select id="mtarget" aria-label="何勝で優勝"><option value="0">決めない</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>7</option><option>10</option></select> 勝で優勝</label><button type="button" id="mundo">1つ戻す</button><button type="button" id="mreset">リセット</button></div>
     <p class="mstate" id="mstate"></p>
@@ -2669,7 +2676,7 @@ function rndCards(list,edit){return '<ol class="rndlist">'+list.map(({s,it},k)=>
   if(app==='zukan')return `<li class="${uh}">${head}${mk}</li>`;
   if(app==='score')return `<li class="sc${uh}">${head}${mk}${edit?scoreCtl(it.id):`<span class="rv">${scores[it.id]!=null?scores[it.id]+'点':'-'}</span>`}</li>`;
   return `<li class="rt${uh}">${head}${mk}${edit?rateCtl(it.id):`<span class="rvs">${rateStr(it.id)}</span>`}</li>`;}).join('')+'</ol>'}
-function setsHtml(sets,edit){return sets.length===1?rndCards(sets[0],edit):sets.map((l,i)=>l.length?`<div class="rset"><h4 class="rsh ${i?'b':'a'}">${i+1}組目${edit?`<button type="button" class="winbtn ${i?'b':'a'}" data-win="${i?'b':'a'}">${i+1}組目の勝ち</button>`:''}</h4>${rndCards(l,edit)}</div>`:'').join('')}
+function setsHtml(sets,edit){return sets.length===1?rndCards(sets[0],edit):sets.map((l,i)=>l.length?`<div class="rset"><h4 class="rsh ${i?'b':'a'}"><span class="tn" data-side="${i?'b':'a'}">${esc(tName(i?'b':'a'))}</span>${edit?`<button type="button" class="winbtn ${i?'b':'a'}" data-win="${i?'b':'a'}"><span class="tn" data-side="${i?'b':'a'}">${esc(tName(i?'b':'a'))}</span>の勝ち</button>`:''}</h4>${rndCards(l,edit)}</div>`:'').join('')}
 let curSets=null, revealT=null;
 let revealGen=0, revealNext=null;
 // 画面のどこをタッチしても次の1枚をめくる（操作部品のタッチは除く）
@@ -2763,14 +2770,18 @@ document.getElementById('rndgo').onclick=()=>{pickRandom();drawPicks();toResults
 // 勝敗カウント
 const MK='kaiju-match-v1';
 let match=(function(){const v=load(MK,null);return v&&Array.isArray(v.log)?v:{log:[],target:3}})();
+function tName(s){const n=((match&&match.names)||{})[s];return (n&&n.trim())||(s==='a'?'1組目':'2組目')}
+function syncNames(){document.querySelectorAll('.tn').forEach(el=>{el.textContent=tName(el.dataset.side)})}
 function mCount(){return {a:match.log.filter(x=>x==='a').length,b:match.log.filter(x=>x==='b').length}}
 function mChamp(){const c=mCount(),t=+match.target;return t&&(c.a>=t?'a':c.b>=t?'b':null)}
 function drawMatch(){
   const mb=document.getElementById('matchbar'); mb.hidden=rsel.g!==2;
   const c=mCount(); document.getElementById('mwa').textContent=c.a; document.getElementById('mwb').textContent=c.b;
   document.getElementById('mtarget').value=String(match.target||0);
+  const na=document.getElementById('mna'),nb=document.getElementById('mnb');
+  if(document.activeElement!==na)na.value=(match.names||{}).a||''; if(document.activeElement!==nb)nb.value=(match.names||{}).b||''; syncNames();
   const ch=mChamp(), t=+match.target;
-  document.getElementById('mstate').textContent=ch?`${ch==='a'?'1組目':'2組目'}の優勝！「リセット」で次の勝負を始めてね。`:t?`先に${t}勝した方の優勝。あと 1組目${Math.max(0,t-c.a)}勝・2組目${Math.max(0,t-c.b)}勝。`:'勝った組のボタンを押すと数えるわ。';
+  document.getElementById('mstate').textContent=ch?`${tName(ch)}の優勝！「リセット」で次の勝負を始めてね。`:t?`先に${t}勝した方の優勝。あと ${tName('a')}${Math.max(0,t-c.a)}勝・${tName('b')}${Math.max(0,t-c.b)}勝。`:'勝った組のボタンを押すと数えるわ。';
   document.querySelectorAll('.winbtn').forEach(b=>b.disabled=!!ch);
   document.getElementById('mdrawbtn').disabled=!!ch;
   const d=match.log.filter(x=>x==='d').length; document.getElementById('mdc').textContent=d?`引き分け ${d}回`:'';
@@ -2779,13 +2790,14 @@ function drawMatch(){
 function winFx(side,champ){
   const fx=document.getElementById('winfx'); const c=mCount();
   fx.className='winfx '+side+(champ?' champ':'');
-  fx.innerHTML=(side==='d'?`<div class="winbox"><span class="wt">泥仕合…</span><b>引き分け</b><span class="ws">ノーカウント　${c.a} 勝 － ${c.b} 勝のまま</span></div>`:`<div class="winbox"><span class="wt">${side==='a'?'1組目':'2組目'}</span><b>${champ?'優勝！':'勝利！'}</b><span class="ws">${c.a} 勝 － ${c.b} 勝</span></div>`)+
+  fx.innerHTML=(side==='d'?`<div class="winbox"><span class="wt">泥仕合…</span><b>引き分け</b><span class="ws">ノーカウント　${c.a} 勝 － ${c.b} 勝のまま</span></div>`:`<div class="winbox"><span class="wt">${esc(tName(side))}</span><b>${champ?'優勝！':'勝利！'}</b><span class="ws">${c.a} 勝 － ${c.b} 勝</span></div>`)+
     Array.from({length:side==='d'?0:champ?46:22},()=>`<i style="left:${Math.random()*100}%;animation-delay:${(Math.random()*.6).toFixed(2)}s;animation-duration:${(1.2+Math.random()*1.2).toFixed(2)}s;background:${['#e53935','#f2c14e','#2f6b4f','#ffffff','#4a7bd0'][Math.floor(Math.random()*5)]}"></i>`).join('');
   fx.hidden=false; clearTimeout(winFx.t); winFx.t=setTimeout(()=>{fx.hidden=true},champ?3200:1700);
 }
 document.getElementById('rnd').addEventListener('click',e=>{const b=e.target.closest('.winbtn');if(!b||mChamp())return;
   match.log.push(b.dataset.win); save(MK,match); drawMatch(); winFx(b.dataset.win,!!mChamp());});
 document.getElementById('mdrawbtn').onclick=()=>{if(mChamp())return;match.log.push('d');save(MK,match);drawMatch();winFx('d',false)};
+['a','b'].forEach(s=>document.getElementById('mn'+s).addEventListener('input',e=>{match.names=Object.assign({},match.names,{[s]:e.target.value});save(MK,match);syncNames();drawMatch()}));
 document.getElementById('mtarget').onchange=e=>{match.target=+e.target.value;save(MK,match);drawMatch()};
 document.getElementById('mundo').onclick=()=>{match.log.pop();save(MK,match);drawMatch()};
 document.getElementById('mreset').onclick=()=>{match.log=[];save(MK,match);drawMatch()};
