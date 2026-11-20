@@ -197,6 +197,9 @@ li.rt{flex-wrap:wrap}
 /* 1体ずつ出す */
 .rndlist li.pend{visibility:hidden}
 .rndlist li.pop{animation:rndpop .38s cubic-bezier(.2,1.3,.4,1) both}
+.rndlist li.wait{border:2px dashed var(--line);background:var(--surface)}
+.rndlist li.wait .rnm{color:var(--muted);font-size:20px}
+.rndlist li.wait .rn{opacity:.45}
 .rndlist li.spin{border:2px dashed var(--mark);background:var(--surface)}
 .rndlist li.spin .rb{animation:rndroll .12s linear infinite}
 .rndlist li.spin .rnm{color:var(--muted)}
@@ -2610,21 +2613,12 @@ function revealCards(out,pool){
   const n=Math.max(0,...lists.map(l=>l.length));
   if(matchMedia('(prefers-reduced-motion: reduce)').matches||!pool||!pool.length)return;
   const finals=new Map(); lists.flat().forEach(li=>{finals.set(li,li.innerHTML);li.classList.add('pend')});
-  const spinHtml=(no)=>{const x=pool[Math.floor(Math.random()*pool.length)];return `<span class="rn">${no}</span><span class="rb"><span class="rs">${esc(x.s.title)}</span><span class="rnm">${esc(x.it.n)}</span></span>`};
-  // 全カードが同時に回り始め、1番から順に止まる（スロット風）
+  // 1番から順に出す（1番は約2秒後、以降は約0.9秒ごと）
   const timers=[]; revealT={clear:()=>timers.forEach(clearTimeout)};
   for(let k=0;k<n;k++){
     const lis=lists.map(l=>l[k]).filter(Boolean);
-    lis.forEach(li=>{li.classList.remove('pend');li.classList.add('spin')});
-    const stopAt=1800+k*900; let t=0, delay=60;
-    const tick=()=>{
-      if(gen!==revealGen)return;
-      if(t>=stopAt){lis.forEach(li=>{li.innerHTML=finals.get(li);li.classList.remove('spin');li.classList.add('pop')});return}
-      lis.forEach(li=>li.innerHTML=spinHtml(k+1));
-      if(stopAt-t<800)delay=Math.min(delay*1.28,300);
-      t+=delay; timers.push(setTimeout(tick,delay));
-    };
-    tick();
+    lis.forEach(li=>{li.classList.remove('pend');li.classList.add('wait');li.innerHTML=`<span class="rn">${k+1}</span><span class="rb"><span class="rnm">？</span></span>`});
+    timers.push(setTimeout(()=>{if(gen!==revealGen)return;lis.forEach(li=>{li.innerHTML=finals.get(li);li.classList.remove('wait');li.classList.add('pop')})},1800+k*900));
   }
 }
 
