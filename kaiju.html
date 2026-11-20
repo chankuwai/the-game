@@ -11,7 +11,7 @@
 .tg-home:hover{color:var(--fg)}
 [hidden]{display:none!important}</style>
 <script>(function(){var id='kaiju';try{var a=JSON.parse(localStorage.getItem('tg_recent')||'[]').filter(function(x){return x.id!==id;});a.unshift({id:id,t:Date.now()});localStorage.setItem('tg_recent',JSON.stringify(a.slice(0,10)));}catch(e){}})();</script>
-<title>怪獣チェック図鑑</title>
+<title>超怪獣大全</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap">
 <style>
@@ -308,7 +308,7 @@ li.rt{flex-wrap:wrap}
 <div class="wrap">
 <section class="start" id="start">
   <a class="tg-home" href="index.html">← ゲーム一覧</a>
-  <h1>怪獣図鑑</h1>
+  <h1>超怪獣大全</h1>
   <p id="startinfo">ウルトラシリーズとゴジラシリーズの怪獣</p>
   <div class="apps">
     <div class="appcard"><div class="apphead"><span class="mi">○△</span><b>怪獣図鑑</b></div><span class="appdesc">怪獣をタップして○と△をつけ、数を数える</span>
@@ -322,7 +322,7 @@ li.rt{flex-wrap:wrap}
 <header>
   <a class="tg-home" href="index.html">← ゲーム一覧</a><button type="button" class="tomode" data-tomode>モード選択へ</button>
   <div class="top">
-    <h1 id="apptitle">怪獣チェック図鑑</h1>
+    <h1 id="apptitle">怪獣図鑑</h1>
     <div class="count"><span class="big" id="tot">0</span><span class="of"> / <span id="all">0</span> 体</span></div>
   </div>
   <div class="sub" id="subline"></div>
@@ -2537,7 +2537,7 @@ const SKEY='kaiju-score-v1', RTKEY='kaiju-rate-v1';
 let scores=load(SKEY,{}), rates=load(RTKEY,{});
 const RK5=['近接','遠隔','耐久','特殊','技巧'], GR=['S','A','B','C','D','E','F','G'];
 let app='zukan';
-const APPN={zukan:'怪獣チェック図鑑',score:'怪獣採点',rate:'怪獣評価'};
+const APPN={zukan:'怪獣図鑑',score:'怪獣採点',rate:'怪獣評価'};
 function isDone(id){return app==='score'?scores[id]!=null:app==='rate'?!!(rates[id]&&rates[id].some(Boolean)):!!marks[id]}
 function rateStr(id){const r=rates[id]||[];return RK5.map((k,i)=>k[0]+(r[i]||'-')).join(' ')}
 function scoreCtl(id){const v=scores[id];return `<input class="scin${v!=null?' has':''}" type="number" inputmode="numeric" min="1" max="100" placeholder="点" data-sid="${esc(id)}" value="${v!=null?v:''}" aria-label="点数">`}
@@ -2749,12 +2749,13 @@ function setApp(a){
   sel.querySelectorAll('option[data-x]').forEach(o=>o.remove());
   if(app!=='zukan')extra.forEach(([v,t])=>{const o=new Option(t,v);o.dataset.x='1';sel.add(o)});
   if(app==='zukan'&&(rsel.m==='done'||rsel.m==='todo'))rsel.m='all';
-  sel.value=rsel.m; document.title=APPN[app];
+  sel.value=rsel.m;
 }
 const HASH={list:{zukan:'#zukan',score:'#score',rate:'#rate'},rnd:{zukan:'#random',score:'#score-random',rate:'#rate-random'}};
 function setMode(m,a){
   if(a)setApp(a);
   document.body.classList.toggle('mode-start',m==='start');
+  document.title=m==='start'?'超怪獣大全':'超怪獣大全｜'+APPN[app];
   document.body.classList.toggle('mode-rnd',m==='rnd');
   rndEl.hidden=m!=='rnd';
   if(m==='rnd'){requestAnimationFrame(barH);drawPicks();if(!curSets)pickRandom();}
@@ -2845,8 +2846,8 @@ function shareText(){
     else rows.push(`■${s.title}（${got.length}/${s.items.length}）\n`+got.map(it=>app==='zukan'?`${marks[it.id]===3?'△':'○'}${it.no}. ${it.a?it.a+' ':''}${it.n}`:app==='score'?`${it.no}. ${it.n}　${scores[it.id]}点`:`${it.no}. ${it.n}　${rateStr(it.id)}`).join('\n'));
   });
   const pct=all?Math.round(on/all*1000)/10:0;
-  const head=app==='zukan'?`【怪獣チェック図鑑】\n○ ${on-w2} 体　△ ${w2} 体（合計 ${on} / ${all} 体・${pct}%）`:
-    app==='score'?`【怪獣採点】\n採点済み ${on} / ${all} 体　平均 ${on?Math.round(sum/on*10)/10:'-'} 点`:`【怪獣評価】\n評価済み ${on} / ${all} 体`;
+  const head=app==='zukan'?`【超怪獣大全｜怪獣図鑑】\n○ ${on-w2} 体　△ ${w2} 体（合計 ${on} / ${all} 体・${pct}%）`:
+    app==='score'?`【超怪獣大全｜怪獣採点】\n採点済み ${on} / ${all} 体　平均 ${on?Math.round(sum/on*10)/10:'-'} 点`:`【超怪獣大全｜怪獣評価】\n評価済み ${on} / ${all} 体`;
   const url='\n\nhttps://chankuwai.github.io/the-game/kaiju.html'+HASH.list[app];
   return head+(rows.length?'\n\n'+rows.join(shareMode==='count'?'\n':'\n\n'):'\n\nまだ何もつけていないわ。')+url;
 }
