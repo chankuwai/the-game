@@ -197,6 +197,11 @@ li.rt{flex-wrap:wrap}
 /* 1体ずつ出す */
 .rndlist li.pend{visibility:hidden}
 .rndlist li.pop{animation:rndpop .38s cubic-bezier(.2,1.3,.4,1) both}
+.rndlist li.spin{border:2px dashed var(--mark);background:var(--surface)}
+.rndlist li.spin .rb{animation:rndroll .12s linear infinite}
+.rndlist li.spin .rnm{color:var(--muted)}
+.rndlist li.spin .rs{opacity:.7}
+@keyframes rndroll{0%{transform:translateY(-4px)}50%{transform:translateY(3px)}100%{transform:translateY(-4px)}}
 @keyframes rndpop{0%{transform:scale(.6) translateY(10px);opacity:0}100%{transform:none;opacity:1}}
 @media (prefers-reduced-motion:reduce){.rndlist li.pop{animation:none}}
 /* 6体×2組は横並び */
@@ -2598,17 +2603,31 @@ function rndCards(list,edit){return '<ol class="rndlist">'+list.map(({s,it},k)=>
   return `<li class="rt">${head}${mk}${edit?rateCtl(it.id):`<span class="rvs">${rateStr(it.id)}</span>`}</li>`;}).join('')+'</ol>'}
 function setsHtml(sets,edit){return sets.length===1?rndCards(sets[0],edit):sets.map((l,i)=>l.length?`<div class="rset"><h4 class="rsh ${i?'b':'a'}">${i+1}組目</h4>${rndCards(l,edit)}</div>`:'').join('')}
 let curSets=null, revealT=null;
-function revealCards(out){
-  clearTimeout(revealT);
+let revealGen=0;
+function revealCards(out,pool){
+  if(revealT&&revealT.clear)revealT.clear(); else clearTimeout(revealT); const gen=++revealGen;
   const lists=[...out.querySelectorAll('.rndlist')].map(l=>[...l.children]);
-  const order=[]; const n=Math.max(0,...lists.map(l=>l.length));
-  for(let i=0;i<n;i++)lists.forEach(l=>{if(l[i])order.push(l[i])});
-  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
-  order.forEach(li=>li.classList.add('pend'));
-  const step=lists.length===2?320:450; let k=0;
-  const next=()=>{const li=order[k++]; if(!li)return; li.classList.remove('pend'); li.classList.add('pop'); revealT=setTimeout(next,step)};
-  revealT=setTimeout(next,120);
+  const n=Math.max(0,...lists.map(l=>l.length));
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches||!pool||!pool.length)return;
+  const finals=new Map(); lists.flat().forEach(li=>{finals.set(li,li.innerHTML);li.classList.add('pend')});
+  const spinHtml=(no)=>{const x=pool[Math.floor(Math.random()*pool.length)];return `<span class="rn">${no}</span><span class="rb"><span class="rs">${esc(x.s.title)}</span><span class="rnm">${esc(x.it.n)}</span></span>`};
+  // 全カードが同時に回り始め、1番から順に止まる（スロット風）
+  const timers=[]; revealT={clear:()=>timers.forEach(clearTimeout)};
+  for(let k=0;k<n;k++){
+    const lis=lists.map(l=>l[k]).filter(Boolean);
+    lis.forEach(li=>{li.classList.remove('pend');li.classList.add('spin')});
+    const stopAt=1800+k*900; let t=0, delay=60;
+    const tick=()=>{
+      if(gen!==revealGen)return;
+      if(t>=stopAt){lis.forEach(li=>{li.innerHTML=finals.get(li);li.classList.remove('spin');li.classList.add('pop')});return}
+      lis.forEach(li=>li.innerHTML=spinHtml(k+1));
+      if(stopAt-t<800)delay=Math.min(delay*1.28,300);
+      t+=delay; timers.push(setTimeout(tick,delay));
+    };
+    tick();
+  }
 }
+
 let rhist=[];
 function drawHist(){const w=document.getElementById('rndprevwrap'); if(!rhist.length){w.hidden=true;return}
   w.hidden=false; document.getElementById('rndhistsum').textContent=`過去の結果（${rhist.length}回分）`;
@@ -2623,7 +2642,7 @@ function pickRandom(){
   curSets=sets===1?[pool.slice(0,6)]:[pool.slice(0,6),pool.slice(6,12)];
   out.innerHTML=setsHtml(curSets,true);
   out.classList.toggle('two',sets===2);
-  revealCards(out);
+  revealCards(out,pool);
   const need=sets*6;
   document.getElementById('rndmsg').textContent=!sel.size?'使う作品にチェックを入れてね。':pool.length?`${sel.size}作品の${{all:'',any:'○か△の',m1:'○の',m3:'△の',none:'未チェックの',done:app==='score'?'採点済みの':'評価済みの',todo:app==='score'?'未採点の':'未評価の'}[rsel.m]}${pool.length}体から選んだわ。${sets===2&&pool.length>=need?'2組の間で同じ怪獣は出ないようにしてあるわ。':''}${pool.length<need?`候補が${need}体に足りないから、あるだけ出しておいたわ。`:''}`:(rsel.m==='all'?'選べる怪獣がいないわ。':'この条件に合う怪獣がいないわ。図鑑モードで○や△をつけてみてね。');
 }
