@@ -223,6 +223,13 @@ li.stamp{animation:rowflash .6s ease-out}
 @keyframes rowflash{0%{box-shadow:inset 0 0 0 100px rgba(255,255,255,.08)}100%{box-shadow:inset 0 0 0 100px rgba(255,255,255,0)}}
 li.unstamp .mk{animation:unstamp .25s ease-out}
 @keyframes unstamp{0%{transform:scale(1.15)}100%{transform:none}}
+.img{flex:none;display:grid;place-items:center;width:32px;height:32px;border-radius:50%;color:#8f97b3;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);text-decoration:none;transition:color .15s,border-color .15s,background .15s}
+.img:hover,.img:active{color:var(--gold);border-color:rgba(245,200,76,.6);background:rgba(245,200,76,.1)}
+.rndlist .img{width:30px;height:30px;margin-left:auto}
+.rndlist .img+.rm{margin-left:4px}
+.rndlist li.sc .img,.rndlist li.rt .img{margin-left:auto}
+.rndout.two .rndlist .img{width:26px;height:26px}
+.rndout.two .rndlist .img svg{width:14px;height:14px}
 .mkb{font-size:12px;color:var(--mark);margin-left:6px;font-weight:700}
 .mkb.t{color:var(--mark2)}
 /* 採点・評価 */
@@ -2771,6 +2778,8 @@ function toast(title){const t=document.createElement('div');t.className='toast';
 function seriesFull(title){const s=build().find(x=>x.title===title);return !!(s&&s.items.length&&s.items.every(it=>isDone(it.id)))}
 function tierOf(v){return v==null?'':v>=90?'s':v>=70?'a':v>=40?'b':v>=20?'c':'d'}
 let stampId=null;
+const IMGSVG='<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="10" r="1.8" fill="currentColor"/><path d="M4.5 17.5l5-5 3.5 3.5 2.5-2.5 4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>';
+function imgLink(s,it){const q=`${s.title.replace(/^映画 /,'')} ${it.n.replace(/（.*?）/g,'')}`;return `<a class="img" href="https://www.google.com/search?tbm=isch&q=${encodeURIComponent(q)}" target="_blank" rel="noopener" aria-label="${esc(it.n)}の画像を検索">${IMGSVG}</a>`}
 function stc(id){return stampId&&stampId.id===id?(stampId.k==='clear'?' unstamp':' stamp'):''}
 
 function build(){
@@ -2803,7 +2812,7 @@ function render(){
     const isClosed=closed[s.title]&&!query;
     const full=s.items.length&&sOn===s.items.length, spc=s.items.length?Math.round(sOn/s.items.length*1000)/10:0;
     html+=`<section id="s${s.si}" class="${s.type===G?'g':'u'}${isClosed?' closed':''}${full?' full':''}"><div class="sh" data-t="${esc(s.title)}" role="button" tabindex="0" aria-expanded="${!isClosed}"><h2><span class="tag ${s.type===G?'g':''}">${s.type===G?'GODZILLA':'ULTRA'}</span>${esc(s.title)}<span class="yr">${s.yr}</span>${full?'<span class="cpl">COMPLETE</span>':''}</h2><span class="n"><b>${sOn}</b> / ${s.items.length}${s2?`<i>△${s2}</i>`:''}</span><i class="sbar"><i style="width:${spc}%"></i></i></div><ul>`+
-      vis.map(it=>app==='zukan'?`<li class="${marks[it.id]===3?'on on2':marks[it.id]?'on':''}${stc(it.id)}" data-id="${esc(it.id)}" ${it.c?'data-c="1"':''} tabindex="0" role="checkbox" aria-checked="${marks[it.id]===3?'mixed':!!marks[it.id]}" aria-label="${esc(it.n)} ${marks[it.id]===3?'三角':marks[it.id]?'丸':'未チェック'}"><span class="no">${it.no}</span><span class="nm">${it.a?`<span class="al${/^(主役|初登場)ウルトラマン$/.test(it.a)?' hero':''}">${esc(it.a)}</span>`:''}<span class="na">${esc(it.n)}</span>${it.c?'<span class="cus">追加</span>':''}</span><span class="mk" aria-hidden="true">${marks[it.id]===3?'△':'○'}</span></li>`:`<li class="${app==='score'?'sc':'rt'}" data-id="${esc(it.id)}" ${it.c?'data-c="1"':''}><span class="no">${it.no}</span><span class="nm">${it.a?`<span class="al${/^(主役|初登場)ウルトラマン$/.test(it.a)?' hero':''}">${esc(it.a)}</span>`:''}<span class="na">${esc(it.n)}</span>${mkBadge(it.id)}${it.c?'<span class="cus">追加</span>':''}</span>${app==='score'?scoreCtl(it.id):rateCtl(it.id)}</li>`).join('')+`</ul></section>`;
+      vis.map(it=>app==='zukan'?`<li class="${marks[it.id]===3?'on on2':marks[it.id]?'on':''}${stc(it.id)}" data-id="${esc(it.id)}" ${it.c?'data-c="1"':''} tabindex="0" role="checkbox" aria-checked="${marks[it.id]===3?'mixed':!!marks[it.id]}" aria-label="${esc(it.n)} ${marks[it.id]===3?'三角':marks[it.id]?'丸':'未チェック'}"><span class="no">${it.no}</span><span class="nm">${it.a?`<span class="al${/^(主役|初登場)ウルトラマン$/.test(it.a)?' hero':''}">${esc(it.a)}</span>`:''}<span class="na">${esc(it.n)}</span>${it.c?'<span class="cus">追加</span>':''}</span>${imgLink(s,it)}<span class="mk" aria-hidden="true">${marks[it.id]===3?'△':'○'}</span></li>`:`<li class="${app==='score'?'sc':'rt'}" data-id="${esc(it.id)}" ${it.c?'data-c="1"':''}><span class="no">${it.no}</span><span class="nm">${it.a?`<span class="al${/^(主役|初登場)ウルトラマン$/.test(it.a)?' hero':''}">${esc(it.a)}</span>`:''}<span class="na">${esc(it.n)}</span>${mkBadge(it.id)}${it.c?'<span class="cus">追加</span>':''}</span>${imgLink(s,it)}${app==='score'?scoreCtl(it.id):rateCtl(it.id)}</li>`).join('')+`</ul></section>`;
   });
   stampId=null;
   listEl.innerHTML=html||'<p class="empty">見つからないわ。</p>';
@@ -2831,6 +2840,7 @@ function updateCounts(){render()}
 listEl.addEventListener('click',e=>{
   const sh=e.target.closest('.sh');
   if(sh){const t=sh.dataset.t;closed[t]=!closed[t];save(OKEY,closed);render();return}
+  if(e.target.closest('a.img'))return;
   const li=e.target.closest('li');
   if(li&&app==='zukan'){const id=li.dataset.id, t=id.slice(0,id.indexOf('|')), before=seriesFull(t); let k;
     if(marks[id]===3){delete marks[id];k='clear'} else if(marks[id]){marks[id]=3;k='sankaku'} else {marks[id]=1;k='maru'}
@@ -2914,7 +2924,7 @@ document.getElementById('rndmark').addEventListener('change',()=>{saveR();drawPi
 const ULTRA_EXTRA=new Set(['ゾフィー','アストラ','ユリアン','ウルトラの父','ウルトラの母','エレク','ロト','アミア','イーヴィルティガ','ティガダーク','トリガーダーク','イーヴィルトリガー','ダークザギ','ダークファウスト','ダークメフィスト','ダークメフィスト（ツヴァイ）','ゾーフィ']);
 function isUltra(it){return /^(主役|初登場)ウルトラマン$/.test(it.a)||/ウルトラ(マン|セブン|ウーマン)/.test(it.n)||ULTRA_EXTRA.has(it.n)}
 function rndCards(list,edit){return '<ol class="rndlist">'+list.map(({s,it},k)=>{
-  const head=`<span class="rn">${k+1}</span><span class="rb"><span class="rs">${esc(s.title)} ${it.no}</span>${it.a?`<span class="ra">${esc(it.a)}</span>`:''}<span class="rnm">${esc(it.n)}</span></span>`;
+  const head=`<span class="rn">${k+1}</span><span class="rb"><span class="rs">${esc(s.title)} ${it.no}</span>${it.a?`<span class="ra">${esc(it.a)}</span>`:''}<span class="rnm">${esc(it.n)}</span></span>${imgLink(s,it)}`;
   const mk=marks[it.id]?`<span class="rm">${marks[it.id]===3?'△':'○'}</span>`:'';
   const uh=(isUltra(it)?' uh':'')+(s.type===G?' gz':'');
   if(app==='zukan')return `<li class="${uh}">${head}${mk}</li>`;
@@ -2929,7 +2939,7 @@ document.addEventListener('click',e=>{
   if(e.target.closest('#rndbar,button,a,input,select,label,summary,.rndpick,.rndhist'))return;
   revealNext();
 });
-document.addEventListener('keydown',e=>{if(revealNext&&(e.key===' '||e.key==='Enter')&&!e.target.closest('input,select,button,textarea')){e.preventDefault();revealNext()}});
+document.addEventListener('keydown',e=>{if(revealNext&&(e.key===' '||e.key==='Enter')&&!e.target.closest('input,select,button,textarea,a')){e.preventDefault();revealNext()}});
 function revealCards(out,pool){
   clearTimeout(revealT); const gen=++revealGen; out.classList.remove('allin');
   const lists=[...out.querySelectorAll('.rndlist')].map(l=>[...l.children]);
