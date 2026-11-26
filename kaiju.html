@@ -432,6 +432,14 @@ li.rt{flex-wrap:wrap}
 .rndlist li.deal{animation:deal .45s cubic-bezier(.2,1.2,.4,1) var(--d,0ms) both}
 .rndlist li.deal.next{animation:deal .45s cubic-bezier(.2,1.2,.4,1) var(--d,0ms) both,rndnext 1.2s ease-in-out calc(var(--d,0ms) + .45s) infinite}
 @keyframes deal{0%{transform:translateY(-60px) rotate(-8deg) scale(.8);opacity:0}100%{transform:none;opacity:1}}
+.rndlist li.spin{cursor:pointer;border:1px solid #ffd75a;background:linear-gradient(150deg,#2c2645,#141828);box-shadow:0 0 0 2px rgba(255,215,90,.55),0 0 24px rgba(255,215,90,.35),inset 0 0 20px rgba(255,215,90,.08);animation:spinglow .5s ease-in-out infinite alternate}
+.rndlist li.spin::before,.rndlist li.spin::after{display:none}
+.rndlist li.spin .rnm{color:#fff;background:none;-webkit-text-fill-color:#fff}
+.rndlist li.spin .rnm::after{content:none}
+.rndlist li.spin .rb{overflow:hidden}
+.rndlist li.spin.tk .rb{animation:spintk .08s ease-out}
+@keyframes spintk{from{transform:translateY(-45%);opacity:.35;filter:blur(1.2px)}to{transform:none;opacity:1;filter:none}}
+@keyframes spinglow{from{box-shadow:0 0 0 2px rgba(255,215,90,.45),0 0 14px rgba(255,215,90,.25)}to{box-shadow:0 0 0 2px rgba(255,215,90,.9),0 0 30px rgba(255,215,90,.55)}}
 .rndlist li.flipout{animation:flipout .16s ease-in both!important}
 @keyframes flipout{to{transform:rotateY(90deg) scale(.96)}}
 .rndlist li.flip{animation:rndflip .32s cubic-bezier(.2,1.2,.4,1) both}
@@ -2759,6 +2767,8 @@ const SFX={
   sankaku(){tone(880,.12,{type:'triangle',vol:.18});tone(1320,.2,{type:'triangle',vol:.14,at:.06})},
   clear(){tone(420,.09,{type:'triangle',to:240,vol:.1})},
   set(){tone(660,.08,{type:'triangle',vol:.12});tone(990,.14,{type:'triangle',vol:.1,at:.05})},
+  tick(){tone(1700+Math.random()*300,.03,{type:'square',vol:.035})},
+  stop(){tone(1320,.09,{type:'triangle',vol:.14});tone(1760,.16,{type:'triangle',vol:.12,at:.07});noise(.1,{f:2000,vol:.15})},
   flip(){noise(.13,{f:2600,fto:700,q:.8,vol:.25})},
   deal(){for(let i=0;i<6;i++)noise(.05,{f:3200,q:1.5,vol:.13,at:i*.07})},
   ultra(){[1047,1319,1568,2093,2637].forEach((f,i)=>tone(f,.4,{type:'triangle',vol:.12,at:i*.055}));noise(.5,{ft:'highpass',f:6000,vol:.07,at:.05})},
@@ -2964,17 +2974,31 @@ function revealCards(out,pool){
   let k=0;
   const mark=()=>{steps.forEach((lis,i)=>lis.forEach(li=>li.classList.toggle('next',i===k)))};
   mark();
+  // タップするとルーレットが回って、だんだん遅くなって止まる（回っている間にタップすると即ストップ）
+  let spinning=false, skip=false;
   revealNext=()=>{
-    if(gen!==revealGen||k>=steps.length)return false;
-    const lis=steps[k]; k++; mark(); const last=k>=steps.length; if(last)revealNext=null;
-    lis.forEach(li=>{li.classList.remove('deal','next');li.classList.add('flipout')});
-    sfx('flip');
-    setTimeout(()=>{if(gen!==revealGen)return; let u=false;
-      lis.forEach(li=>{li.innerHTML=finals.get(li);li.classList.remove('wait','flipout');li.classList.add('flip');
+    if(gen!==revealGen)return false;
+    if(spinning){skip=true;return true}
+    if(k>=steps.length)return false;
+    const lis=steps[k]; k++; const num=k; mark(); const last=k>=steps.length;
+    spinning=true; skip=false; let i=0; const N=14;
+    lis.forEach(li=>{li.classList.remove('deal','next','wait');li.classList.add('spin')});
+    const tick=()=>{
+      if(gen!==revealGen){spinning=false;return}
+      if(i<N&&!skip){
+        lis.forEach(li=>{const r=pool[Math.floor(Math.random()*pool.length)];
+          li.innerHTML=`<span class="rn">${num}</span><span class="rb"><span class="rs">${esc(r.s.title)}</span>${r.it.a?`<span class="ra">${esc(r.it.a)}</span>`:''}<span class="rnm">${esc(r.it.n)}</span></span>`;
+          li.classList.remove('tk');void li.offsetWidth;li.classList.add('tk')});
+        sfx('tick'); i++; revealT=setTimeout(tick,35+Math.pow(i/N,2.4)*230); return;
+      }
+      let u=false;
+      lis.forEach(li=>{li.innerHTML=finals.get(li);li.classList.remove('spin','tk');li.classList.add('flip');
         if(li.classList.contains('uh')){li.classList.add('shine');u=true;burst(li,{n:26,flash:true})}});
-      if(u){sfx('ultra');buzz(30)}
-      if(last)setTimeout(()=>{if(gen===revealGen)out.classList.add('allin')},380);
-    },160);
+      sfx('stop'); if(u){sfx('ultra');buzz(30)} else buzz(12);
+      spinning=false;
+      if(last){revealNext=null;setTimeout(()=>{if(gen===revealGen)out.classList.add('allin')},380)}
+    };
+    tick();
     return true;
   };
 }
