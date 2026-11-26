@@ -351,6 +351,14 @@ li.rt{flex-wrap:wrap}
 .rline:active{transform:translateY(2px);box-shadow:0 1px 0 #04732f}
 .rcopy{font:inherit;font-size:14px;padding:9px 14px;border-radius:12px;border:1px solid var(--line);background:var(--surface2);color:var(--fg);cursor:pointer}
 .rsmsg{font-size:12px;color:var(--muted)}
+.rimg{font:inherit;font-size:15px;font-weight:700;padding:10px 16px;border-radius:12px;border:none;cursor:pointer;color:#2a1c00;background:linear-gradient(180deg,#ffe27a,#d39614);box-shadow:0 3px 0 #7a5206}
+.rimg:active{transform:translateY(2px);box-shadow:0 1px 0 #7a5206}
+a.rcopy{text-decoration:none;display:inline-block}
+.shotov{position:fixed;inset:0;z-index:90;display:grid;justify-items:center;align-items:start;padding:calc(env(safe-area-inset-top,0px) + 16px) 16px 32px;background:rgba(0,0,0,.85);overflow:auto}
+.shotbox{display:grid;gap:10px;justify-items:center;max-width:520px;width:100%}
+.shotbox p{margin:0;color:#fff;font-size:13px;text-align:center}
+.shotbox img{width:100%;height:auto;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.6);-webkit-touch-callout:default}
+.shotbtns{display:flex;gap:8px}
 .matchbar{position:relative;display:grid;grid-template-columns:minmax(0,1fr);gap:8px;padding:12px;border-radius:16px;overflow:hidden;
   background:radial-gradient(80% 120% at 0% 50%,rgba(255,68,54,.22),transparent 60%),radial-gradient(80% 120% at 100% 50%,rgba(47,210,127,.2),transparent 60%),linear-gradient(180deg,#141a2c,#0b0e19);
   border:1px solid rgba(255,255,255,.08);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 8px 22px rgba(0,0,0,.4)}
@@ -573,7 +581,7 @@ li.rt{flex-wrap:wrap}
   </div>
   <div class="rndout" id="rndlist"></div>
   <p class="note" id="rndmsg"></p>
-  <div class="rndshare" id="rndshare" hidden><a id="rndline" class="rline" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 3C6.5 3 2 6.6 2 11c0 3.9 3.5 7.2 8.3 7.9.3.1.8.2.9.5.1.3.1.7 0 1l-.1.9c0 .3-.2 1 .9.5s5.8-3.4 7.9-5.9C21.3 14.3 22 12.7 22 11c0-4.4-4.5-8-10-8z"/></svg>LINEで送る</a><button type="button" id="rndcopy" class="rcopy">コピー</button><span class="rsmsg" id="rndsharemsg"></span></div>
+  <div class="rndshare" id="rndshare" hidden><a id="rndline" class="rline" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 3C6.5 3 2 6.6 2 11c0 3.9 3.5 7.2 8.3 7.9.3.1.8.2.9.5.1.3.1.7 0 1l-.1.9c0 .3-.2 1 .9.5s5.8-3.4 7.9-5.9C21.3 14.3 22 12.7 22 11c0-4.4-4.5-8-10-8z"/></svg>LINEで送る</a><button type="button" id="rndimg" class="rimg">画像で送る</button><button type="button" id="rndcopy" class="rcopy">コピー</button><span class="rsmsg" id="rndsharemsg"></span></div>
   <details class="rndhist" id="rndprevwrap" hidden><summary id="rndhistsum">過去の結果</summary><div class="rndhistin" id="rndhistin"></div></details>
   <div class="rndpick">
     <div class="rndpickhead"><b>使う作品</b><span id="rndcount"></span></div>
@@ -3039,6 +3047,69 @@ document.getElementById('rndline').addEventListener('click',e=>{e.currentTarget.
 document.getElementById('rndcopy').onclick=()=>{const m=document.getElementById('rndsharemsg'),t=rndShareText();
   const ok=()=>{m.textContent='コピーしたわ。';setTimeout(()=>m.textContent='',2500)};
   try{navigator.clipboard.writeText(t).then(ok,()=>{m.textContent='コピーできなかったわ。LINEボタンを使ってね。'})}catch(e){m.textContent='コピーできなかったわ。LINEボタンを使ってね。'}};
+// ランダム結果を画像にしてLINEなどで送る
+function rr(x,X,Y,w,h,r){x.beginPath();x.moveTo(X+r,Y);x.arcTo(X+w,Y,X+w,Y+h,r);x.arcTo(X+w,Y+h,X,Y+h,r);x.arcTo(X,Y+h,X,Y,r);x.arcTo(X,Y,X+w,Y,r);x.closePath()}
+function fitFont(x,t,font,size,min,maxw){let s=size;x.font=font(s);while(s>min&&x.measureText(t).width>maxw){s-=1;x.font=font(s)}return s}
+function clip(x,t,maxw){if(x.measureText(t).width<=maxw)return t;while(t.length>1&&x.measureText(t+'…').width>maxw)t=t.slice(0,-1);return t+'…'}
+function rndShot(){
+  const two=curSets.length===2, W=1080, P=44, G=14;
+  const CH=app==='rate'?(two?190:176):(two?166:150);
+  const headH=two?(mChamp()?408:364):236, H=headH+6*(CH+G)+110;
+  const c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
+  const D=s=>`${s}px "Dela Gothic One","Hiragino Sans",sans-serif`, B=s=>`${s}px "Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",sans-serif`, BB=s=>`700 ${s}px "Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",sans-serif`;
+  let g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,'#10152a');g.addColorStop(1,'#06070d');x.fillStyle=g;x.fillRect(0,0,W,H);
+  [[0,0,'rgba(255,60,40,.22)'],[W,H,'rgba(40,210,130,.16)']].forEach(([cx,cy,col])=>{const r=x.createRadialGradient(cx,cy,0,cx,cy,W*.8);r.addColorStop(0,col);r.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=r;x.fillRect(0,0,W,H)});
+  x.fillStyle='rgba(255,255,255,.035)';for(let yy=0;yy<H;yy+=14)for(let xx=(yy/14%2)*7;xx<W;xx+=14){x.beginPath();x.arc(xx,yy,1.4,0,7);x.fill()}
+  const gold=(y0,y1)=>{const q=x.createLinearGradient(0,y0,0,y1);q.addColorStop(0,'#fffbe0');q.addColorStop(.4,'#ffe061');q.addColorStop(.55,'#d18f10');q.addColorStop(.75,'#ffe682');q.addColorStop(1,'#a5650a');return q};
+  // タイトル
+  x.save();const cx0=P+46,cy0=96;x.fillStyle='#e2261a';x.beginPath();x.arc(cx0,cy0,44,0,7);x.fill();x.lineWidth=5;x.strokeStyle='#ffd75a';x.stroke();
+  x.fillStyle='#fff';x.font=D(50);x.textAlign='center';x.textBaseline='middle';x.fillText('超',cx0,cy0+3);x.restore();
+  x.font=D(84);x.textBaseline='alphabetic';x.lineJoin='round';x.lineWidth=12;x.strokeStyle='#3b0805';x.strokeText('怪獣大全',P+104,cy0+32);x.fillStyle='#c4231a';x.fillText('怪獣大全',P+104,cy0+40);x.fillStyle=gold(cy0-50,cy0+32);x.fillText('怪獣大全',P+104,cy0+32);
+  const sub=app==='zukan'?'ランダム6体':APPN[app]+' ランダム6体';x.font=BB(32);x.fillStyle='#f3efe4';x.fillText(sub,P,cy0+100);
+  const d=new Date();x.font=B(26);x.fillStyle='#9aa1b8';x.textAlign='right';x.fillText(`${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`,W-P,cy0+100);x.textAlign='left';
+  // 2組：名前と勝ち数
+  const cols=two?[[P,(W-2*P-G)/2],[P+(W-2*P-G)/2+G,(W-2*P-G)/2]]:[[P,W-2*P]];
+  if(two){const c2=mCount(),y=cy0+150;
+    [['a','#ff5a48',cols[0]],['b','#3ce08c',cols[1]]].forEach(([s,col,[X,w]])=>{x.fillStyle=s==='a'?'rgba(255,68,54,.22)':'rgba(47,210,127,.2)';rr(x,X,y,w,92,18);x.fill();
+      x.fillStyle=col;x.beginPath();x.arc(X+34,y+46,11,0,7);x.fill();
+      const nm=tName(s);fitFont(x,nm,BB,38,22,w-170);x.fillStyle='#fff';x.textBaseline='middle';x.fillText(clip(x,nm,w-170),X+58,y+48);
+      x.font=D(56);x.textAlign='right';x.fillStyle=col;x.fillText(String(c2[s]),X+w-60,y+50);x.font=BB(26);x.fillStyle='#c9cee0';x.fillText('勝',X+w-24,y+54);x.textAlign='left';x.textBaseline='alphabetic'});
+    const ch=mChamp();if(ch){x.font=D(40);x.textAlign='center';x.fillStyle=gold(y+96,y+140);x.fillText(`♛ ${tName(ch)} 優勝`,W/2,y+138);x.textAlign='left'}
+  }
+  // カード
+  curSets.forEach((list,si)=>{const [X,w]=cols[si];list.forEach(({s,it},k)=>{
+    const y=headH+k*(CH+G), uh=isUltra(it), stripe=uh?'#f5c84c':s.type===G?'#3ce08c':'#ff5a48';
+    let cg=x.createLinearGradient(X,y,X+w,y+CH);cg.addColorStop(0,uh?'#3a3018':'#222a44');cg.addColorStop(.7,uh?'#1d1828':'#121728');cg.addColorStop(1,uh?'#2a2238':'#121728');
+    x.fillStyle=cg;rr(x,X,y,w,CH,20);x.fill();x.lineWidth=uh?3:1.5;x.strokeStyle=uh?'rgba(245,200,76,.9)':'rgba(255,255,255,.12)';x.stroke();
+    x.save();rr(x,X,y,w,CH,20);x.clip();x.fillStyle=stripe;x.fillRect(X,y,8,CH);x.restore();
+    x.font=D(two?48:56);x.textAlign='center';x.textBaseline='middle';x.fillStyle=gold(y+CH/2-28,y+CH/2+28);x.fillText(String(k+1),X+(two?44:52),y+CH/2+2);x.textAlign='left';x.textBaseline='alphabetic';
+    const tx=X+(two?82:100);
+    let right=0;const mk=marks[it.id];
+    if(app==='score'&&scores[it.id]!=null){x.font=D(two?36:44);const t=scores[it.id]+'';right=x.measureText(t).width+(two?34:40);x.textAlign='right';x.fillStyle='#f5c84c';x.fillText(t,X+w-(two?44:50),y+(app==='rate'?60:CH/2+16));x.font=BB(two?20:24);x.fillText('点',X+w-18,y+CH/2+16);x.textAlign='left'}
+    else if(mk){x.save();const mx=X+w-(two?34:46),my=y+CH/2;x.lineWidth=two?5:6;if(mk===3){x.strokeStyle='#f5c84c';x.beginPath();x.moveTo(mx,my-18);x.lineTo(mx+19,my+15);x.lineTo(mx-19,my+15);x.closePath();x.stroke()}else{x.strokeStyle='#ff4d3d';x.beginPath();x.arc(mx,my,19,0,7);x.stroke()}x.restore();right=two?60:76}
+    const maxw=w-(tx-X)-right-(two?14:22);
+    const rateLine=app==='rate'&&rates[it.id];
+    let ny;const lines=[];
+    x.font=B(two?20:23);x.fillStyle='#9aa1b8';const st=clip(x,`${s.title} ${it.no}`,maxw);
+    const top=y+(rateLine?(two?36:34):(it.a?(two?38:40):(two?54:52)));x.fillText(st,tx,top);
+    let yy=top;if(it.a){x.font=B(two?22:25);x.fillStyle=uh?'#e8cf8a':'#c9b8a0';yy+=two?32:34;x.fillText(clip(x,it.a,maxw),tx,yy)}
+    const ns=fitFont(x,it.n,BB,two?34:42,18,maxw);yy+=ns+(two?12:14);x.fillStyle=uh?'#ffe27a':'#ffffff';x.fillText(clip(x,it.n,maxw),tx,yy);
+    if(rateLine){x.font=BB(two?23:27);x.fillStyle='#f5c84c';yy+=two?40:40;x.fillText(clip(x,rateStr(it.id),w-(tx-X)-20),tx,yy)}
+  })});
+  x.font=B(24);x.fillStyle='#7d849c';x.textAlign='center';x.fillText('chankuwai.github.io/the-game/kaiju.html',W/2,H-44);
+  return c;
+}
+function dataToFile(u,name){const [h,b]=u.split(',');const bin=atob(b);const a=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return new File([a],name,{type:h.slice(5,h.indexOf(';'))})}
+function showShot(url,msg){let o=document.getElementById('shotov');if(!o){o=document.createElement('div');o.id='shotov';o.className='shotov';document.body.appendChild(o);o.addEventListener('click',e=>{if(e.target===o||e.target.closest('.shotx'))o.hidden=true})}
+  o.innerHTML=`<div class="shotbox"><p>${esc(msg)}</p><img src="${url}" alt="ランダム6体の結果画像"><div class="shotbtns"><a class="rcopy" href="${url}" download="kaiju-random.png">画像を保存</a><button type="button" class="rcopy shotx">閉じる</button></div></div>`;o.hidden=false}
+document.getElementById('rndimg').onclick=()=>{
+  if(!curSets)return; const m=document.getElementById('rndsharemsg');
+  let url;try{url=rndShot().toDataURL('image/png')}catch(e){m.textContent='画像を作れなかったわ。';return}
+  const file=dataToFile(url,'kaiju-random.png');
+  if(navigator.canShare&&navigator.canShare({files:[file]})){
+    navigator.share({files:[file]}).then(()=>{m.textContent=''},e=>{if(e&&e.name==='AbortError')return;showShot(url,'この画像を長押しで保存するか、「画像を保存」を押して、LINEで送ってね。')});
+  }else showShot(url,'この画像を長押しで保存するか、「画像を保存」を押して、LINEで送ってね。');
+};
 // 範囲でまとめてチェック
 const rfS=document.getElementById('rndfrom'), rtS=document.getElementById('rndto');
 DATA.forEach(([t,title],i)=>{rfS.add(new Option(title,i)); rtS.add(new Option(title,i));});
